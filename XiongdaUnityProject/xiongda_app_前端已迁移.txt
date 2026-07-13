@@ -1,0 +1,6 @@
+「狗熊岭智慧乐园互动终端」前端已迁移到：
+
+  F:\jichuang2026\xiongda_app
+
+若 XiongdaUnityProject 下仍有一个名为 xiongda_app 的文件夹，多半是之前 npm 占用的 node_modules 删不掉。
+请先关闭在该目录下运行的「npm run dev」等终端，再在资源管理器中手动删除整个 xiongda_app 文件夹即可。

@@ -1,0 +1,23 @@
+dataset_root: dataset
+# 选择将训练好的 best.pt 保存到 dataset/artifacts/tcn/<artifact_run>/
+# artifact_run: tcn_exp01
+model_type: temporal_tcn
+time_window: 32
+input_dim: 288
+num_classes: 2
+channels: 64
+kernel_size: 3
+dropout: 0.2
+use_residual: true
+batch_size: 128
+lr: 0.001
+epochs: 50
+early_stopping_patience: 10
+early_stopping_min_delta: 0.0001
+class_weight: true
+seed: 42
+feature_mode: raw
+# 实时后处理（推理 demo 用）
+smoothing_window: 5
+confidence_threshold: 0.45
+min_hold_frames: 4

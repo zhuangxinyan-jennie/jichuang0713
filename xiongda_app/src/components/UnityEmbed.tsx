@@ -1,0 +1,102 @@
+import { motion } from "framer-motion";
+import { Film } from "lucide-react";
+import { isUnityInstanceReady } from "../services/unitySendClip";
+import { lastUnityLoadError, tryLoadUnityWebGL } from "../unity/loadUnityWebGL";
+import { useEffect, useState } from "react";
+
+type UnityEmbedProps = {
+  /** 正在编辑终端输入时屏蔽画布指针，避免 Unity 再次抢走焦点导致无法连续输入 */
+  blockGamePointer?: boolean;
+};
+
+/**
+ * WebGL：支持 Unity 2018 `UnityLoader.instantiate` 与 2019+ `createUnityInstance`（见 /webgl/build-info.json）。
+ */
+export function UnityEmbed({ blockGamePointer = false }: UnityEmbedProps) {
+  const [ready, setReady] = useState(false);
+  const [bootHint, setBootHint] = useState<string | null>(null);
+
+  useEffect(() => {
+    const canvas = document.getElementById("unity-canvas") as HTMLCanvasElement | null;
+    let cancelled = false;
+
+    void tryLoadUnityWebGL("unity-game-mount", canvas).then((ok) => {
+      if (cancelled) return;
+      if (!ok && lastUnityLoadError) {
+        setBootHint(lastUnityLoadError);
+      }
+    });
+
+    const id = window.setInterval(() => {
+      if (isUnityInstanceReady()) {
+        setReady(true);
+        setBootHint(null);
+        window.clearInterval(id);
+      }
+    }, 400);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, []);
+
+  return (
+    <div
+      id="unity-container"
+      className="relative flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-2xl border-2 border-cyan-500/30 bg-gradient-to-b from-slate-900/90 to-slate-950/95 shadow-[0_0_40px_rgba(34,197,94,0.12)]"
+      onMouseDown={() => {
+        if (!blockGamePointer) return;
+        (document.activeElement as HTMLElement | null)?.blur?.();
+      }}
+    >
+      <div className="absolute left-3 right-3 top-3 z-20 flex items-center justify-between gap-2 rounded-lg bg-black/50 px-3 py-1.5 text-xs font-bold text-cyan-200/95 backdrop-blur">
+        <span className="flex items-center gap-1.5">
+          <Film className="h-3.5 w-3.5" aria-hidden />
+          Unity 熊大 · WebGL
+        </span>
+        <span
+          className={ready ? "rounded bg-emerald-500/20 px-2 text-emerald-200" : "text-amber-200/90"}
+        >
+          {ready ? "实例已连接" : "未加载 / 仍占位：检查 build-info.json 与 F12 控制台"}
+        </span>
+      </div>
+
+      <div
+        className={`relative min-h-0 flex-1 ${blockGamePointer ? "pointer-events-none select-none" : ""}`}
+      >
+        {/* Unity 2018：仅清空此节点；React 控制的遮罩与说明在上面一层 */}
+        <div
+          id="unity-game-mount"
+          className="absolute inset-0 min-h-[200px] touch-none bg-black/40"
+          aria-hidden
+        />
+        <canvas
+          id="unity-canvas"
+          className="absolute inset-0 min-h-[200px] h-full w-full touch-none bg-black/40"
+          tabIndex={-1}
+          aria-label="Unity WebGL 熊大画面"
+        />
+
+        {!ready && (
+          <motion.div
+            initial={{ opacity: 0.9 }}
+            animate={{ opacity: 1 }}
+            className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-slate-950/75 px-4 text-center"
+          >
+          <p className="text-lg font-extrabold tracking-wide text-cyan-100">Unity 熊大实时互动窗口</p>
+          <p className="max-w-md text-sm leading-relaxed text-cyan-100/80">
+            若已拷贝 WebGL 仍为本页：请确认存在 <code className="rounded bg-black/50 px-1">public/webgl/build-info.json</code>，且{" "}
+            <strong>需重启</strong> <code className="rounded bg-black/50 px-1">npm run dev</code>（已修正 *.unityweb 的 MIME，否则 WASM 可能无法初始化）。
+            Unity 2018 使用 <code className="rounded bg-black/50 px-1">UnityLoader</code>。请按 F12 查看控制台是否仍有红字。
+          </p>
+          {bootHint ? (
+            <p className="max-w-lg rounded-lg bg-red-950/80 px-3 py-2 text-left text-xs leading-snug text-red-100">
+              {bootHint}
+            </p>
+          ) : null}
+          </motion.div>
+        )}
+      </div>
+    </div>
+  );
+}

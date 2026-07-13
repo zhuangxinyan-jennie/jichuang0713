@@ -1,0 +1,93 @@
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.vs/
+*.suo
+*.user
+*.code-workspace
+*.code-workspace.meta
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+!**/.env.example
+env.local.ps1
+bear_agent/config.py
+bear_agent/visitor_pipeline.config.json
+
+# Python virtual environments and caches
+.venv/
+.venv*/
+venv/
+env/
+__pycache__/
+gesture_cursor_project/python/__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node dependencies and build caches
+node_modules/
+dist/
+build/
+.vite/
+.cache/
+
+# Logs and runtime output
+*.log
+*.out.log
+*.err.log
+logs/
+outputs/
+pre_on_board_local_start_bundle/pc_received_output/
+**/jichuang/output/*.pid
+**/jichuang/output/*.log
+
+# Archives and downloaded bundles
+*.zip
+*.7z
+*.rar
+*.unitypackage
+*.mp4
+*.tar.gz
+*.tar.bz2
+
+# Large ML assets — 用 deploy 脚本在板端下载/编译，勿提交 GitHub
+pretrained_models/
+pre_on_board_local_start_bundle/cache/
+board_on_device/
+*.om
+**/model.int8.onnx
+**/model.fp16.onnx
+**/best.pt
+**/teammate_best.pt
+
+# Reference/download folders that can be recreated from scripts
+cozy_ref/
+third_party/CosyVoice/
+
+# Generated Unity outputs and local Unity caches
+XiongdaUnityProject/Library/
+XiongdaUnityProject/Temp/
+XiongdaUnityProject/Obj/
+XiongdaUnityProject/obj/
+XiongdaUnityProject/Build/
+XiongdaUnityProject/Builds/
+XiongdaUnityProject/Logs/
+XiongdaUnityProject/UserSettings/
+XiongdaUnityProject/WEB/
+XiongdaUnityProject/.vs/
+XiongdaUnityProject/*.csproj
+XiongdaUnityProject/*.sln
+XiongdaUnityProject/PackagesToImport/
+XiongdaUnityProject/background/
+XiongdaUnityProject/xiongda_app/
+xiongda_app/public/webgl/Build/
+xiongda_app/public/webgl/StreamingAssets/
+
+# CosyVoice local virtual environment
+third_party/CosyVoice/.venv*/

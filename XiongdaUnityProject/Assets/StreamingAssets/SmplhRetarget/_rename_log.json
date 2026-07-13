@@ -1,0 +1,180 @@
+{
+  "version": 1,
+  "renames": [
+    {
+      "from": "A_person_raises_one_arm_high_and_waves_broadly_as_if_gre.json",
+      "to": "挥手致意.json",
+      "stem": "00000001_000"
+    },
+    {
+      "from": "A_person_raises_both_arms_high_and_opens_them_outward_in.json",
+      "to": "张臂欢迎.json",
+      "stem": "00000002_000"
+    },
+    {
+      "from": "A_person_gently_shakes_the_head_from_side_to_side_while.json",
+      "to": "摇头.json",
+      "stem": "00000003_000"
+    },
+    {
+      "from": "A_person_gives_a_thumbs_up_gesture_with_one_hand_while_s.json",
+      "to": "竖大拇指.json",
+      "stem": "00000004_000"
+    },
+    {
+      "from": "A_person_makes_two_small_jumps_in_place_with_natural_arm.json",
+      "to": "原地小跳.json",
+      "stem": "00000005_000"
+    },
+    {
+      "from": "A_person_scratches_the_head_with_one_hand_and_tilts_the.json",
+      "to": "挠头歪身.json",
+      "stem": "00000006_000"
+    },
+    {
+      "from": "A_person_stretches_both_arms_upward_leans_back_slightly.json",
+      "to": "伸懒腰.json",
+      "stem": "00000007_000"
+    },
+    {
+      "from": "A_person_slowly_looks_left_and_right_while_standing_in_p.json",
+      "to": "左右张望.json",
+      "stem": "00000008_000"
+    },
+    {
+      "from": "A_person_spreads_both_hands_outward_with_palms_up_as_if.json",
+      "to": "摊手疑问.json",
+      "stem": "00000009_000"
+    },
+    {
+      "from": "A_person_turns_slightly_left_and_points_to_the_left_side.json",
+      "to": "左转指左.json",
+      "stem": "00000010_000"
+    },
+    {
+      "from": "A_person_turns_slightly_right_and_points_to_the_right_si.json",
+      "to": "右转指右.json",
+      "stem": "00000011_000"
+    },
+    {
+      "from": "A_person_gently_pushes_both_hands_forward_and_steps_back.json",
+      "to": "推手后退.json",
+      "stem": "00000012_000"
+    },
+    {
+      "from": "A_person_looks_frightened_and_steps_backward_several_tim.json",
+      "to": "受惊后退.json",
+      "stem": "00000013_000"
+    },
+    {
+      "from": "A_person_marches_in_place_with_relaxed_arm_swings.json",
+      "to": "原地踏步.json",
+      "stem": "00000014_000"
+    },
+    {
+      "from": "A_person_walks_forward_at_a_brisk_pace_with_relaxed_arm.json",
+      "to": "快走向前.json",
+      "stem": "00000015_000"
+    },
+    {
+      "from": "A_person_slowly_lowers_from_a_standing_pose_to_sitting_o.json",
+      "to": "下蹲坐下.json",
+      "stem": "00000016_000"
+    },
+    {
+      "from": "A_person_lying_flat_on_the_ground_slowly_rises_to_a_stan.json",
+      "to": "躺地起身.json",
+      "stem": "00000017_000"
+    },
+    {
+      "from": "A_person_hugs_an_imaginary_object_close_to_the_chest_and.json",
+      "to": "抱胸轻摆.json",
+      "stem": "00000018_000"
+    },
+    {
+      "from": "A_person_lies_down_on_the_ground_and_sleeps_peacefully_w.json",
+      "to": "躺地睡觉.json",
+      "stem": "00000019_000"
+    },
+    {
+      "from": "A_person_slowly_spins_around_once_in_a_full_circle_while.json",
+      "to": "转身一圈.json",
+      "stem": "00000020_000"
+    },
+    {
+      "from": "A_person_cups_one_hand_behind_the_ear_and_leans_slightly.json",
+      "to": "捂耳倾听.json",
+      "stem": "00000021_000"
+    },
+    {
+      "from": "A_person_strikes_a_confident_pose_with_stylish_arm_and_l.json",
+      "to": "自信造型.json",
+      "stem": "00000022_000"
+    },
+    {
+      "from": "A_person_gently_nods_several_times_while_standing_natura.json",
+      "to": "点头.json",
+      "stem": "00000023_000"
+    },
+    {
+      "from": "A_person_shakes_the_head_firmly_from_side_to_side_with_b.json",
+      "to": "摇头拒绝.json",
+      "stem": "00000024_000"
+    },
+    {
+      "from": "A_person_pumps_both_fists_downward_in_an_energetic_cheer.json",
+      "to": "振臂欢呼.json",
+      "stem": "00000025_000"
+    },
+    {
+      "from": "A_person_waves_one_hand_side_to_side_at_shoulder_height.json",
+      "to": "挥手再见.json",
+      "stem": "00000026_000"
+    },
+    {
+      "from": "A_person_claps_several_times_in_front_of_the_chest_while.json",
+      "to": "鼓掌.json",
+      "stem": "00000027_000"
+    },
+    {
+      "from": "A_person_covers_the_face_with_both_hands_and_shrinks_the.json",
+      "to": "捂脸害羞.json",
+      "stem": "00000028_000"
+    },
+    {
+      "from": "A_person_wipes_one_eye_with_the_back_of_the_hand_and_low.json",
+      "to": "擦眼低头.json",
+      "stem": "00000029_000"
+    },
+    {
+      "from": "A_person_places_both_hands_on_the_hips_lifts_the_chin_an.json",
+      "to": "叉腰昂首.json",
+      "stem": "00000030_000"
+    },
+    {
+      "from": "A_person_stamps_one_foot_on_the_ground_once_with_an_anno.json",
+      "to": "跺脚生气.json",
+      "stem": "00000031_000"
+    },
+    {
+      "from": "A_person_takes_a_small_step_backward_and_raises_both_han.json",
+      "to": "后退惊讶.json",
+      "stem": "00000032_000"
+    },
+    {
+      "from": "A_person_bows_deeply_from_the_waist_with_both_hands_held.json",
+      "to": "鞠躬行礼.json",
+      "stem": "00000033_000"
+    },
+    {
+      "from": "A_person_touches_one_palm_to_the_lips_and_flicks_the_han.json",
+      "to": "飞吻.json",
+      "stem": "00000034_000"
+    },
+    {
+      "from": "A_person_crosses_both_forearms_in_front_of_the_chest_for.json",
+      "to": "抱臂拒绝.json",
+      "stem": "00000035_000"
+    }
+  ]
+}

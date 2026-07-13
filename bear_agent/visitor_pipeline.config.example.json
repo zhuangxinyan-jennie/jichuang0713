@@ -1,0 +1,8 @@
+{
+  "board_host": "192.168.137.100",
+  "pre_board_root": "",
+  "video_source": "0",
+  "board_local_mic": true,
+  "board_local_camera": true,
+  "asr_backend": "om"
+}

@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gesture Cursor Demo</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #647184;
+      --line: #d9e0ea;
+      --panel: rgba(255, 255, 255, .9);
+      --leaf: #19a66a;
+      --leaf-soft: rgba(25, 166, 106, .18);
+      --gold: #f2a51f;
+      --gold-soft: rgba(242, 165, 31, .22);
+      --sky: #2473ff;
+      --coral: #e85f4a;
+      --shadow: 0 18px 46px rgba(26, 38, 62, .14);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Microsoft YaHei", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 18% 12%, rgba(36, 115, 255, .12), transparent 28%),
+        radial-gradient(circle at 84% 18%, rgba(25, 166, 106, .14), transparent 30%),
+        linear-gradient(135deg, #f7f9fc 0%, #eef4f8 52%, #fff9ed 100%);
+      overflow-x: hidden;
+    }
+
+    .shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 18px;
+      padding: 22px;
+    }
+
+    header,
+    main,
+    .event-log {
+      max-width: 1180px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 56px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .hud {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 80;
+      width: min(360px, calc(100vw - 32px));
+      border: 1px solid rgba(217, 224, 234, .92);
+      border-radius: 8px;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, .84);
+      box-shadow: 0 14px 34px rgba(26, 38, 62, .12);
+      backdrop-filter: blur(14px);
+    }
+
+    .hud-line {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+      min-height: 26px;
+    }
+
+    .hud-title {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .hud-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: rgba(25, 166, 106, .1);
+      color: var(--leaf);
+      font-size: 18px;
+      flex: 0 0 auto;
+      transition: background .16s, color .16s;
+    }
+
+    #status {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: left;
+    }
+
+    .state-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #aab4c2;
+      box-shadow: 0 0 0 5px rgba(170, 180, 194, .16);
+    }
+
+    .hud[data-state="tracking"] .state-dot,
+    .hud[data-state="hover"] .state-dot {
+      background: var(--leaf);
+      box-shadow: 0 0 0 5px var(--leaf-soft);
+    }
+
+    .hud[data-state="pressing"] .state-dot {
+      background: var(--gold);
+      box-shadow: 0 0 0 5px var(--gold-soft);
+    }
+
+    .hud[data-state="pressing"] .hud-icon {
+      background: rgba(242, 165, 31, .14);
+      color: var(--gold);
+    }
+
+    .hud[data-state="cooldown"] .state-dot {
+      background: var(--coral);
+      box-shadow: 0 0 0 5px rgba(232, 95, 74, .16);
+    }
+
+    .hud[data-state="cooldown"] .hud-icon {
+      background: rgba(232, 95, 74, .12);
+      color: var(--coral);
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(300px, 410px) minmax(0, 1fr);
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(217, 224, 234, .86);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .guide {
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 22px;
+    }
+
+    .guide h2,
+    .stage h2 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+
+    .steps {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 12px;
+      align-items: start;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 16px;
+    }
+
+    .num {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: #fff4dc;
+      color: #b66f00;
+      font-weight: 800;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: #fff;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 24px;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+
+    .metric span {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .stage {
+      padding: 26px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 20px;
+      min-height: 620px;
+    }
+
+    .target-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: repeat(2, minmax(180px, 1fr));
+      gap: 16px;
+    }
+
+    .target {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: flex-start;
+      min-height: 180px;
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+      text-align: left;
+      overflow: hidden;
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    .target::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      opacity: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 50%, rgba(242, 165, 31, .18), transparent 58%);
+      transition: opacity .18s ease;
+    }
+
+    .target:hover,
+    .target:focus,
+    .target.gesture-hover {
+      outline: none;
+      transform: translateY(-2px) scale(1.012);
+      border-color: rgba(242, 165, 31, .82);
+      box-shadow: 0 18px 42px rgba(242, 165, 31, .18), 0 0 0 4px rgba(242, 165, 31, .12);
+      background: #fffdf7;
+    }
+
+    .target:hover::after,
+    .target:focus::after,
+    .target.gesture-hover::after {
+      opacity: 1;
+    }
+
+    .target strong {
+      position: relative;
+      z-index: 1;
+      font-size: clamp(24px, 3vw, 38px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .target span {
+      position: relative;
+      z-index: 1;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.45;
+      max-width: 24em;
+    }
+
+    .target[data-tone="leaf"] { border-top: 5px solid var(--leaf); }
+    .target[data-tone="sky"] { border-top: 5px solid var(--sky); }
+    .target[data-tone="gold"] { border-top: 5px solid var(--gold); }
+    .target[data-tone="coral"] { border-top: 5px solid var(--coral); }
+
+    .event-log {
+      min-height: 76px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .84);
+      padding: 14px 18px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      box-shadow: 0 10px 28px rgba(26, 38, 62, .07);
+    }
+
+    .idle-hint {
+      position: fixed;
+      left: 50%;
+      bottom: 28px;
+      transform: translateX(-50%);
+      z-index: 20;
+      border: 1px solid rgba(217, 224, 234, .85);
+      border-radius: 999px;
+      padding: 12px 18px;
+      background: rgba(255, 255, 255, .86);
+      color: var(--muted);
+      box-shadow: 0 12px 32px rgba(26, 38, 62, .1);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease, transform .25s ease;
+    }
+
+    .idle-hint.visible {
+      opacity: 1;
+      transform: translate(-50%, -6px);
+    }
+
+    #cursor {
+      position: fixed;
+      width: 48px;
+      height: 48px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 9999;
+      display: none;
+      opacity: .98;
+      transition: opacity .1s, width .12s, height .12s;
+    }
+
+    #cursor .glow {
+      position: absolute;
+      inset: -18px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(25, 166, 106, .24), transparent 62%);
+      filter: blur(1px);
+    }
+
+    #cursor .outer {
+      position: absolute;
+      inset: 3px;
+      border-radius: 50%;
+      border: 2px solid rgba(25, 166, 106, .48);
+      box-shadow: 0 0 0 8px rgba(25, 166, 106, .08);
+      transition: border-color .12s, box-shadow .12s, transform .12s;
+    }
+
+    #cursor .paw {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 16px;
+      height: 13px;
+      transform: translate(-50%, -38%);
+      border-radius: 50% 50% 46% 46%;
+      background: var(--leaf);
+      box-shadow: 0 0 18px rgba(25, 166, 106, .5);
+      transition: background .12s, box-shadow .12s;
+    }
+
+    #cursor .toe {
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--leaf);
+      box-shadow: 0 0 12px rgba(25, 166, 106, .44);
+      transition: background .12s, box-shadow .12s;
+    }
+
+    #cursor .toe.t1 { left: 13px; top: 12px; }
+    #cursor .toe.t2 { left: 21px; top: 8px; }
+    #cursor .toe.t3 { right: 13px; top: 12px; }
+
+    #progressRing {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      transform: rotate(-90deg);
+    }
+
+    #progressRing circle {
+      fill: none;
+      stroke-width: 4;
+      stroke-linecap: round;
+    }
+
+    #progressTrack {
+      stroke: rgba(255, 255, 255, .72);
+    }
+
+    #progressValue {
+      stroke: var(--gold);
+      stroke-dasharray: 138;
+      stroke-dashoffset: 138;
+      transition: stroke-dashoffset .04s linear;
+    }
+
+    #cursor.hover .outer {
+      transform: scale(1.12);
+      border-color: rgba(242, 165, 31, .68);
+      box-shadow: 0 0 0 10px rgba(242, 165, 31, .12);
+    }
+
+    #cursor.pressing {
+      width: 58px;
+      height: 58px;
+    }
+
+    #cursor.pressing .glow {
+      background: radial-gradient(circle, rgba(242, 165, 31, .34), transparent 64%);
+    }
+
+    #cursor.pressing .outer {
+      border-color: rgba(242, 165, 31, .86);
+      box-shadow: 0 0 0 10px rgba(242, 165, 31, .14), 0 0 28px rgba(242, 165, 31, .3);
+    }
+
+    #cursor.pressing .paw,
+    #cursor.pressing .toe {
+      background: var(--gold);
+      box-shadow: 0 0 18px rgba(242, 165, 31, .55);
+    }
+
+    #cursor.cooldown {
+      opacity: .68;
+    }
+
+    .trail-dot {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(242, 165, 31, .44);
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: opacity .12s linear, transform .12s linear;
+    }
+
+    .click-ripple {
+      position: fixed;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid rgba(242, 165, 31, .9);
+      pointer-events: none;
+      z-index: 9997;
+      transform: translate(-50%, -50%) scale(.5);
+      animation: ripple .56s ease-out forwards;
+      box-shadow: 0 0 22px rgba(242, 165, 31, .34);
+    }
+
+    @keyframes ripple {
+      to {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(3.2);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+      .trail-dot { display: none; }
+    }
+
+    @media (max-width: 860px) {
+      .shell { padding: 14px; }
+      header { flex-direction: column; align-items: stretch; }
+      .hud { right: 14px; bottom: 14px; }
+      main { grid-template-columns: 1fr; }
+      .stage { min-height: auto; }
+      .target-grid { grid-template-columns: 1fr; grid-template-rows: none; }
+      .target { min-height: 150px; }
+      .idle-hint { width: calc(100% - 28px); text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <h1 data-i18n="title"></h1>
+    </header>
+
+    <main>
+      <section class="panel guide">
+        <div>
+          <h2 data-i18n="currentEffect"></h2>
+          <div class="steps">
+            <div class="step">
+              <div class="num">1</div>
+              <div data-i18n="step1"></div>
+            </div>
+            <div class="step">
+              <div class="num">2</div>
+              <div data-i18n="step2"></div>
+            </div>
+            <div class="step">
+              <div class="num">3</div>
+              <div data-i18n="step3"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="metrics">
+          <div class="metric">
+            <strong id="clickCount">0</strong>
+            <span data-i18n="clickMetric"></span>
+          </div>
+          <div class="metric">
+            <strong id="activeState"></strong>
+            <span data-i18n="stateMetric"></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel stage">
+        <h2 data-i18n="testArea"></h2>
+        <div class="target-grid">
+          <button class="target" type="button" data-tone="leaf" data-label-key="route">
+            <strong data-i18n="route"></strong>
+            <span data-i18n="routeDesc"></span>
+          </button>
+          <button class="target" type="button" data-tone="sky" data-label-key="map">
+            <strong data-i18n="map"></strong>
+            <span data-i18n="mapDesc"></span>
+          </button>
+          <button class="target" type="button" data-tone="gold" data-label-key="voice">
+            <strong data-i18n="voice"></strong>
+            <span data-i18n="voiceDesc"></span>
+          </button>
+          <button class="target" type="button" data-tone="coral" data-label-key="back">
+            <strong data-i18n="back"></strong>
+            <span data-i18n="backDesc"></span>
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <div class="event-log" id="eventLog"></div>
+  </div>
+
+  <div class="idle-hint" id="idleHint"></div>
+
+  <div class="hud" id="hud" data-state="idle">
+    <div class="hud-line">
+      <span class="hud-icon" id="hudIcon" aria-hidden="true">○</span>
+      <div>
+        <div class="hud-title" data-i18n="hudTitle"></div>
+        <strong id="status"></strong>
+      </div>
+      <span class="state-dot" aria-hidden="true"></span>
+    </div>
+  </div>
+
+  <div id="cursor" aria-hidden="true">
+    <div class="glow"></div>
+    <div class="outer"></div>
+    <svg id="progressRing" viewBox="0 0 48 48">
+      <circle id="progressTrack" cx="24" cy="24" r="22"></circle>
+      <circle id="progressValue" cx="24" cy="24" r="22"></circle>
+    </svg>
+    <span class="toe t1"></span>
+    <span class="toe t2"></span>
+    <span class="toe t3"></span>
+    <span class="paw"></span>
+  </div>
+
+  <script type="module">
+    import {
+      GestureCursorController,
+      DEFAULT_GESTURE_CURSOR_CONFIG,
+      applyServerMeta,
+    } from "./cursor_controller.js";
+
+    const text = {
+      title: "\u68ee\u6797\u7075\u5149\u718a\u638c\u5149\u6807",
+      hudTitle: "\u718a\u5927\u5bfc\u89c8\u5149\u6807",
+      currentEffect: "\u5f53\u524d\u4ea4\u4e92\u6548\u679c",
+      step1: "\u4e3e\u8d77\u624b\u540e\uff0c\u9875\u9762\u4f1a\u51fa\u73b0\u201c\u68ee\u6797\u7075\u5149\u718a\u638c\u201d\uff1a\u91d1\u7eff\u4e2d\u5fc3\u70b9\u3001\u534a\u900f\u660e\u5916\u73af\u3001\u62bd\u8c61\u718a\u638c\u6697\u7eb9\u548c\u67d4\u548c\u8424\u706b\u5149\u6655\u3002",
+      step2: "\u79fb\u52a8\u624b\u638c\u9009\u62e9\u76ee\u6807\u3002\u9760\u8fd1\u53ef\u70b9\u51fb\u5143\u7d20\u65f6\uff0c\u76ee\u6807\u4f1a\u67d4\u548c\u653e\u5927\u5e76\u53d1\u51fa\u6696\u9ec4\u5149\u3002",
+      step3: "\u62c7\u6307\u548c\u98df\u6307\u634f\u5408\u65f6\uff0c\u5916\u73af\u53d8\u91d1\u8272\u5e76\u663e\u793a\u8fdb\u5ea6\uff1b\u70b9\u51fb\u6210\u529f\u540e\u4f1a\u51fa\u73b0\u6a59\u91d1\u6ce2\u7eb9\u3002",
+      clickMetric: "\u5df2\u89e6\u53d1\u70b9\u51fb",
+      stateMetric: "\u8bc6\u522b\u72b6\u6001",
+      testArea: "\u5927\u6309\u94ae\u6d4b\u8bd5\u533a",
+      route: "\u8def\u7ebf\u63a8\u8350",
+      routeDesc: "\u6d4b\u8bd5\u5927\u76ee\u6807\u60ac\u505c\u548c\u634f\u5408\u70b9\u51fb\u3002",
+      map: "\u5730\u56fe\u5bfc\u822a",
+      mapDesc: "\u6d4b\u8bd5\u4ece\u5de6\u5230\u53f3\u8de8\u5c4f\u79fb\u52a8\u3002",
+      voice: "\u8bed\u97f3\u8bb2\u89e3",
+      voiceDesc: "\u6d4b\u8bd5\u70b9\u51fb\u540e\u7684\u51b7\u5374\u548c\u6210\u529f\u53cd\u9988\u3002",
+      back: "\u9000\u51fa\u8fd4\u56de",
+      backDesc: "\u6d4b\u8bd5\u8fb9\u89d2\u76ee\u6807\u662f\u5426\u5bb9\u6613\u70b9\u5230\u3002",
+      eventIdle: "\u8fd8\u6ca1\u6709\u70b9\u51fb\u4e8b\u4ef6\u3002\u628a\u5149\u6807\u79fb\u5230\u4efb\u610f\u5927\u6309\u94ae\u4e0a\uff0c\u634f\u5408\u62c7\u6307\u548c\u98df\u6307\u8bd5\u4e00\u4e0b\u3002",
+      hint: "\u4e3e\u8d77\u624b\u638c\u79fb\u52a8\u5149\u6807\uff0c\u634f\u5408\u62c7\u6307\u548c\u98df\u6307\u70b9\u51fb",
+      waiting: "\u4e3e\u8d77\u624b\u638c",
+      tracking: "\u5df2\u8bc6\u522b\u624b\u638c",
+      hover: "\u79fb\u52a8\u624b\u638c\u9009\u62e9",
+      pressing: "\u634f\u5408\u786e\u8ba4",
+      cooldown: "\u70b9\u51fb\u6210\u529f",
+      lost: "\u4e3e\u8d77\u624b\u638c",
+      connecting: "\u6b63\u5728\u8fde\u63a5\u6444\u50cf\u5934\u6570\u636e...",
+      clicked: "\u5df2\u70b9\u51fb",
+      move: "\u79fb\u52a8\u624b\u638c\u9009\u62e9",
+      fetchFail: "\u65e0\u6cd5\u83b7\u53d6 /api/landmarks",
+      mockMode: "\u6f14\u793a\u6a21\u5f0f\uff1a\u7528\u9f20\u6807\u79fb\u52a8\u5149\u6807\uff0c\u6309\u4f4f\u9f20\u6807\u6a21\u62df\u634f\u5408",
+      transferHint: "\u8fd9\u5c31\u662f\u540e\u7eed\u79fb\u690d\u5230\u718a\u5927\u754c\u9762\u65f6\u53ef\u4ee5\u8f6c\u53d1\u6210\u6309\u94ae\u70b9\u51fb\u7684\u52a8\u4f5c\u3002",
+    };
+
+    document.querySelectorAll("[data-i18n]").forEach((node) => {
+      node.textContent = text[node.dataset.i18n] || "";
+    });
+    document.title = text.title;
+
+    const config = { ...DEFAULT_GESTURE_CURSOR_CONFIG };
+    let metaApplied = false;
+    const controller = new GestureCursorController();
+
+    const cursor = document.getElementById("cursor");
+    const progressValue = document.getElementById("progressValue");
+    const status = document.getElementById("status");
+    const hud = document.getElementById("hud");
+    const eventLog = document.getElementById("eventLog");
+    const clickCount = document.getElementById("clickCount");
+    const activeState = document.getElementById("activeState");
+    const idleHint = document.getElementById("idleHint");
+    const hudIcon = document.getElementById("hudIcon");
+    const targets = Array.from(document.querySelectorAll(".target"));
+    const trail = [];
+    const trailLength = 7;
+    const progressCircumference = 138;
+
+    let fetchBusy = false;
+    let lastStatus = text.connecting;
+    let lastHoverTarget = null;
+    let clicks = 0;
+    let lastRippleAt = 0;
+    let mockMode = false;
+    const mock = {
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2,
+      down: false,
+      downAt: 0,
+      cooldownUntil: 0,
+    };
+
+    const hudIcons = {
+      idle: "\u25cb",
+      tracking: "\u270b",
+      hover: "\u2726",
+      pressing: "\u25d4",
+      cooldown: "\u2713",
+    };
+
+    eventLog.textContent = text.eventIdle;
+    idleHint.textContent = text.hint;
+    status.textContent = text.connecting;
+    activeState.textContent = text.waiting;
+
+    for (let i = 0; i < trailLength; i += 1) {
+      const dot = document.createElement("span");
+      dot.className = "trail-dot";
+      dot.style.opacity = "0";
+      document.body.appendChild(dot);
+      trail.push({ node: dot, x: 0, y: 0 });
+    }
+
+    targets.forEach((button) => {
+      button.dataset.label = text[button.dataset.labelKey] || button.textContent.trim();
+      button.addEventListener("click", () => {
+        clicks += 1;
+        clickCount.textContent = String(clicks);
+        const label = button.dataset.label;
+        eventLog.textContent = `${text.clicked}: ${label}. ${text.transferHint}`;
+      });
+    });
+
+    window.addEventListener("pointermove", (event) => {
+      mock.x = event.clientX;
+      mock.y = event.clientY;
+    });
+
+    window.addEventListener("pointerdown", (event) => {
+      if (!mockMode) return;
+      mock.down = true;
+      mock.downAt = performance.now();
+      mock.x = event.clientX;
+      mock.y = event.clientY;
+    });
+
+    window.addEventListener("pointerup", (event) => {
+      if (!mockMode) return;
+      mock.x = event.clientX;
+      mock.y = event.clientY;
+      mock.down = false;
+      mock.cooldownUntil = performance.now() + 360;
+      const target = document.elementFromPoint(mock.x, mock.y)?.closest(".target");
+      if (target) target.click();
+      ripple(mock.x, mock.y);
+    });
+
+    function stateLabel(phase, hasTarget) {
+      if (phase === "pressing") return text.pressing;
+      if (phase === "cooldown") return text.cooldown;
+      if (hasTarget) return text.hover;
+      return text.tracking;
+    }
+
+    function setHoverTarget(target) {
+      if (lastHoverTarget === target) return;
+      if (lastHoverTarget) lastHoverTarget.classList.remove("gesture-hover");
+      lastHoverTarget = target;
+      if (lastHoverTarget) lastHoverTarget.classList.add("gesture-hover");
+    }
+
+    function updateTrail(x, y, active) {
+      if (!active) {
+        trail.forEach((item) => { item.node.style.opacity = "0"; });
+        return;
+      }
+      trail.unshift({ node: trail.pop().node, x, y });
+      trail.forEach((item, index) => {
+        const opacity = Math.max(0, .34 - index * .045);
+        const scale = Math.max(.35, 1 - index * .08);
+        item.node.style.left = `${item.x}px`;
+        item.node.style.top = `${item.y}px`;
+        item.node.style.opacity = String(opacity);
+        item.node.style.transform = `translate(-50%, -50%) scale(${scale})`;
+      });
+    }
+
+    function ripple(x, y) {
+      const now = performance.now();
+      if (now - lastRippleAt < 120) return;
+      lastRippleAt = now;
+      const node = document.createElement("span");
+      node.className = "click-ripple";
+      node.style.left = `${x}px`;
+      node.style.top = `${y}px`;
+      document.body.appendChild(node);
+      node.addEventListener("animationend", () => node.remove(), { once: true });
+    }
+
+    function mockState(now) {
+      const target = document.elementFromPoint(mock.x, mock.y)?.closest(".target");
+      let phase = "tracking";
+      let progress = 0;
+      if (now < mock.cooldownUntil) {
+        phase = "cooldown";
+      } else if (mock.down) {
+        phase = "pressing";
+        progress = Math.min(1, (now - mock.downAt) / 300);
+      }
+      return {
+        active: true,
+        phase,
+        clientX: mock.x,
+        clientY: mock.y,
+        progress,
+        targetLabel: target?.dataset?.label || "",
+        hasTarget: Boolean(target),
+        nearTarget: Boolean(target),
+        lastUpdatedAt: now,
+      };
+    }
+
+    function render(state) {
+      if (!state.active) {
+        cursor.style.display = "none";
+        progressValue.style.strokeDashoffset = String(progressCircumference);
+        activeState.textContent = text.waiting;
+        hud.dataset.state = "idle";
+        hudIcon.textContent = hudIcons.idle;
+        setHoverTarget(null);
+        updateTrail(0, 0, false);
+        idleHint.classList.add("visible");
+        return;
+      }
+
+      const hoverTarget = state.hasTarget
+        ? document.elementFromPoint(state.clientX, state.clientY)?.closest(".target")
+        : null;
+      setHoverTarget(hoverTarget);
+
+      let visualX = state.clientX;
+      let visualY = state.clientY;
+      if (hoverTarget && state.phase !== "pressing") {
+        const rect = hoverTarget.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        visualX += (cx - state.clientX) * 0.08;
+        visualY += (cy - state.clientY) * 0.08;
+      }
+
+      cursor.style.display = "block";
+      cursor.style.left = `${visualX}px`;
+      cursor.style.top = `${visualY}px`;
+      cursor.classList.toggle("hover", Boolean(hoverTarget));
+      cursor.classList.toggle("pressing", state.phase === "pressing");
+      cursor.classList.toggle("cooldown", state.phase === "cooldown");
+      progressValue.style.strokeDashoffset =
+        String(progressCircumference * (1 - Math.max(0, Math.min(1, state.progress))));
+
+      const label = stateLabel(state.phase, Boolean(hoverTarget));
+      activeState.textContent = label;
+      hud.dataset.state = state.phase === "tracking" && hoverTarget ? "hover" : state.phase;
+      hudIcon.textContent = hudIcons[hud.dataset.state] || hudIcons.tracking;
+      updateTrail(visualX, visualY, state.phase !== "cooldown");
+      idleHint.classList.remove("visible");
+    }
+
+    async function pullLandmarks() {
+      if (fetchBusy) return;
+      fetchBusy = true;
+      try {
+        const res = await fetch("/api/landmarks", { cache: "no-store" });
+        const data = await res.json();
+        if (!metaApplied && data.meta) {
+          applyServerMeta(config, data.meta);
+          metaApplied = true;
+        }
+
+        const points = Array.isArray(data.hand_landmarks) && data.hand_landmarks.length >= 9
+          ? data.hand_landmarks
+          : null;
+        const logic = controller.update(points, config);
+        if (logic.click) {
+          const label = logic.click.target?.dataset?.label || logic.click.target?.textContent?.trim() || "";
+          lastStatus = label ? `${text.clicked}: ${label}` : text.cooldown;
+          ripple(logic.click.clientX, logic.click.clientY);
+        }
+      } catch (error) {
+        mockMode = true;
+        controller.update(null, config);
+        lastStatus = text.mockMode;
+      } finally {
+        fetchBusy = false;
+      }
+    }
+
+    function frame() {
+      const now = performance.now();
+      const display = mockMode ? mockState(now) : controller.tickDisplay(config);
+      render(display);
+
+      if (mockMode) {
+        lastStatus = display.phase === "pressing"
+          ? `${text.pressing}${display.targetLabel ? `: ${display.targetLabel}` : ""}`
+          : text.mockMode;
+      } else if (!lastStatus.startsWith(text.clicked) && !lastStatus.startsWith(text.fetchFail)) {
+        if (!display.active) {
+          lastStatus = fetchBusy ? text.connecting : text.lost;
+        } else if (display.targetLabel) {
+          lastStatus = display.phase === "pressing"
+            ? `${text.pressing}: ${display.targetLabel}`
+            : `${text.hover}: ${display.targetLabel}`;
+        } else {
+          lastStatus = text.move;
+        }
+      }
+
+      status.textContent = lastStatus;
+      requestAnimationFrame(frame);
+    }
+
+    setInterval(pullLandmarks, 20);
+    pullLandmarks();
+    requestAnimationFrame(frame);
+
+    setInterval(() => {
+      const state = controller.markStale(performance.now(), config.staleAfterMs);
+      if (!state.active) render(state);
+      if (lastStatus.startsWith(text.clicked)) lastStatus = "";
+    }, 180);
+  </script>
+</body>
+</html>

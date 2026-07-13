@@ -1,0 +1,5 @@
+# run_all.py：SSH 连接开发板（无 sshpass 时使用）
+paramiko>=3.0
+
+# PC 端整句离线增强（FunASR）：建议在 Windows 上用 README_LOCAL_START.md 中的
+# conda create -p .conda_env ... 安装；全局 pip 在 Python 3.13 上可能无法编译 editdistance。

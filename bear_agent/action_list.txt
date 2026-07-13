@@ -1,0 +1,34 @@
+# Bear Agent 动作库清单
+
+## 熊大动作库
+
+输出给 Unity 的 `actions` 字段直接使用中文动作名。
+
+- 挥手致意
+- 张臂欢迎
+- 摇头
+- 双手欢呼
+- 原地小跳
+- 挠头歪身
+- 伸懒腰
+- 左右张望
+- 摊手疑问
+- 左转指左
+
+## Face_Blendshapes
+
+- `neutral` - 平静
+- `smile` - 微笑
+- `confident` - 自信/得意
+- `confused` - 呆萌/疑惑
+- `angry` - 生气
+- `surprised` - 惊讶
+
+---
+
+**注意**：
+1. 以上动作需要 Unity 动画资产库支持。
+2. 熊大动作不再分 Base_Postures / Upper_Body / Full_Body。
+3. 不再使用 `layered`，只使用 `sequential` 或 `generated`。
+4. `sequential` 的 `actions` 必须直接使用上面的中文动作名。
+5. `generated` 的 `motion_description` 才允许使用自然语言动作描述。

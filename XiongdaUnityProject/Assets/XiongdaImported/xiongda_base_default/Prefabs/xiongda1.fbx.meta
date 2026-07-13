@@ -1,0 +1,224 @@
+fileFormatVersion: 2
+guid: 08155e0928d42144a8b0cd8f360780db
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: body.001
+    100002: Head
+    100004: Head_end
+    100006: L_Ankle
+    100008: L_Collar
+    100010: L_Elbow
+    100012: L_Foot
+    100014: L_Foot_end
+    100016: L_Hip
+    100018: L_Index1
+    100020: L_Index2
+    100022: L_Index3
+    100024: L_Index3_end
+    100026: L_Knee
+    100028: L_Pinky1
+    100030: L_Pinky2
+    100032: L_Pinky3
+    100034: L_Pinky3_end
+    100036: L_Ring1
+    100038: L_Ring2
+    100040: L_Ring3
+    100042: L_Ring3_end
+    100044: L_Shoulder
+    100046: L_Thumb1
+    100048: L_Thumb2
+    100050: L_Thumb3
+    100052: L_Thumb3_end
+    100054: L_Wrist
+    100056: Light
+    100058: Neck
+    100060: Pelvis
+    100062: qiu_L
+    100064: qiu_R
+    100066: R_Ankle
+    100068: R_Collar
+    100070: R_Elbow
+    100072: R_Foot
+    100074: R_Foot_end
+    100076: R_Hip
+    100078: R_Index1
+    100080: R_Index2
+    100082: R_Index3
+    100084: R_Index3_end
+    100086: R_Knee
+    100088: R_Pinky1
+    100090: R_Pinky2
+    100092: R_Pinky3
+    100094: R_Pinky3_end
+    100096: R_Ring1
+    100098: R_Ring2
+    100100: R_Ring3
+    100102: R_Ring3_end
+    100104: R_Shoulder
+    100106: R_Thumb1
+    100108: R_Thumb2
+    100110: R_Thumb3
+    100112: R_Thumb3_end
+    100114: R_Wrist
+    100116: Reference
+    100118: Spine1
+    100120: Spine2
+    100122: Spine3
+    100124: //RootNode
+    100126: 'xiongda_xinban #74562'
+    400000: body.001
+    400002: Head
+    400004: Head_end
+    400006: L_Ankle
+    400008: L_Collar
+    400010: L_Elbow
+    400012: L_Foot
+    400014: L_Foot_end
+    400016: L_Hip
+    400018: L_Index1
+    400020: L_Index2
+    400022: L_Index3
+    400024: L_Index3_end
+    400026: L_Knee
+    400028: L_Pinky1
+    400030: L_Pinky2
+    400032: L_Pinky3
+    400034: L_Pinky3_end
+    400036: L_Ring1
+    400038: L_Ring2
+    400040: L_Ring3
+    400042: L_Ring3_end
+    400044: L_Shoulder
+    400046: L_Thumb1
+    400048: L_Thumb2
+    400050: L_Thumb3
+    400052: L_Thumb3_end
+    400054: L_Wrist
+    400056: Light
+    400058: Neck
+    400060: Pelvis
+    400062: qiu_L
+    400064: qiu_R
+    400066: R_Ankle
+    400068: R_Collar
+    400070: R_Elbow
+    400072: R_Foot
+    400074: R_Foot_end
+    400076: R_Hip
+    400078: R_Index1
+    400080: R_Index2
+    400082: R_Index3
+    400084: R_Index3_end
+    400086: R_Knee
+    400088: R_Pinky1
+    400090: R_Pinky2
+    400092: R_Pinky3
+    400094: R_Pinky3_end
+    400096: R_Ring1
+    400098: R_Ring2
+    400100: R_Ring3
+    400102: R_Ring3_end
+    400104: R_Shoulder
+    400106: R_Thumb1
+    400108: R_Thumb2
+    400110: R_Thumb3
+    400112: R_Thumb3_end
+    400114: R_Wrist
+    400116: Reference
+    400118: Spine1
+    400120: Spine2
+    400122: Spine3
+    400124: //RootNode
+    400126: 'xiongda_xinban #74562'
+    2100000: No Name
+    4300000: 'xiongda_xinban #74562'
+    9500000: //RootNode
+    10800000: Light
+    13700000: 'xiongda_xinban #74562'
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 0.01
+    hasPreviousCalculatedGlobalScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

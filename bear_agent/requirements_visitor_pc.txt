@@ -1,0 +1,4 @@
+# PC 端精简包 sender（pc_video_sender / pc_audio_sender）与本机 venv 共用 Python 时需安装：
+numpy>=1.24
+opencv-python>=4.8
+sounddevice>=0.4

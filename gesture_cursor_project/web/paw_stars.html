@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>森林灵光 · 补全熊掌</title>
+  <link rel="stylesheet" href="/web/paw_stars.css" />
+</head>
+<body>
+  <div class="bg-stars" id="bgStars" aria-hidden="true"></div>
+
+  <div class="app">
+    <header>
+      <div>
+        <h1>森林灵光 · 补全熊掌</h1>
+        <p class="subtitle">
+          画面散落星星，右侧是熊掌空缺。<strong>举起手掌</strong>移动森林灵光光标，
+          <strong>捏合拇指和食指</strong>抓住星星，拖到空缺处补全；也可直接用鼠标拖星。
+        </p>
+      </div>
+      <div class="hud">
+        <strong id="progress">0 / 5</strong>
+        <span>已补全</span>
+      </div>
+    </header>
+
+    <section class="game-board" id="gameBoard">
+      <div class="stars-field" id="starsField"></div>
+      <div class="paw-zone">
+        <div class="paw-panel">
+          <svg class="paw-outline" viewBox="0 0 200 220" aria-hidden="true">
+            <path d="M100 205
+              C58 205 28 176 28 136
+              C28 108 46 88 72 82
+              C62 62 68 38 88 28
+              C98 22 108 22 118 28
+              C138 38 144 62 134 82
+              C160 88 178 108 178 136
+              C178 176 148 205 100 205 Z" />
+            <ellipse cx="62" cy="72" rx="22" ry="26" opacity="0.35" />
+            <ellipse cx="88" cy="52" rx="20" ry="24" opacity="0.35" />
+            <ellipse cx="112" cy="52" rx="20" ry="24" opacity="0.35" />
+            <ellipse cx="138" cy="72" rx="22" ry="26" opacity="0.35" />
+          </svg>
+          <div class="slots-layer" id="slotsLayer"></div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <span id="status">举起手掌，捏合抓星拖到熊掌空缺处</span>
+      <button type="button" class="btn" id="resetBtn">重新开始</button>
+    </footer>
+  </div>
+
+  <div class="idle-hint" id="idleHint"></div>
+
+  <div class="gesture-hud" id="gestureHud" data-state="idle">
+    <div class="gesture-hud-line">
+      <span class="gesture-hud-icon" id="gestureIcon" aria-hidden="true">○</span>
+      <div>
+        <div class="gesture-hud-title">手势光标</div>
+        <strong id="gestureStatus">正在连接摄像头…</strong>
+      </div>
+      <span class="state-dot" aria-hidden="true"></span>
+    </div>
+  </div>
+
+  <div id="cursor" aria-hidden="true">
+    <div class="glow"></div>
+    <div class="outer"></div>
+    <svg id="progressRing" viewBox="0 0 48 48">
+      <circle id="progressTrack" cx="24" cy="24" r="22"></circle>
+      <circle id="progressValue" cx="24" cy="24" r="22"></circle>
+    </svg>
+    <span class="toe t1"></span>
+    <span class="toe t2"></span>
+    <span class="toe t3"></span>
+    <span class="paw"></span>
+  </div>
+
+  <div class="success-overlay" id="successOverlay" role="dialog" aria-modal="true" aria-labelledby="successTitle">
+    <div class="success-card">
+      <svg class="paw-complete" viewBox="0 0 200 220" aria-hidden="true">
+        <path fill="rgba(255,216,106,0.35)" stroke="#ffd86a" stroke-width="3"
+          d="M100 205 C58 205 28 176 28 136 C28 108 46 88 72 82 C62 62 68 38 88 28 C98 22 108 22 118 28 C138 38 144 62 134 82 C160 88 178 108 178 136 C178 176 148 205 100 205 Z"/>
+        <circle cx="48" cy="74" r="10" fill="#ffd86a"/>
+        <circle cx="76" cy="50" r="10" fill="#ffd86a"/>
+        <circle cx="124" cy="50" r="10" fill="#ffd86a"/>
+        <circle cx="152" cy="74" r="10" fill="#ffd86a"/>
+        <circle cx="100" cy="136" r="14" fill="#ffd86a"/>
+      </svg>
+      <h2 id="successTitle">补全成功！</h2>
+      <p>五颗星星都已归位，熊掌重新亮起森林灵光。</p>
+      <button type="button" class="btn" id="playAgainBtn">再玩一次</button>
+    </div>
+  </div>
+
+  <script type="module">
+    try {
+      const { bootPawStarsGesture } = await import("/web/paw_stars_gesture.js");
+      bootPawStarsGesture({
+        bgStarsEl: document.getElementById("bgStars"),
+        gameBoard: document.getElementById("gameBoard"),
+        starsField: document.getElementById("starsField"),
+        slotsLayer: document.getElementById("slotsLayer"),
+        progressEl: document.getElementById("progress"),
+        statusEl: document.getElementById("status"),
+        successOverlay: document.getElementById("successOverlay"),
+        resetBtn: document.getElementById("resetBtn"),
+        playAgainBtn: document.getElementById("playAgainBtn"),
+        cursorEl: document.getElementById("cursor"),
+        progressValueEl: document.getElementById("progressValue"),
+        gestureStatusEl: document.getElementById("gestureStatus"),
+        gestureHudEl: document.getElementById("gestureHud"),
+        gestureIconEl: document.getElementById("gestureIcon"),
+        idleHintEl: document.getElementById("idleHint"),
+      });
+    } catch (error) {
+      const el = document.getElementById("gestureStatus");
+      if (el) {
+        el.textContent = "脚本加载失败，请关闭旧窗口后重新双击 bat，再 Ctrl+F5";
+      }
+      console.error(error);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+BOARD_PRE=/home/HwHiAiUser/pre_on_board
+BOARD_JICHUANG=/home/HwHiAiUser/jichuang
+ACTION_BACKEND=stgcn
+DETECTOR_BACKEND=hybrid
+ACTION_INFER_STRIDE=6

@@ -1,0 +1,9 @@
+{
+  "name": "xiongda_live_release",
+  "character": "xiongda",
+  "engine": "cosyvoice",
+  "model_dir": "pretrained_models/CosyVoice2-0.5B",
+  "ref_audio": "assets/ref_audio/xiongda_fish.wav",
+  "ref_text": "这个抓鱼呢讲究一个眼准手快，看好了。",
+  "target_language": "中文"
+}

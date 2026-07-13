@@ -1,0 +1,18 @@
+model_type: holistic_lite_stgcn
+target_frames: 48
+input_channels: 10
+num_nodes: 75
+infer_stride: 6
+confidence_threshold: 0.55
+class_names:
+  - cheering_up
+  - hand_waving
+  - bow
+  - shake_head
+  - jump_up
+  - clapping
+  - salute
+  - taking_selfie
+channels: [32, 64, 64, 128]
+temporal_kernel: 9
+dropout: 0.25

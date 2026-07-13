@@ -1,0 +1,25 @@
+{
+  "onnx_path": "multimodal_suite/pre_on_board/motion/temporal_tcn.onnx",
+  "class_names": [
+    "handclapping",
+    "welcom_waving"
+  ],
+  "input_name": "features",
+  "output_name": "logits",
+  "input_shape": [
+    1,
+    32,
+    288
+  ],
+  "opset": 14,
+  "operators": [
+    "Add",
+    "Constant",
+    "Conv",
+    "Gemm",
+    "GlobalAveragePool",
+    "Relu",
+    "Squeeze",
+    "Transpose"
+  ]
+}

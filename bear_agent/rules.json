@@ -1,0 +1,72 @@
+{
+  "rules": [
+    {
+      "name": "游客挥手-开心",
+      "conditions": {
+        "gesture": "wave_hand",
+        "hand_gesture": "none",
+        "emotion": "happy"
+      },
+      "response": {
+        "speech": "你好呀！看起来心情不错哦！俺也向你挥挥手！",
+        "motion_type": "sequential",
+        "actions": ["挥手致意", "双手欢呼"],
+        "emotion": "smile"
+      }
+    },
+    {
+      "name": "游客挥手-平静",
+      "conditions": {
+        "gesture": "wave_hand",
+        "hand_gesture": "none",
+        "emotion": "neutral"
+      },
+      "response": {
+        "speech": "你好呀！俺也向你挥挥手！",
+        "motion_type": "sequential",
+        "actions": ["挥手致意"],
+        "emotion": "smile"
+      }
+    },
+    {
+      "name": "游客鼓掌-开心",
+      "conditions": {
+        "gesture": "clapping",
+        "hand_gesture": "none",
+        "emotion": "happy"
+      },
+      "response": {
+        "speech": "谢谢你的掌声！熊大更有劲啦！",
+        "motion_type": "sequential",
+        "actions": ["双手欢呼", "原地小跳"],
+        "emotion": "smile"
+      }
+    },
+    {
+      "name": "游客鼓掌-平静",
+      "conditions": {
+        "gesture": "clapping",
+        "hand_gesture": "none",
+        "emotion": "neutral"
+      },
+      "response": {
+        "speech": "谢谢你的掌声！熊大给你点个赞！",
+        "motion_type": "sequential",
+        "actions": ["双手欢呼"],
+        "emotion": "smile"
+      }
+    },
+    {
+      "name": "无人时待机",
+      "conditions": {
+        "person_detected": false
+      },
+      "response": {
+        "speech": "",
+        "motion_type": "sequential",
+        "actions": ["左右张望"],
+        "emotion": "neutral"
+      }
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "comment": "须与 bear_agent/story_engine.py 中 CLIP_SPEECH + CLIP_TO_VOICE 完全一致（intro_prompt 对应 clip \"0\"）。生成 public/theater_voice/tp_{id}.wav",
+  "voices": [
+    {
+      "id": "mode_select_intro",
+      "text": "欢迎来到智慧乐园！可以说「随机互动」「剧情互动」或「地图查询」。"
+    },
+    {
+      "id": "mode_ack_voice",
+      "text": "俺还没听懂要选哪种玩法呀。可以说「随机互动」唠嗑、「剧情互动」做任务，或者说「地图查询」问路。",
+      "parts": [
+        "俺还没听懂要选哪种玩法呀。",
+        "可以说，随机互动，和俺唠嗑。",
+        "也可以说，剧情互动，做任务，或者说，地图查询，问路。"
+      ]
+    },
+    {
+      "id": "mode_ack_random",
+      "text": "好嘞，咱们随便聊聊！你想跟俺聊啥？"
+    },
+    {
+      "id": "mode_ack_map",
+      "text": "好，俺帮你查地图。你想去哪儿？"
+    },
+    {
+      "id": "map_place_not_found",
+      "text": "这个地方俺还没找着，你可以问问海螺湾、飞越极限、熊出没历险记这些地方。",
+      "parts": [
+        "这个地方俺还没找着。",
+        "你可以问问海螺湾、飞越极限、熊出没历险记这些地方。"
+      ]
+    },
+    {
+      "id": "intro_prompt",
+      "text": "俺今天是智慧乐园守护员，有一个益智小任务要和你一起完成。"
+    },
+    {
+      "id": "story_invalid_choice",
+      "text": "这句俺还没对上当前题目的选项。"
+    },
+    { "id": "intro_resolve_a", "text": "太好啦！那咱们这就出发，先把任务一项一项完成！" },
+    {
+      "id": "intro_resolve_b",
+      "text": "行，俺简单说下：每一幕会给你几个选项，你帮俺选；选对了俺会表扬，选错了俺会提示，最后再一起拿智慧徽章！"
+    },
+    {
+      "id": "act1_direction_prompt",
+      "text": "小松鼠要去「森林剧场」，站在岔路口。\n路牌写着：左边森林剧场 300 米，右边美食广场 100 米，前方过山车 500 米。\n你觉得它该往哪走？"
+    },
+    { "id": "act1_direction_resolve_a", "text": "对啦！路牌上写着森林剧场在左边，你观察得真仔细！" },
+    { "id": "act1_direction_resolve_b", "text": "右边是美食广场，不是森林剧场。咱们再看看路牌上的目的地呀。" },
+    { "id": "act1_direction_resolve_c", "text": "前方是过山车，方向不对。找路要先看清目的地再选路哦。" },
+    {
+      "id": "act2_route_prompt",
+      "text": "要去「梦幻花园」：\n路线 A 很近但要排队约 20 分钟；路线 B 要走 8 分钟但不用排队；路线 C 走 15 分钟还要再等 10 分钟。\n想最快到达，该选哪条？"
+    },
+    { "id": "act2_route_resolve_a", "text": "A 虽然看着近，但要等 20 分钟，加起来不一定最快哦。" },
+    { "id": "act2_route_resolve_b", "text": "没错！路线 B 不用排队，总时间最短，脑子真灵光！" },
+    {
+      "id": "act2_route_resolve_c",
+      "text": "C 又远又要等，时间花得最多，再想想「走路 + 排队」加起来谁最短？"
+    },
+    { "id": "act3_safety_prompt", "text": "下面哪个行为在乐园里是正确、文明的？" },
+    { "id": "act3_safety_resolve_a", "text": "翻越栏杆很危险，排队要走规定通道，可不能偷懒抄近道。" },
+    { "id": "act3_safety_resolve_b", "text": "对啦！垃圾分类能让乐园更干净，大家都舒服！" },
+    { "id": "act3_safety_resolve_c", "text": "设备运行时千万不能伸手触碰，要保持安全距离！" },
+    { "id": "bridge_badge", "text": "三个任务都选对啦！来领取智慧徽章吧。" },
+    {
+      "id": "finale",
+      "text": "太棒啦！三个任务都完成了。你又会看路牌、又会算时间，还懂得安全和环保——这枚智慧徽章送给你！下次再来帮俺守护乐园！"
+    }
+  ]
+}

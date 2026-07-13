@@ -1,0 +1,3049 @@
+{
+  "version": 1,
+  "defaultBlendInSeconds": 0.35,
+  "defaultBlendOutSeconds": 0.5,
+  "neutralBlendInSeconds": 0.55,
+  "idleMotionPath": "SmplhRetarget/stand.json",
+  "idlePreset": "idle_soft_smile",
+  "presets": [
+    {
+      "id": "neutral",
+      "note": "默认中性脸",
+      "fun": 0,
+      "happy": 0,
+      "cry": 0,
+      "A": 0,
+      "O": 0
+    },
+    {
+      "id": "idle_soft_smile",
+      "note": "待机轻微笑",
+      "fun": 8,
+      "happy": 14,
+      "cry": 0,
+      "A": 0,
+      "O": 0
+    },
+    {
+      "id": "happy",
+      "note": "开心",
+      "fun": 22,
+      "happy": 78,
+      "cry": 0,
+      "A": 5,
+      "O": 0
+    },
+    {
+      "id": "joy_excited",
+      "note": "欢呼/跳跃（勿同时拉满口型）",
+      "fun": 38,
+      "happy": 72,
+      "cry": 0,
+      "A": 48,
+      "O": 0
+    },
+    {
+      "id": "joy_cheer_loud",
+      "note": "振臂欢呼-笑+张嘴（A/O 二选一为主）",
+      "fun": 42,
+      "happy": 78,
+      "cry": 0,
+      "A": 52,
+      "O": 0
+    },
+    {
+      "id": "welcoming",
+      "note": "挥手欢迎",
+      "fun": 32,
+      "happy": 58,
+      "cry": 0,
+      "A": 8,
+      "O": 0
+    },
+    {
+      "id": "welcoming_strong",
+      "note": "张臂欢迎",
+      "fun": 42,
+      "happy": 72,
+      "cry": 0,
+      "A": 10,
+      "O": 5
+    },
+    {
+      "id": "confused",
+      "note": "疑问/摊手",
+      "fun": 38,
+      "happy": 8,
+      "cry": 0,
+      "A": 12,
+      "O": 28
+    },
+    {
+      "id": "relaxed",
+      "note": "伸懒腰/放松",
+      "fun": 18,
+      "happy": 28,
+      "cry": 0,
+      "A": 0,
+      "O": 0
+    },
+    {
+      "id": "curious",
+      "note": "左右张望",
+      "fun": 15,
+      "happy": 10,
+      "cry": 0,
+      "A": 18,
+      "O": 32
+    },
+    {
+      "id": "neutral_attentive",
+      "note": "指路/行走/中性关注",
+      "fun": 5,
+      "happy": 12,
+      "cry": 0,
+      "A": 0,
+      "O": 0
+    },
+    {
+      "id": "cautious",
+      "note": "推手后退",
+      "fun": 5,
+      "happy": 0,
+      "cry": 8,
+      "A": 8,
+      "O": 22
+    },
+    {
+      "id": "surprised",
+      "note": "惊讶/受惊",
+      "fun": 12,
+      "happy": 0,
+      "cry": 18,
+      "A": 38,
+      "O": 72
+    },
+    {
+      "id": "shy",
+      "note": "害羞捂脸",
+      "fun": 28,
+      "happy": 12,
+      "cry": 22,
+      "A": 0,
+      "O": 0
+    },
+    {
+      "id": "shy_warm",
+      "note": "抱胸轻摆",
+      "fun": 35,
+      "happy": 22,
+      "cry": 5,
+      "A": 0,
+      "O": 0
+    },
+    {
+      "id": "sleep",
+      "note": "睡觉",
+      "fun": 0,
+      "happy": 0,
+      "cry": 0,
+      "A": 0,
+      "O": 0
+    },
+    {
+      "id": "playful",
+      "note": "转身/顽皮",
+      "fun": 48,
+      "happy": 38,
+      "cry": 0,
+      "A": 8,
+      "O": 5
+    },
+    {
+      "id": "listening",
+      "note": "捂耳倾听",
+      "fun": 8,
+      "happy": 12,
+      "cry": 0,
+      "A": 5,
+      "O": 22
+    },
+    {
+      "id": "proud",
+      "note": "自信/叉腰",
+      "fun": 38,
+      "happy": 62,
+      "cry": 0,
+      "A": 0,
+      "O": 0
+    },
+    {
+      "id": "agree",
+      "note": "点头",
+      "fun": 15,
+      "happy": 52,
+      "cry": 0,
+      "A": 0,
+      "O": 0
+    },
+    {
+      "id": "refuse",
+      "note": "摇头拒绝/抱臂拒绝",
+      "fun": 8,
+      "happy": 0,
+      "cry": 0,
+      "A": 0,
+      "O": 5
+    },
+    {
+      "id": "farewell_warm",
+      "note": "挥手再见",
+      "fun": 25,
+      "happy": 48,
+      "cry": 0,
+      "A": 5,
+      "O": 0
+    },
+    {
+      "id": "applaud_happy",
+      "note": "鼓掌",
+      "fun": 42,
+      "happy": 85,
+      "cry": 0,
+      "A": 8,
+      "O": 0
+    },
+    {
+      "id": "sad",
+      "note": "难过/擦眼",
+      "fun": 0,
+      "happy": 0,
+      "cry": 78,
+      "A": 5,
+      "O": 0
+    },
+    {
+      "id": "angry",
+      "note": "跺脚生气",
+      "fun": 28,
+      "happy": 0,
+      "cry": 42,
+      "A": 25,
+      "O": 35
+    },
+    {
+      "id": "polite",
+      "note": "鞠躬",
+      "fun": 10,
+      "happy": 32,
+      "cry": 0,
+      "A": 0,
+      "O": 0
+    },
+    {
+      "id": "affection",
+      "note": "飞吻",
+      "fun": 45,
+      "happy": 75,
+      "cry": 0,
+      "A": 15,
+      "O": 8
+    },
+    {
+      "id": "thinking",
+      "note": "托腮沉思",
+      "fun": 28,
+      "happy": 8,
+      "cry": 0,
+      "A": 0,
+      "O": 12
+    },
+    {
+      "id": "tired_relief",
+      "note": "擦汗",
+      "fun": 32,
+      "happy": 22,
+      "cry": 0,
+      "A": 8,
+      "O": 18
+    },
+    {
+      "id": "relieved",
+      "note": "躺地起身",
+      "fun": 20,
+      "happy": 42,
+      "cry": 0,
+      "A": 5,
+      "O": 0
+    },
+    {
+      "id": "speaking",
+      "note": "说话口型（板端有语音时可叠加）",
+      "fun": 5,
+      "happy": 18,
+      "cry": 0,
+      "A": 42,
+      "O": 18
+    }
+  ],
+  "perceptionEmotion": [
+    {
+      "emotion": "neutral",
+      "preset": "neutral"
+    },
+    {
+      "emotion": "happy",
+      "preset": "happy"
+    },
+    {
+      "emotion": "sad",
+      "preset": "sad"
+    },
+    {
+      "emotion": "surprised",
+      "preset": "surprised"
+    },
+    {
+      "emotion": "angry",
+      "preset": "angry"
+    },
+    {
+      "emotion": "scared",
+      "preset": "surprised"
+    },
+    {
+      "emotion": "disgust",
+      "preset": "refuse"
+    },
+    {
+      "emotion": "smile",
+      "preset": "happy"
+    }
+  ],
+  "transitions": [
+    {
+      "from": "neutral",
+      "to": "happy",
+      "seconds": 0.4
+    },
+    {
+      "from": "neutral",
+      "to": "joy_excited",
+      "seconds": 0.45
+    },
+    {
+      "from": "neutral",
+      "to": "joy_cheer_loud",
+      "seconds": 0.2
+    },
+    {
+      "from": "idle_soft_smile",
+      "to": "joy_cheer_loud",
+      "seconds": 0.22
+    },
+    {
+      "from": "neutral",
+      "to": "surprised",
+      "seconds": 0.22
+    },
+    {
+      "from": "neutral",
+      "to": "sad",
+      "seconds": 0.5
+    },
+    {
+      "from": "neutral",
+      "to": "angry",
+      "seconds": 0.28
+    },
+    {
+      "from": "sad",
+      "to": "happy",
+      "seconds": 0.72
+    },
+    {
+      "from": "sad",
+      "to": "joy_excited",
+      "seconds": 0.78
+    },
+    {
+      "from": "sad",
+      "to": "neutral",
+      "seconds": 0.65
+    },
+    {
+      "from": "angry",
+      "to": "happy",
+      "seconds": 0.58
+    },
+    {
+      "from": "angry",
+      "to": "neutral",
+      "seconds": 0.55
+    },
+    {
+      "from": "surprised",
+      "to": "neutral",
+      "seconds": 0.48
+    },
+    {
+      "from": "surprised",
+      "to": "happy",
+      "seconds": 0.42
+    },
+    {
+      "from": "joy_excited",
+      "to": "neutral",
+      "seconds": 0.58
+    },
+    {
+      "from": "joy_excited",
+      "to": "idle_soft_smile",
+      "seconds": 0.62
+    },
+    {
+      "from": "sleep",
+      "to": "happy",
+      "seconds": 0.85
+    },
+    {
+      "from": "sleep",
+      "to": "idle_soft_smile",
+      "seconds": 0.8
+    },
+    {
+      "from": "speaking",
+      "to": "happy",
+      "seconds": 0.35
+    },
+    {
+      "from": "speaking",
+      "to": "neutral",
+      "seconds": 0.4
+    }
+  ],
+  "motions": [
+    {
+      "json": "SmplhRetarget/stand.json",
+      "preset": "idle_soft_smile",
+      "blendIn": 0.5
+    },
+    {
+      "json": "SmplhRetarget/挥手致意.json",
+      "preset": "welcoming",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 4
+            },
+            {
+              "t": 0.1,
+              "value": 44
+            },
+            {
+              "t": 0.2,
+              "value": 8
+            },
+            {
+              "t": 0.34,
+              "value": 36
+            },
+            {
+              "t": 0.48,
+              "value": 0
+            },
+            {
+              "t": 0.62,
+              "value": 32
+            },
+            {
+              "t": 0.76,
+              "value": 10
+            },
+            {
+              "t": 0.9,
+              "value": 42
+            },
+            {
+              "t": 1,
+              "value": 4
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.16,
+              "value": 8
+            },
+            {
+              "t": 0.28,
+              "value": 28
+            },
+            {
+              "t": 0.42,
+              "value": 4
+            },
+            {
+              "t": 0.56,
+              "value": 22
+            },
+            {
+              "t": 0.7,
+              "value": 0
+            },
+            {
+              "t": 0.84,
+              "value": 18
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/张臂欢迎.json",
+      "preset": "welcoming_strong",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 4
+            },
+            {
+              "t": 0.1,
+              "value": 44
+            },
+            {
+              "t": 0.2,
+              "value": 8
+            },
+            {
+              "t": 0.34,
+              "value": 36
+            },
+            {
+              "t": 0.48,
+              "value": 0
+            },
+            {
+              "t": 0.62,
+              "value": 32
+            },
+            {
+              "t": 0.76,
+              "value": 10
+            },
+            {
+              "t": 0.9,
+              "value": 42
+            },
+            {
+              "t": 1,
+              "value": 4
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.16,
+              "value": 8
+            },
+            {
+              "t": 0.28,
+              "value": 28
+            },
+            {
+              "t": 0.42,
+              "value": 4
+            },
+            {
+              "t": 0.56,
+              "value": 22
+            },
+            {
+              "t": 0.7,
+              "value": 0
+            },
+            {
+              "t": 0.84,
+              "value": 18
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/摇头.json",
+      "preset": "refuse",
+      "blendIn": 0.28,
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.22,
+              "value": 8
+            },
+            {
+              "t": 0.46,
+              "value": 0
+            },
+            {
+              "t": 0.72,
+              "value": 6
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.3,
+              "value": 5
+            },
+            {
+              "t": 0.6,
+              "value": 0
+            },
+            {
+              "t": 0.86,
+              "value": 4
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/双手欢呼.json",
+      "preset": "joy_excited",
+      "blendIn": 0.25,
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 4
+            },
+            {
+              "t": 0.1,
+              "value": 44
+            },
+            {
+              "t": 0.2,
+              "value": 8
+            },
+            {
+              "t": 0.34,
+              "value": 36
+            },
+            {
+              "t": 0.48,
+              "value": 0
+            },
+            {
+              "t": 0.62,
+              "value": 32
+            },
+            {
+              "t": 0.76,
+              "value": 10
+            },
+            {
+              "t": 0.9,
+              "value": 42
+            },
+            {
+              "t": 1,
+              "value": 4
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.16,
+              "value": 8
+            },
+            {
+              "t": 0.28,
+              "value": 28
+            },
+            {
+              "t": 0.42,
+              "value": 4
+            },
+            {
+              "t": 0.56,
+              "value": 22
+            },
+            {
+              "t": 0.7,
+              "value": 0
+            },
+            {
+              "t": 0.84,
+              "value": 18
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/原地小跳.json",
+      "preset": "joy_excited",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 4
+            },
+            {
+              "t": 0.1,
+              "value": 44
+            },
+            {
+              "t": 0.2,
+              "value": 8
+            },
+            {
+              "t": 0.34,
+              "value": 36
+            },
+            {
+              "t": 0.48,
+              "value": 0
+            },
+            {
+              "t": 0.62,
+              "value": 32
+            },
+            {
+              "t": 0.76,
+              "value": 10
+            },
+            {
+              "t": 0.9,
+              "value": 42
+            },
+            {
+              "t": 1,
+              "value": 4
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.16,
+              "value": 8
+            },
+            {
+              "t": 0.28,
+              "value": 28
+            },
+            {
+              "t": 0.42,
+              "value": 4
+            },
+            {
+              "t": 0.56,
+              "value": 22
+            },
+            {
+              "t": 0.7,
+              "value": 0
+            },
+            {
+              "t": 0.84,
+              "value": 18
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/挠头歪身.json",
+      "preset": "confused",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 8
+            },
+            {
+              "t": 0.14,
+              "value": 28
+            },
+            {
+              "t": 0.32,
+              "value": 6
+            },
+            {
+              "t": 0.52,
+              "value": 22
+            },
+            {
+              "t": 0.72,
+              "value": 0
+            },
+            {
+              "t": 0.9,
+              "value": 18
+            },
+            {
+              "t": 1,
+              "value": 6
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 18
+            },
+            {
+              "t": 0.18,
+              "value": 48
+            },
+            {
+              "t": 0.38,
+              "value": 20
+            },
+            {
+              "t": 0.58,
+              "value": 40
+            },
+            {
+              "t": 0.78,
+              "value": 10
+            },
+            {
+              "t": 1,
+              "value": 14
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/伸懒腰.json",
+      "preset": "relaxed",
+      "blendIn": 0.45,
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.22,
+              "value": 8
+            },
+            {
+              "t": 0.46,
+              "value": 0
+            },
+            {
+              "t": 0.72,
+              "value": 6
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.3,
+              "value": 5
+            },
+            {
+              "t": 0.6,
+              "value": 0
+            },
+            {
+              "t": 0.86,
+              "value": 4
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/左右张望.json",
+      "preset": "curious",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 8
+            },
+            {
+              "t": 0.14,
+              "value": 28
+            },
+            {
+              "t": 0.32,
+              "value": 6
+            },
+            {
+              "t": 0.52,
+              "value": 22
+            },
+            {
+              "t": 0.72,
+              "value": 0
+            },
+            {
+              "t": 0.9,
+              "value": 18
+            },
+            {
+              "t": 1,
+              "value": 6
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 18
+            },
+            {
+              "t": 0.18,
+              "value": 48
+            },
+            {
+              "t": 0.38,
+              "value": 20
+            },
+            {
+              "t": 0.58,
+              "value": 40
+            },
+            {
+              "t": 0.78,
+              "value": 10
+            },
+            {
+              "t": 1,
+              "value": 14
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/摊手疑问.json",
+      "preset": "confused",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 8
+            },
+            {
+              "t": 0.14,
+              "value": 28
+            },
+            {
+              "t": 0.32,
+              "value": 6
+            },
+            {
+              "t": 0.52,
+              "value": 22
+            },
+            {
+              "t": 0.72,
+              "value": 0
+            },
+            {
+              "t": 0.9,
+              "value": 18
+            },
+            {
+              "t": 1,
+              "value": 6
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 18
+            },
+            {
+              "t": 0.18,
+              "value": 48
+            },
+            {
+              "t": 0.38,
+              "value": 20
+            },
+            {
+              "t": 0.58,
+              "value": 40
+            },
+            {
+              "t": 0.78,
+              "value": 10
+            },
+            {
+              "t": 1,
+              "value": 14
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/左转指左.json",
+      "preset": "neutral_attentive",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.22,
+              "value": 8
+            },
+            {
+              "t": 0.46,
+              "value": 0
+            },
+            {
+              "t": 0.72,
+              "value": 6
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.3,
+              "value": 5
+            },
+            {
+              "t": 0.6,
+              "value": 0
+            },
+            {
+              "t": 0.86,
+              "value": 4
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/右转指右.json",
+      "preset": "neutral_attentive",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.22,
+              "value": 8
+            },
+            {
+              "t": 0.46,
+              "value": 0
+            },
+            {
+              "t": 0.72,
+              "value": 6
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.3,
+              "value": 5
+            },
+            {
+              "t": 0.6,
+              "value": 0
+            },
+            {
+              "t": 0.86,
+              "value": 4
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/推手后退.json",
+      "preset": "cautious",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 8
+            },
+            {
+              "t": 0.14,
+              "value": 28
+            },
+            {
+              "t": 0.32,
+              "value": 6
+            },
+            {
+              "t": 0.52,
+              "value": 22
+            },
+            {
+              "t": 0.72,
+              "value": 0
+            },
+            {
+              "t": 0.9,
+              "value": 18
+            },
+            {
+              "t": 1,
+              "value": 6
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 18
+            },
+            {
+              "t": 0.18,
+              "value": 48
+            },
+            {
+              "t": 0.38,
+              "value": 20
+            },
+            {
+              "t": 0.58,
+              "value": 40
+            },
+            {
+              "t": 0.78,
+              "value": 10
+            },
+            {
+              "t": 1,
+              "value": 14
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/受惊后退.json",
+      "preset": "surprised",
+      "blendIn": 0.2,
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 8
+            },
+            {
+              "t": 0.14,
+              "value": 28
+            },
+            {
+              "t": 0.32,
+              "value": 6
+            },
+            {
+              "t": 0.52,
+              "value": 22
+            },
+            {
+              "t": 0.72,
+              "value": 0
+            },
+            {
+              "t": 0.9,
+              "value": 18
+            },
+            {
+              "t": 1,
+              "value": 6
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 18
+            },
+            {
+              "t": 0.18,
+              "value": 48
+            },
+            {
+              "t": 0.38,
+              "value": 20
+            },
+            {
+              "t": 0.58,
+              "value": 40
+            },
+            {
+              "t": 0.78,
+              "value": 10
+            },
+            {
+              "t": 1,
+              "value": 14
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/原地踏步.json",
+      "preset": "idle_soft_smile"
+    },
+    {
+      "json": "SmplhRetarget/快走向前.json",
+      "preset": "neutral_attentive",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.22,
+              "value": 8
+            },
+            {
+              "t": 0.46,
+              "value": 0
+            },
+            {
+              "t": 0.72,
+              "value": 6
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.3,
+              "value": 5
+            },
+            {
+              "t": 0.6,
+              "value": 0
+            },
+            {
+              "t": 0.86,
+              "value": 4
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/下蹲坐下.json",
+      "preset": "neutral",
+      "blendIn": 0.45
+    },
+    {
+      "json": "SmplhRetarget/躺地起身.json",
+      "preset": "relieved",
+      "blendIn": 0.4,
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.22,
+              "value": 12
+            },
+            {
+              "t": 0.48,
+              "value": 2
+            },
+            {
+              "t": 0.74,
+              "value": 10
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.32,
+              "value": 10
+            },
+            {
+              "t": 0.62,
+              "value": 4
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/抱胸轻摆.json",
+      "preset": "shy_warm",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.22,
+              "value": 8
+            },
+            {
+              "t": 0.46,
+              "value": 0
+            },
+            {
+              "t": 0.72,
+              "value": 6
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.3,
+              "value": 5
+            },
+            {
+              "t": 0.6,
+              "value": 0
+            },
+            {
+              "t": 0.86,
+              "value": 4
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/躺地睡觉.json",
+      "preset": "sleep",
+      "blendIn": 0.6
+    },
+    {
+      "json": "SmplhRetarget/转身一圈.json",
+      "preset": "playful",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 4
+            },
+            {
+              "t": 0.1,
+              "value": 44
+            },
+            {
+              "t": 0.2,
+              "value": 8
+            },
+            {
+              "t": 0.34,
+              "value": 36
+            },
+            {
+              "t": 0.48,
+              "value": 0
+            },
+            {
+              "t": 0.62,
+              "value": 32
+            },
+            {
+              "t": 0.76,
+              "value": 10
+            },
+            {
+              "t": 0.9,
+              "value": 42
+            },
+            {
+              "t": 1,
+              "value": 4
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.16,
+              "value": 8
+            },
+            {
+              "t": 0.28,
+              "value": 28
+            },
+            {
+              "t": 0.42,
+              "value": 4
+            },
+            {
+              "t": 0.56,
+              "value": 22
+            },
+            {
+              "t": 0.7,
+              "value": 0
+            },
+            {
+              "t": 0.84,
+              "value": 18
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/捂耳倾听.json",
+      "preset": "listening",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 8
+            },
+            {
+              "t": 0.14,
+              "value": 28
+            },
+            {
+              "t": 0.32,
+              "value": 6
+            },
+            {
+              "t": 0.52,
+              "value": 22
+            },
+            {
+              "t": 0.72,
+              "value": 0
+            },
+            {
+              "t": 0.9,
+              "value": 18
+            },
+            {
+              "t": 1,
+              "value": 6
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 18
+            },
+            {
+              "t": 0.18,
+              "value": 48
+            },
+            {
+              "t": 0.38,
+              "value": 20
+            },
+            {
+              "t": 0.58,
+              "value": 40
+            },
+            {
+              "t": 0.78,
+              "value": 10
+            },
+            {
+              "t": 1,
+              "value": 14
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/自信造型.json",
+      "preset": "proud",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.22,
+              "value": 8
+            },
+            {
+              "t": 0.46,
+              "value": 0
+            },
+            {
+              "t": 0.72,
+              "value": 6
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.3,
+              "value": 5
+            },
+            {
+              "t": 0.6,
+              "value": 0
+            },
+            {
+              "t": 0.86,
+              "value": 4
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/点头.json",
+      "preset": "agree",
+      "blendIn": 0.25,
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.22,
+              "value": 8
+            },
+            {
+              "t": 0.46,
+              "value": 0
+            },
+            {
+              "t": 0.72,
+              "value": 6
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.3,
+              "value": 5
+            },
+            {
+              "t": 0.6,
+              "value": 0
+            },
+            {
+              "t": 0.86,
+              "value": 4
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/摇头拒绝.json",
+      "preset": "refuse",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.22,
+              "value": 8
+            },
+            {
+              "t": 0.46,
+              "value": 0
+            },
+            {
+              "t": 0.72,
+              "value": 6
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.3,
+              "value": 5
+            },
+            {
+              "t": 0.6,
+              "value": 0
+            },
+            {
+              "t": 0.86,
+              "value": 4
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/振臂欢呼.json",
+      "preset": "joy_cheer_loud",
+      "blendIn": 0.18,
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 4
+            },
+            {
+              "t": 0.1,
+              "value": 44
+            },
+            {
+              "t": 0.2,
+              "value": 8
+            },
+            {
+              "t": 0.34,
+              "value": 36
+            },
+            {
+              "t": 0.48,
+              "value": 0
+            },
+            {
+              "t": 0.62,
+              "value": 32
+            },
+            {
+              "t": 0.76,
+              "value": 10
+            },
+            {
+              "t": 0.9,
+              "value": 42
+            },
+            {
+              "t": 1,
+              "value": 4
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.16,
+              "value": 8
+            },
+            {
+              "t": 0.28,
+              "value": 28
+            },
+            {
+              "t": 0.42,
+              "value": 4
+            },
+            {
+              "t": 0.56,
+              "value": 22
+            },
+            {
+              "t": 0.7,
+              "value": 0
+            },
+            {
+              "t": 0.84,
+              "value": 18
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/挥手再见.json",
+      "preset": "farewell_warm",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.18,
+              "value": 14
+            },
+            {
+              "t": 0.4,
+              "value": 2
+            },
+            {
+              "t": 0.68,
+              "value": 12
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.25,
+              "value": 8
+            },
+            {
+              "t": 0.55,
+              "value": 0
+            },
+            {
+              "t": 0.82,
+              "value": 6
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/鼓掌.json",
+      "preset": "applaud_happy",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 4
+            },
+            {
+              "t": 0.1,
+              "value": 44
+            },
+            {
+              "t": 0.2,
+              "value": 8
+            },
+            {
+              "t": 0.34,
+              "value": 36
+            },
+            {
+              "t": 0.48,
+              "value": 0
+            },
+            {
+              "t": 0.62,
+              "value": 32
+            },
+            {
+              "t": 0.76,
+              "value": 10
+            },
+            {
+              "t": 0.9,
+              "value": 42
+            },
+            {
+              "t": 1,
+              "value": 4
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.16,
+              "value": 8
+            },
+            {
+              "t": 0.28,
+              "value": 28
+            },
+            {
+              "t": 0.42,
+              "value": 4
+            },
+            {
+              "t": 0.56,
+              "value": 22
+            },
+            {
+              "t": 0.7,
+              "value": 0
+            },
+            {
+              "t": 0.84,
+              "value": 18
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/捂脸害羞.json",
+      "preset": "shy",
+      "blendIn": 0.3,
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.22,
+              "value": 8
+            },
+            {
+              "t": 0.46,
+              "value": 0
+            },
+            {
+              "t": 0.72,
+              "value": 6
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.3,
+              "value": 5
+            },
+            {
+              "t": 0.6,
+              "value": 0
+            },
+            {
+              "t": 0.86,
+              "value": 4
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/擦眼低头.json",
+      "preset": "sad",
+      "blendIn": 0.45,
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.22,
+              "value": 12
+            },
+            {
+              "t": 0.48,
+              "value": 2
+            },
+            {
+              "t": 0.74,
+              "value": 10
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.32,
+              "value": 10
+            },
+            {
+              "t": 0.62,
+              "value": 4
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/叉腰昂首.json",
+      "preset": "proud",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.22,
+              "value": 8
+            },
+            {
+              "t": 0.46,
+              "value": 0
+            },
+            {
+              "t": 0.72,
+              "value": 6
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.3,
+              "value": 5
+            },
+            {
+              "t": 0.6,
+              "value": 0
+            },
+            {
+              "t": 0.86,
+              "value": 4
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/跺脚生气.json",
+      "preset": "angry",
+      "blendIn": 0.22,
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 8
+            },
+            {
+              "t": 0.14,
+              "value": 28
+            },
+            {
+              "t": 0.32,
+              "value": 6
+            },
+            {
+              "t": 0.52,
+              "value": 22
+            },
+            {
+              "t": 0.72,
+              "value": 0
+            },
+            {
+              "t": 0.9,
+              "value": 18
+            },
+            {
+              "t": 1,
+              "value": 6
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 18
+            },
+            {
+              "t": 0.18,
+              "value": 48
+            },
+            {
+              "t": 0.38,
+              "value": 20
+            },
+            {
+              "t": 0.58,
+              "value": 40
+            },
+            {
+              "t": 0.78,
+              "value": 10
+            },
+            {
+              "t": 1,
+              "value": 14
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/后退惊讶.json",
+      "preset": "surprised",
+      "blendIn": 0.18,
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 8
+            },
+            {
+              "t": 0.14,
+              "value": 28
+            },
+            {
+              "t": 0.32,
+              "value": 6
+            },
+            {
+              "t": 0.52,
+              "value": 22
+            },
+            {
+              "t": 0.72,
+              "value": 0
+            },
+            {
+              "t": 0.9,
+              "value": 18
+            },
+            {
+              "t": 1,
+              "value": 6
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 18
+            },
+            {
+              "t": 0.18,
+              "value": 48
+            },
+            {
+              "t": 0.38,
+              "value": 20
+            },
+            {
+              "t": 0.58,
+              "value": 40
+            },
+            {
+              "t": 0.78,
+              "value": 10
+            },
+            {
+              "t": 1,
+              "value": 14
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/鞠躬行礼.json",
+      "preset": "polite",
+      "blendIn": 0.4,
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.22,
+              "value": 8
+            },
+            {
+              "t": 0.46,
+              "value": 0
+            },
+            {
+              "t": 0.72,
+              "value": 6
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.3,
+              "value": 5
+            },
+            {
+              "t": 0.6,
+              "value": 0
+            },
+            {
+              "t": 0.86,
+              "value": 4
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/飞吻.json",
+      "preset": "affection",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 4
+            },
+            {
+              "t": 0.1,
+              "value": 44
+            },
+            {
+              "t": 0.2,
+              "value": 8
+            },
+            {
+              "t": 0.34,
+              "value": 36
+            },
+            {
+              "t": 0.48,
+              "value": 0
+            },
+            {
+              "t": 0.62,
+              "value": 32
+            },
+            {
+              "t": 0.76,
+              "value": 10
+            },
+            {
+              "t": 0.9,
+              "value": 42
+            },
+            {
+              "t": 1,
+              "value": 4
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.16,
+              "value": 8
+            },
+            {
+              "t": 0.28,
+              "value": 28
+            },
+            {
+              "t": 0.42,
+              "value": 4
+            },
+            {
+              "t": 0.56,
+              "value": 22
+            },
+            {
+              "t": 0.7,
+              "value": 0
+            },
+            {
+              "t": 0.84,
+              "value": 18
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/抱臂拒绝.json",
+      "preset": "refuse",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.22,
+              "value": 8
+            },
+            {
+              "t": 0.46,
+              "value": 0
+            },
+            {
+              "t": 0.72,
+              "value": 6
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.3,
+              "value": 5
+            },
+            {
+              "t": 0.6,
+              "value": 0
+            },
+            {
+              "t": 0.86,
+              "value": 4
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/托腮沉思.json",
+      "preset": "thinking",
+      "blendIn": 0.42,
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.22,
+              "value": 8
+            },
+            {
+              "t": 0.46,
+              "value": 0
+            },
+            {
+              "t": 0.72,
+              "value": 6
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.3,
+              "value": 5
+            },
+            {
+              "t": 0.6,
+              "value": 0
+            },
+            {
+              "t": 0.86,
+              "value": 4
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/奋力纵跳.json",
+      "preset": "joy_excited",
+      "blendIn": 0.28,
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 4
+            },
+            {
+              "t": 0.1,
+              "value": 44
+            },
+            {
+              "t": 0.2,
+              "value": 8
+            },
+            {
+              "t": 0.34,
+              "value": 36
+            },
+            {
+              "t": 0.48,
+              "value": 0
+            },
+            {
+              "t": 0.62,
+              "value": 32
+            },
+            {
+              "t": 0.76,
+              "value": 10
+            },
+            {
+              "t": 0.9,
+              "value": 42
+            },
+            {
+              "t": 1,
+              "value": 4
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.16,
+              "value": 8
+            },
+            {
+              "t": 0.28,
+              "value": 28
+            },
+            {
+              "t": 0.42,
+              "value": 4
+            },
+            {
+              "t": 0.56,
+              "value": 22
+            },
+            {
+              "t": 0.7,
+              "value": 0
+            },
+            {
+              "t": 0.84,
+              "value": 18
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/擦额拭汗.json",
+      "preset": "tired_relief",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 8
+            },
+            {
+              "t": 0.14,
+              "value": 28
+            },
+            {
+              "t": 0.32,
+              "value": 6
+            },
+            {
+              "t": 0.52,
+              "value": 22
+            },
+            {
+              "t": 0.72,
+              "value": 0
+            },
+            {
+              "t": 0.9,
+              "value": 18
+            },
+            {
+              "t": 1,
+              "value": 6
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 18
+            },
+            {
+              "t": 0.18,
+              "value": 48
+            },
+            {
+              "t": 0.38,
+              "value": 20
+            },
+            {
+              "t": 0.58,
+              "value": 40
+            },
+            {
+              "t": 0.78,
+              "value": 10
+            },
+            {
+              "t": 1,
+              "value": 14
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/head_shake.json",
+      "preset": "refuse",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.22,
+              "value": 8
+            },
+            {
+              "t": 0.46,
+              "value": 0
+            },
+            {
+              "t": 0.72,
+              "value": 6
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.3,
+              "value": 5
+            },
+            {
+              "t": 0.6,
+              "value": 0
+            },
+            {
+              "t": 0.86,
+              "value": 4
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/hiptwist.json",
+      "preset": "playful",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 4
+            },
+            {
+              "t": 0.1,
+              "value": 44
+            },
+            {
+              "t": 0.2,
+              "value": 8
+            },
+            {
+              "t": 0.34,
+              "value": 36
+            },
+            {
+              "t": 0.48,
+              "value": 0
+            },
+            {
+              "t": 0.62,
+              "value": 32
+            },
+            {
+              "t": 0.76,
+              "value": 10
+            },
+            {
+              "t": 0.9,
+              "value": 42
+            },
+            {
+              "t": 1,
+              "value": 4
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.16,
+              "value": 8
+            },
+            {
+              "t": 0.28,
+              "value": 28
+            },
+            {
+              "t": 0.42,
+              "value": 4
+            },
+            {
+              "t": 0.56,
+              "value": 22
+            },
+            {
+              "t": 0.7,
+              "value": 0
+            },
+            {
+              "t": 0.84,
+              "value": 18
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/arm90.json",
+      "preset": "neutral_attentive",
+      "curves": [
+        {
+          "shape": "A",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.22,
+              "value": 8
+            },
+            {
+              "t": 0.46,
+              "value": 0
+            },
+            {
+              "t": 0.72,
+              "value": 6
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "shape": "O",
+          "additive": false,
+          "keys": [
+            {
+              "t": 0,
+              "value": 0
+            },
+            {
+              "t": 0.3,
+              "value": 5
+            },
+            {
+              "t": 0.6,
+              "value": 0
+            },
+            {
+              "t": 0.86,
+              "value": 4
+            },
+            {
+              "t": 1,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "json": "SmplhRetarget/tpose.json",
+      "preset": "neutral",
+      "blendIn": 0.01
+    }
+  ]
+}

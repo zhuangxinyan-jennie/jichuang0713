@@ -1,0 +1,1 @@
+{"face_count": 1, "hand_count": 0, "person_count": 1, "top_emotion": {"label": "", "confidence": 0.0}, "top_gesture": {"label": "", "confidence": 0.0}, "faces": [{"id": 338, "emotion": "", "confidence": 0.0}], "hands": [], "action": {"label": "wave", "confidence": 0.9999992847442627}, "timestamp": 1777935135.2468274}

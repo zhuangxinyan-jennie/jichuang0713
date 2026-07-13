@@ -1,0 +1,14 @@
+model_type: temporal_mlp
+time_window: 32
+input_dim: 288
+num_classes: 4
+class_names:
+  - background
+  - blowing_kisses
+  - hand_waving
+  - welcom_waving
+feature_mode: raw
+smoothing_window: 5
+confidence_threshold: 0.45
+min_hold_frames: 4
+vote_window: 9
