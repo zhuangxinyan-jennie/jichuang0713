@@ -60,7 +60,6 @@ pre_on_board_local_start_bundle/pc_received_output/
 pretrained_models/
 pre_on_board_local_start_bundle/cache/
 board_on_device/
-*.om
 **/model.int8.onnx
 **/model.fp16.onnx
 **/best.pt
