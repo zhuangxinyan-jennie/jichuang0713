@@ -1,0 +1,36 @@
+【3D 乐园地图 WebGL — 集成到网页「地图查询」页】
+
+═══ 第一步：Unity 里导出 WebGL ═══
+
+1. 用 Unity 2018.4 打开仓库里的 XiongdaParkMapProject（不是 XiongdaUnityProject）。
+
+2. 菜单 Tools → 狗熊岭智慧终端 → 确保场景含 ParkMapUnityBridge（一键）
+
+3. 菜单 Tools → 狗熊岭智慧终端 → 构建地图 WebGL 到 xiongda_app
+   （会自动 Build 到 xiongda_app/public/webgl-map/）
+
+   或手动：File → Build Settings → WebGL → 场景勾 ParkMap3DBlockout → Build
+
+═══ 第二步：拷贝到本前端（若手动 Build）═══
+
+powershell -ExecutionPolicy Bypass -File xiongda_app\scripts\copy-webgl-map-from-unity.ps1
+
+复制后应能看到：
+  public\webgl-map\Build\UnityLoader.js
+  public\webgl-map\Build\webgl.json
+
+═══ 第三步：build-info.json ═══
+
+1. 复制 build-info.example.json 为 build-info.json
+2. 按 Build 文件夹里真实文件名修改路径
+
+═══ 第四步：启动前端 ═══
+
+cd xiongda_app
+npm run dev
+
+浏览器打开 http://127.0.0.1:5173 ，点顶栏「地图查询」，中间应出现 3D 乐园（WASD 可控制熊大）。
+
+说明：
+- 语音页的熊大 WebGL 仍在 public/webgl/，与地图 public/webgl-map/ 互不干扰。
+- 语音问路驱动熊大自动跑（阶段 2）需 map_guide 返回 destination + Unity 导航脚本。

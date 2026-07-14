@@ -87,6 +87,15 @@ XiongdaUnityProject/background/
 XiongdaUnityProject/xiongda_app/
 xiongda_app/public/webgl/Build/
 xiongda_app/public/webgl/StreamingAssets/
+# 地图 WebGL 二进制需提交给队友直接运行（大文件走 Git LFS，见 .gitattributes）
+# xiongda_app/public/webgl-map/Build/
+
+# Unity 地图源码仅本地开发用；队友 clone 后直接用 public/webgl-map/ 即可
+XiongdaParkMapProject/
+
+# Unity 光照烘焙数据体积过大
+**/LightingData.asset
+**/LightingData.asset.meta
 
 # CosyVoice local virtual environment
 third_party/CosyVoice/.venv*/

@@ -129,12 +129,29 @@ python -m board_bridge.run_visitor_pipeline
 
 ## 5. Unity
 
+### 5.1 熊大角色（语音 / 剧情页 WebGL）
+
 Unity Hub 打开 `XiongdaUnityProject/`。
 
 | 勾选项 | 模式 |
 |--------|------|
 | **不勾** `Enable Realtime Camera Arm Sync` | 播 JSON 动作（默认） |
 | **勾选** | 摄像头跟臂（需先开 `启动Unity跟臂Pose服务.bat`） |
+
+WebGL 产物目录：`xiongda_app/public/webgl/`。
+
+### 5.2 3D 乐园地图（地图查询页 WebGL）
+
+Unity Hub 打开 `XiongdaParkMapProject/`。
+
+1. **Tools → 狗熊岭智慧终端 → 清理地图 WebGL IL2CPP 缓存**（若曾构建失败）
+2. **Tools → 狗熊岭智慧终端 → 确保场景含 ParkMapUnityBridge**
+3. 优先试 **Tools → 构建地图 WebGL（Development，内存占用较低）**
+4. 或 **Tools → 构建地图 WebGL 到 xiongda_app**
+
+若 Console 报 `llvm-link.exe` / `il2cpp.exe did not run properly`：见 `XiongdaParkMapProject/README.md` 故障排查（虚拟内存、清理缓存、Development 构建）。
+
+产物目录：`xiongda_app/public/webgl-map/`（与熊大 `public/webgl/` **分开，不会互相覆盖**）。
 
 ---
 

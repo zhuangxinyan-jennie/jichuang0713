@@ -1,3 +1,4 @@
+import { markMapUnityFullyReady, setMapUnityInstance } from "../services/unityMapBridge";
 import { setGlobalUnityInstance, type UnityWebGLHandle } from "../services/unitySendClip";
 
 /** 2019+ 现代模板：createUnityInstance + 四个资源 URL */
@@ -22,6 +23,16 @@ export type UnityBuildInfo2018 = {
 };
 
 export type UnityBuildInfo = (UnityBuildInfoModern | UnityBuildInfo2018) & { loaderMode?: string };
+
+export type UnityWebGLLoadOptions = {
+  /** public 下目录，默认 /webgl（熊大）；地图用 /webgl-map */
+  basePath?: string;
+  /** 加载成功后注册实例；默认写入 window.unityInstance */
+  onInstanceReady?: (instance: UnityWebGLHandle) => void;
+  /** 2018 模板：隐藏此 canvas（熊大页用 unity-canvas） */
+  hideCanvasId?: string;
+  logTag?: string;
+};
 
 function injectLinkStylesheet(href: string): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -70,6 +81,7 @@ declare global {
       ) => UnityWebGLHandle;
     };
     UnityProgress?: (unityInstance: unknown, progress: number) => void;
+    mapUnityInstance?: UnityWebGLHandle;
   }
 }
 
@@ -81,43 +93,78 @@ function is2018Info(cfg: UnityBuildInfo): cfg is UnityBuildInfo2018 {
 
 /** 最近一次加载失败原因（给界面提示用） */
 export let lastUnityLoadError: string | null = null;
+export let lastMapUnityLoadError: string | null = null;
+
+const unityBootPromises = new Map<string, Promise<boolean>>();
+
+function normalizeBasePath(basePath: string): string {
+  const trimmed = basePath.trim().replace(/\/+$/, "");
+  return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+}
 
 /**
- * React 18 StrictMode 会重复执行 effect，若两次都清空 #unity-game-mount 会打断 Unity 初始化。
- * 使用单次 Promise，全页只启动一轮加载。
- */
-let unityBootPromise: Promise<boolean> | null = null;
-
-/**
- * 若存在 `public/webgl/build-info.json`，则加载 Unity WebGL（支持 **2018 UnityLoader** 与 **2019+ createUnityInstance**）。
+ * 若存在 `{basePath}/build-info.json`，则加载 Unity WebGL（支持 **2018 UnityLoader** 与 **2019+ createUnityInstance**）。
  */
 export function tryLoadUnityWebGL(
   containerId: string,
-  canvasForModern?: HTMLCanvasElement | null
+  canvasForModern?: HTMLCanvasElement | null,
+  options?: UnityWebGLLoadOptions
 ): Promise<boolean> {
-  if (unityBootPromise) return unityBootPromise;
-  lastUnityLoadError = null;
-  unityBootPromise = loadUnityWebGLInner(containerId, canvasForModern).then((ok) => {
-    if (!ok && !lastUnityLoadError) {
-      lastUnityLoadError = "Unity 未就绪（详见控制台 [Unity] 日志）";
+  const basePath = normalizeBasePath(options?.basePath ?? "/webgl");
+  const cacheKey = `${basePath}::${containerId}`;
+  const existing = unityBootPromises.get(cacheKey);
+  if (existing) return existing;
+
+  if (basePath === "/webgl-map") {
+    lastMapUnityLoadError = null;
+  } else {
+    lastUnityLoadError = null;
+  }
+
+  const promise = loadUnityWebGLInner(containerId, canvasForModern, basePath, options).then((ok) => {
+    const tag = options?.logTag ?? "[Unity]";
+    if (!ok) {
+      const fallback = "Unity 未就绪（详见控制台日志）";
+      if (basePath === "/webgl-map") {
+        if (!lastMapUnityLoadError) lastMapUnityLoadError = fallback;
+      } else if (!lastUnityLoadError) {
+        lastUnityLoadError = fallback;
+      }
+      console.info(`${tag} 未加载 ${basePath}/build-info.json 或初始化失败`);
     }
     return ok;
   });
-  return unityBootPromise;
+  unityBootPromises.set(cacheKey, promise);
+  return promise;
 }
 
 async function loadUnityWebGLInner(
   containerId: string,
-  canvasForModern?: HTMLCanvasElement | null
+  canvasForModern: HTMLCanvasElement | null | undefined,
+  basePath: string,
+  options?: UnityWebGLLoadOptions
 ): Promise<boolean> {
+  const tag = options?.logTag ?? "[Unity]";
+  const setError = (msg: string) => {
+    if (basePath === "/webgl-map") lastMapUnityLoadError = msg;
+    else lastUnityLoadError = msg;
+  };
+
   try {
-    const res = await fetch("/webgl/build-info.json", { cache: "no-store" });
+    const res = await fetch(`${basePath}/build-info.json`, { cache: "no-store" });
     if (!res.ok) {
-      lastUnityLoadError = `缺少或无法访问 /webgl/build-info.json（HTTP ${res.status}）`;
-      console.info("[Unity] 未找到 /webgl/build-info.json，跳过自动加载（见 public/webgl/说明.txt）");
+      setError(`缺少或无法访问 ${basePath}/build-info.json（HTTP ${res.status}）`);
       return false;
     }
     const cfg = (await res.json()) as UnityBuildInfo;
+
+    const registerInstance = (instance: UnityWebGLHandle) => {
+      if (options?.onInstanceReady) {
+        options.onInstanceReady(instance);
+      } else {
+        setGlobalUnityInstance(instance);
+      }
+    };
 
     if (is2018Info(cfg)) {
       if (cfg.templateStyleUrl) {
@@ -134,20 +181,21 @@ async function loadUnityWebGLInner(
 
       const el = document.getElementById(containerId);
       if (!el) {
-        lastUnityLoadError = `找不到挂载节点 #${containerId}`;
-        console.error("[Unity] 找不到容器 #" + containerId);
+        setError(`找不到挂载节点 #${containerId}`);
+        console.error(`${tag} 找不到容器 #${containerId}`);
         return false;
       }
-      const reactCanvas = document.getElementById("unity-canvas") as HTMLCanvasElement | null;
-      if (reactCanvas) reactCanvas.style.display = "none";
+      const hideCanvasId = options?.hideCanvasId;
+      if (hideCanvasId) {
+        const reactCanvas = document.getElementById(hideCanvasId) as HTMLCanvasElement | null;
+        if (reactCanvas) reactCanvas.style.display = "none";
+      }
 
-      // 2018 只在专用挂载点内清空，避免拆掉整块 React 布局
       el.innerHTML = "";
 
       const UL = window.UnityLoader;
       if (!UL?.instantiate) {
-        lastUnityLoadError = "UnityLoader.instantiate 不存在（UnityLoader.js 是否加载失败？）";
-        console.error("[Unity] UnityLoader.instantiate 不存在，请检查 UnityLoader.js");
+        setError("UnityLoader.instantiate 不存在（UnityLoader.js 是否加载失败？）");
         return false;
       }
       const gameInstance = UL.instantiate(containerId, cfg.jsonManifest, {
@@ -155,23 +203,27 @@ async function loadUnityWebGLInner(
           if (typeof window.UnityProgress === "function") {
             window.UnityProgress(gi, p);
           }
+          if (p >= 0.99 && basePath === "/webgl-map") {
+            markMapUnityFullyReady();
+          }
         },
       });
-      setGlobalUnityInstance(gameInstance as UnityWebGLHandle);
-      console.info("[Unity] 2018 UnityLoader 已启动，可 SendMessage");
+      registerInstance(gameInstance as UnityWebGLHandle);
+      console.info(`${tag} 2018 UnityLoader 已启动 (${basePath})`);
+      if (basePath === "/webgl-map") {
+        window.setTimeout(() => markMapUnityFullyReady(), 2500);
+      }
       return true;
     }
 
     const m = cfg as UnityBuildInfoModern;
     if (!m.loaderUrl || !m.dataUrl || !m.frameworkUrl || !m.codeUrl) {
-      lastUnityLoadError = "build-info.json 缺少 modern 四地址（loaderUrl/dataUrl/frameworkUrl/codeUrl）";
-      console.warn("[Unity] build-info.json 缺少 modern 四地址");
+      setError("build-info.json 缺少 modern 四地址");
       return false;
     }
     const canvas = canvasForModern ?? (document.getElementById("unity-canvas") as HTMLCanvasElement | null);
     if (!canvas) {
-      lastUnityLoadError = "现代模板需要页面中存在 #unity-canvas";
-      console.error("[Unity] 现代模板需要 <canvas id=\"unity-canvas\" />");
+      setError("现代模板需要 canvas 元素");
       return false;
     }
     canvas.style.display = "";
@@ -179,26 +231,26 @@ async function loadUnityWebGLInner(
     await injectScript(m.loaderUrl);
     const create = window.createUnityInstance;
     if (typeof create !== "function") {
-      lastUnityLoadError = "未找到 createUnityInstance（modern 包是否与配置一致？）";
-      console.error("[Unity] 未找到 createUnityInstance，请用 loaderMode: unity2018");
+      setError("未找到 createUnityInstance");
       return false;
     }
+    const streamingBase = m.streamingAssetsUrl ?? `${basePath}/StreamingAssets`;
     const instance = await create(
       canvas,
       {
         dataUrl: m.dataUrl,
         frameworkUrl: m.frameworkUrl,
         codeUrl: m.codeUrl,
-        streamingAssetsUrl: m.streamingAssetsUrl ?? "/webgl/StreamingAssets",
+        streamingAssetsUrl: streamingBase,
       },
       () => {}
     );
-    setGlobalUnityInstance(instance);
-    console.info("[Unity] 现代 WebGL 已加载");
+    registerInstance(instance);
+    console.info(`${tag} 现代 WebGL 已加载 (${basePath})`);
     return true;
   } catch (e) {
-    lastUnityLoadError = e instanceof Error ? e.message : String(e);
-    console.warn("[Unity] 加载失败", e);
+    setError(e instanceof Error ? e.message : String(e));
+    console.warn(`${tag} 加载失败`, e);
     return false;
   }
 }

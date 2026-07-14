@@ -27,6 +27,14 @@ export type BearAgentProcessTestResponse = {
   story_voice_ids?: (string | null | undefined)[];
   story_waiting_hint?: string;
   story_finished?: boolean;
+  /** 地图问路：目的地中文名 */
+  destination?: string;
+  /** 地图问路：途经点中文名 */
+  path?: string[];
+  /** 地图问路：Unity 世界坐标路径点 */
+  path_world?: { x: number; y?: number; z: number }[];
+  destination_world?: { x: number; y?: number; z: number };
+  found?: boolean;
 };
 
 /** board_bridge 高频同步的 ASR 原文（与 latest_asr.json 一致） */

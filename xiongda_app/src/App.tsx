@@ -4,7 +4,7 @@ import { TopMenu } from "./components/TopMenu";
 import { UnityEmbed } from "./components/UnityEmbed";
 import { ActionPanel } from "./components/ActionPanel";
 import { BottomCommandBar } from "./components/BottomCommandBar";
-import { ParkMapPanel } from "./components/ParkMapPanel";
+import { MapUnityEmbed } from "./components/MapUnityEmbed";
 import type { TopNavId } from "./types";
 import type { SmplhActionItem } from "./data/smplhActions";
 import { makeAgentContext } from "./services/agentContext";
@@ -168,6 +168,8 @@ export default function App() {
         p = {
           ...boardBridgePerception,
           speech_text: text,
+          // 用户主动输入/发送时视为有人；避免板端未开摄像头时 person_detected=false 挡路
+          person_detected: text ? true : (boardBridgePerception.person_detected ?? true),
         };
       } else {
         p = mapPerception(text);
@@ -488,7 +490,7 @@ export default function App() {
                   <UnityEmbed blockGamePointer={terminalIslandFocused} />
                 </div>
                 <div className={topNav === "map" ? "flex min-h-0 flex-1 flex-col" : "hidden"}>
-                  <ParkMapPanel />
+                  <MapUnityEmbed blockGamePointer={terminalIslandFocused} />
                 </div>
               </div>
             </motion.div>

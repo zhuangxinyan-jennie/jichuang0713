@@ -1,0 +1,8 @@
+{
+  "loaderMode": "unity2018",
+  "unityLoaderUrl": "/webgl-map/Build/UnityLoader.js",
+  "unityProgressUrl": "/webgl-map/TemplateData/UnityProgress.js",
+  "templateStyleUrl": "/webgl-map/TemplateData/style.css",
+  "jsonManifest": "/webgl-map/Build/webgl.json",
+  "streamingAssetsUrl": "/webgl-map/StreamingAssets"
+}

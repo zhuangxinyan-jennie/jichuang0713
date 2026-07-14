@@ -10,6 +10,7 @@ import { postMultimodalPlaybackDone, postMultimodalPlaybackStart } from "./bearA
 import { chineseActionToSmplPath } from "./chineseActionToSmplPath";
 import { clipIdsToSmplPaths } from "./clipIdToSmplPath";
 import { cancelQueuedSequences, DEFAULT_SMPL_STEP_MS, playSmplPathSequence } from "./playSequences";
+import { triggerMapNavigationFromPayload } from "../services/unityMapBridge";
 
 export type BearAgentDispatchOptions = {
   smplStepMs?: number;
@@ -281,7 +282,12 @@ export function handleBearAgentPayload(
     } else if (hadSpeech) {
       announcePayloadSpeechWrapped(o);
     }
-    ctx.setCurrentSmplPath("—（地图模式不驱动 3D）");
+    ctx.setCurrentSmplPath(
+      typeof o.destination === "string" && o.destination.trim()
+        ? `地图导航 → ${o.destination.trim()}`
+        : "—（地图模式：3D 地图页，见 MapUnityEmbed）"
+    );
+    triggerMapNavigationFromPayload(o);
     end();
     return;
   }

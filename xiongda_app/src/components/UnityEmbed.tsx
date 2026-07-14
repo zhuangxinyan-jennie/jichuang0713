@@ -20,7 +20,9 @@ export function UnityEmbed({ blockGamePointer = false }: UnityEmbedProps) {
     const canvas = document.getElementById("unity-canvas") as HTMLCanvasElement | null;
     let cancelled = false;
 
-    void tryLoadUnityWebGL("unity-game-mount", canvas).then((ok) => {
+    void tryLoadUnityWebGL("unity-game-mount", canvas, {
+      hideCanvasId: "unity-canvas",
+    }).then((ok) => {
       if (cancelled) return;
       if (!ok && lastUnityLoadError) {
         setBootHint(lastUnityLoadError);

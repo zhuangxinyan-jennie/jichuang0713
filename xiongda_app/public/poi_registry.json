@@ -1,0 +1,508 @@
+{
+  "version": 1,
+  "defaultStart": "方特城堡",
+  "groundY": 0.22,
+  "scene": "ParkMap3DBlockout",
+  "exportedAtUtc": "2026-07-14T03:47:23.417137+00:00",
+  "exportTool": "export_poi_registry_from_scene.py",
+  "places": {
+    "方特城堡": {
+      "unityObject": "FantawildCastleBlocks",
+      "unityCandidates": [
+        "FantawildCastleBlocks"
+      ],
+      "world": {
+        "x": -1.344,
+        "y": 0.22,
+        "z": -4.624
+      }
+    },
+    "游客服务中心": {
+      "unityObject": "VisitorServiceCenter",
+      "unityCandidates": [
+        "VisitorServiceCenter"
+      ],
+      "world": {
+        "x": -7.386,
+        "y": 0.22,
+        "z": -6.288
+      }
+    },
+    "熊出没折扣店": {
+      "unityObject": "SouthShop_WestB",
+      "unityCandidates": [
+        "SouthShop_WestB",
+        "ShopStreetA"
+      ],
+      "world": {
+        "x": -6.58,
+        "y": 0.22,
+        "z": -9.691
+      }
+    },
+    "熊出没旗舰店": {
+      "unityObject": "ShopStreetB",
+      "unityCandidates": [
+        "ShopStreetB",
+        "SouthShop_EastB"
+      ],
+      "world": {
+        "x": -4.49,
+        "y": 0.22,
+        "z": -11.422
+      }
+    },
+    "寄存室": {
+      "unityObject": "TicketBoothWest",
+      "unityCandidates": [
+        "TicketBoothWest"
+      ],
+      "world": {
+        "x": -9.496,
+        "y": 0.22,
+        "z": -10.438
+      }
+    },
+    "售票处": {
+      "unityObject": "TicketBoothWest",
+      "unityCandidates": [
+        "TicketBoothWest",
+        "TicketBoothEast"
+      ],
+      "world": {
+        "x": -8.743,
+        "y": 0.22,
+        "z": -11.336
+      }
+    },
+    "代步车": {
+      "unityObject": "ScooterRental",
+      "unityCandidates": [
+        "ScooterRental"
+      ],
+      "world": {
+        "x": -6.554,
+        "y": 0.22,
+        "z": -5.76
+      }
+    },
+    "魔法城堡": {
+      "unityObject": "MagicCastleBlocks",
+      "unityCandidates": [
+        "MagicCastleBlocks"
+      ],
+      "world": {
+        "x": -27.488,
+        "y": 0.22,
+        "z": -2.19
+      }
+    },
+    "许愿树": {
+      "unityObject": "WishingTree",
+      "unityCandidates": [
+        "WishingTree"
+      ],
+      "world": {
+        "x": -30.874,
+        "y": 0.22,
+        "z": -7.465
+      }
+    },
+    "聊斋": {
+      "unityObject": "LiaozhaiHall",
+      "unityCandidates": [
+        "LiaozhaiHall"
+      ],
+      "world": {
+        "x": -0.964,
+        "y": 0.22,
+        "z": 12.851
+      }
+    },
+    "电影科技大揭秘": {
+      "unityObject": "MovieTechHall (fallback)",
+      "unityCandidates": [
+        "MovieTechHall",
+        "LiaozhaiHall"
+      ],
+      "world": {
+        "x": 5.236,
+        "y": 0.22,
+        "z": 12.851
+      }
+    },
+    "海螺湾": {
+      "unityObject": "HaLuoBayHouse",
+      "unityCandidates": [
+        "HaLuoBayHouse"
+      ],
+      "world": {
+        "x": -2.83,
+        "y": 0.22,
+        "z": 10.679
+      }
+    },
+    "梦幻广场": {
+      "unityObject": "HaLuoBayHouse",
+      "unityCandidates": [
+        "HaLuoBayHouse",
+        "WishingTree"
+      ],
+      "world": {
+        "x": -16.852,
+        "y": 0.22,
+        "z": 1.607
+      }
+    },
+    "逃出恐龙岛": {
+      "unityObject": "DinoRuinA",
+      "unityCandidates": [
+        "DinoRuinA",
+        "DinoRuinB"
+      ],
+      "world": {
+        "x": 8.946,
+        "y": 0.22,
+        "z": -15.054
+      }
+    },
+    "唐古拉雪山": {
+      "unityObject": "TangulaMountain",
+      "unityCandidates": [
+        "TangulaMountain"
+      ],
+      "world": {
+        "x": -16.753,
+        "y": 0.22,
+        "z": 11.618
+      }
+    },
+    "东关削面王": {
+      "unityObject": "Restaurant",
+      "unityCandidates": [
+        "Restaurant"
+      ],
+      "world": {
+        "x": -3.264,
+        "y": 0.22,
+        "z": -4.768
+      }
+    },
+    "生命之光": {
+      "unityObject": "LifeOfLightHall",
+      "unityCandidates": [
+        "LifeOfLightHall"
+      ],
+      "world": {
+        "x": 11.192,
+        "y": 0.22,
+        "z": -5.785
+      }
+    },
+    "宇宙博览会": {
+      "unityObject": "SpaceExpoHall",
+      "unityCandidates": [
+        "SpaceExpoHall"
+      ],
+      "world": {
+        "x": 4.747,
+        "y": 0.22,
+        "z": -8.295
+      }
+    },
+    "飞越极限": {
+      "unityObject": "FlyLimitHall",
+      "unityCandidates": [
+        "FlyLimitHall"
+      ],
+      "world": {
+        "x": 9.261,
+        "y": 0.22,
+        "z": -5.983
+      }
+    },
+    "双层转马": {
+      "unityObject": "KidsRide_Car",
+      "unityCandidates": [
+        "KidsRide_Car"
+      ],
+      "world": {
+        "x": 17.797,
+        "y": 0.22,
+        "z": 6.979
+      }
+    },
+    "高空飞翔": {
+      "unityObject": "HighFlyTower",
+      "unityCandidates": [
+        "HighFlyTower"
+      ],
+      "world": {
+        "x": 9.567,
+        "y": 0.22,
+        "z": 11.171
+      }
+    },
+    "华夏五千年": {
+      "unityObject": "SpaceExpoHall",
+      "unityCandidates": [
+        "SpaceExpoHall",
+        "FlyLimitHall"
+      ],
+      "world": {
+        "x": 7.004,
+        "y": 0.22,
+        "z": -7.139
+      }
+    },
+    "临水餐厅": {
+      "unityObject": "Restaurant",
+      "unityCandidates": [
+        "Restaurant"
+      ],
+      "world": {
+        "x": -3.264,
+        "y": 0.22,
+        "z": -4.768
+      }
+    },
+    "火流星": {
+      "unityObject": "CoasterLoop_0",
+      "unityCandidates": [
+        "CoasterLoop_0",
+        "CoasterLoop_5"
+      ],
+      "world": {
+        "x": 22.424,
+        "y": 0.22,
+        "z": 9.395
+      }
+    },
+    "吉祥馄饨": {
+      "unityObject": "ShopStreetA",
+      "unityCandidates": [
+        "ShopStreetA",
+        "ShopStreetB"
+      ],
+      "world": {
+        "x": -3.204,
+        "y": 0.22,
+        "z": -10.512
+      }
+    },
+    "熊出没脱口秀": {
+      "unityObject": "BearAdventureHall",
+      "unityCandidates": [
+        "BearAdventureHall"
+      ],
+      "world": {
+        "x": 2.693,
+        "y": 0.22,
+        "z": -13.068
+      }
+    },
+    "熊出没历险记": {
+      "unityObject": "BearAdventureHall",
+      "unityCandidates": [
+        "BearAdventureHall"
+      ],
+      "world": {
+        "x": 2.693,
+        "y": 0.22,
+        "z": -13.068
+      }
+    },
+    "恐龙飞车": {
+      "unityObject": "KidsRide_Train",
+      "unityCandidates": [
+        "KidsRide_Train"
+      ],
+      "world": {
+        "x": 16.552,
+        "y": 0.22,
+        "z": 10.137
+      }
+    },
+    "德克士": {
+      "unityObject": "Restaurant",
+      "unityCandidates": [
+        "Restaurant",
+        "KidsRide_Rescue"
+      ],
+      "world": {
+        "x": 5.874,
+        "y": 0.22,
+        "z": -5.816
+      }
+    },
+    "童梦天地": {
+      "unityObject": "KidsRide_Rescue",
+      "unityCandidates": [
+        "KidsRide_Rescue"
+      ],
+      "world": {
+        "x": 15.011,
+        "y": 0.22,
+        "z": -6.864
+      }
+    },
+    "疯狂成语": {
+      "unityObject": "KidsRide_Slide",
+      "unityCandidates": [
+        "KidsRide_Slide"
+      ],
+      "world": {
+        "x": 7.371,
+        "y": 0.22,
+        "z": 15.529
+      }
+    },
+    "飓风飞椅": {
+      "unityObject": "FantawildCastleBlocks",
+      "unityCandidates": [
+        "FantawildCastleBlocks",
+        "CoasterLoop_9"
+      ],
+      "world": {
+        "x": 10.44,
+        "y": 0.22,
+        "z": 0.917
+      }
+    },
+    "大摆锤": {
+      "unityObject": "PirateShip",
+      "unityCandidates": [
+        "PirateShip"
+      ],
+      "world": {
+        "x": 22.163,
+        "y": 0.22,
+        "z": -5.77
+      }
+    },
+    "空中飞舞": {
+      "unityObject": "KidsRide_Pirate",
+      "unityCandidates": [
+        "KidsRide_Pirate"
+      ],
+      "world": {
+        "x": 0.776,
+        "y": 0.22,
+        "z": -1.793
+      }
+    },
+    "海盗船": {
+      "unityObject": "PirateShip",
+      "unityCandidates": [
+        "PirateShip"
+      ],
+      "world": {
+        "x": 22.163,
+        "y": 0.22,
+        "z": -5.77
+      }
+    },
+    "波浪翻滚": {
+      "unityObject": "KidsRide_Sleep",
+      "unityCandidates": [
+        "KidsRide_Sleep"
+      ],
+      "world": {
+        "x": 3.304,
+        "y": 0.22,
+        "z": 13.808
+      }
+    },
+    "超级救火队": {
+      "unityObject": "KidsRide_Rescue",
+      "unityCandidates": [
+        "KidsRide_Rescue"
+      ],
+      "world": {
+        "x": 15.011,
+        "y": 0.22,
+        "z": -6.864
+      }
+    },
+    "海马骑兵": {
+      "unityObject": "KidsRide_Car",
+      "unityCandidates": [
+        "KidsRide_Car"
+      ],
+      "world": {
+        "x": 17.797,
+        "y": 0.22,
+        "z": 6.979
+      }
+    },
+    "熊熊海盗船": {
+      "unityObject": "PirateShip",
+      "unityCandidates": [
+        "PirateShip"
+      ],
+      "world": {
+        "x": 22.163,
+        "y": 0.22,
+        "z": -5.77
+      }
+    },
+    "欢乐滑车": {
+      "unityObject": "KidsRide_Slide",
+      "unityCandidates": [
+        "KidsRide_Slide"
+      ],
+      "world": {
+        "x": 7.371,
+        "y": 0.22,
+        "z": 15.529
+      }
+    },
+    "欢乐袋鼠": {
+      "unityObject": "KidsRide_Car",
+      "unityCandidates": [
+        "KidsRide_Car"
+      ],
+      "world": {
+        "x": 17.797,
+        "y": 0.22,
+        "z": 6.979
+      }
+    },
+    "嘟嘟小车": {
+      "unityObject": "KidsRide_Car",
+      "unityCandidates": [
+        "KidsRide_Car"
+      ],
+      "world": {
+        "x": 17.797,
+        "y": 0.22,
+        "z": 6.979
+      }
+    },
+    "冰雪列车": {
+      "unityObject": "KidsRide_Train",
+      "unityCandidates": [
+        "KidsRide_Train"
+      ],
+      "world": {
+        "x": 16.552,
+        "y": 0.22,
+        "z": 10.137
+      }
+    },
+    "小奇兵": {
+      "unityObject": "KidsRide_Rescue",
+      "unityCandidates": [
+        "KidsRide_Rescue"
+      ],
+      "world": {
+        "x": 15.011,
+        "y": 0.22,
+        "z": -6.864
+      }
+    }
+  },
+  "warnings": [
+    "电影科技大揭秘: 场景无 MovieTechHall，使用聊斋旁推算坐标"
+  ]
+}

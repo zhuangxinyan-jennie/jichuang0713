@@ -9,6 +9,7 @@
 | **本文件** | 总览、克隆、目录、一分钟上手 |
 | **[docs/PC.md](docs/PC.md)** | PC 环境、启动、Agent、TTS、Unity |
 | **[docs/BOARD.md](docs/BOARD.md)** | 板端部署、模型、启动、端口 |
+| **[docs/FPGA_AV_EventFusion.md](docs/FPGA_AV_EventFusion.md)** | PG2L100H 异构协同、改造清单、EdgeEvent 协议、开源参考 |
 
 ---
 
@@ -31,7 +32,8 @@ git lfs pull
 |------|------|------------|
 | `bear_agent/` | 熊大 Agent、`board_bridge` 板端回传桥接 | ✅ 代码（❌ `config.py` 含密钥） |
 | `xiongda_app/` | React 前端 WebGL 熊大 | ✅ |
-| `XiongdaUnityProject/` | Unity 工程源码 | ✅（❌ `Library/` 等缓存） |
+| `XiongdaUnityProject/` | Unity 熊大角色 WebGL 源码 | ✅（❌ `Library/` 等缓存） |
+| `XiongdaParkMapProject/` | Unity 3D 乐园地图 WebGL 源码 | ✅（❌ `Library/` 等缓存） |
 | `pre_on_board_local_start_bundle/` | 板端 Python 运行时 + OM 模型 + 启动脚本 | ✅ |
 | `cosyvoice_live_release/` | CosyVoice TTS 服务 | ✅ |
 | `third_party/CosyVoice/` | CosyVoice 源码 | ❌ 本地安装 |

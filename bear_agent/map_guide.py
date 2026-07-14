@@ -2,8 +2,12 @@
 地图问路模块
 每个地名是一个结点，相邻地点是带估算权重和方位描述的边。
 问路时随机设置熊大当前位置，并用 Dijkstra 计算带权最短路线。
+结构化字段 destination / path / path_world 来自 poi_registry.json（与 Unity 3D 坐标对齐）。
 """
 import heapq
+import os
+
+from poi_registry import get_place_world, load_poi_registry, path_world as registry_path_world
 
 
 class MapGuide:
@@ -212,9 +216,22 @@ class MapGuide:
         ("海盗船", "波浪翻滚"): "往南走",
     }
 
-    def __init__(self, current_location=None):
+    def __init__(self, current_location=None, poi_registry_path=None):
         self.graph, self.edge_directions = self._build_graph()
         self.current_location = current_location or self.DEFAULT_START
+        self._poi_registry_path = poi_registry_path
+        self._poi_registry = None
+
+    def _get_poi_registry(self):
+        if self._poi_registry is None:
+            path = self._poi_registry_path or os.path.join(
+                os.path.dirname(__file__), "data", "poi_registry.json"
+            )
+            if os.path.isfile(path):
+                self._poi_registry = load_poi_registry(path)
+            else:
+                self._poi_registry = {}
+        return self._poi_registry
 
     def answer(self, speech_text):
         """返回地图问路JSON。"""
@@ -224,6 +241,7 @@ class MapGuide:
                 "这个地方俺还没找着，你可以问问海螺湾、飞越极限、熊出没历险记这些地方。",
                 ["挠头歪身"],
                 "confused",
+                found=False,
             )
 
         if destination == self.current_location:
@@ -231,6 +249,9 @@ class MapGuide:
                 f"{destination}呀？你现在就在{self.current_location}附近，不用绕路啦！",
                 ["双手欢呼"],
                 "smile",
+                destination=destination,
+                path=[self.current_location],
+                found=True,
             )
 
         path, distance = self.shortest_path(self.current_location, destination)
@@ -239,6 +260,8 @@ class MapGuide:
                 f"去{destination}呀？俺这张地图上路线还没连好，暂时没法给你指清楚。",
                 ["挠头歪身"],
                 "confused",
+                destination=destination,
+                found=False,
             )
 
         route_text = self._format_route(path, distance)
@@ -246,6 +269,9 @@ class MapGuide:
             f"去{destination}呀！咱们现在在{self.current_location}。{route_text}",
             ["左转指左"],
             "smile",
+            destination=destination,
+            path=path,
+            found=True,
         )
 
     def match_place(self, speech_text):
@@ -366,8 +392,17 @@ class MapGuide:
             f"{direction_text}"
         )
 
-    def _response(self, speech, actions, emotion):
-        return {
+    def _response(
+        self,
+        speech,
+        actions,
+        emotion,
+        *,
+        destination=None,
+        path=None,
+        found=None,
+    ):
+        payload = {
             "interaction_type": "map_query",
             "speech": speech,
             "motion_type": "sequential",
@@ -375,3 +410,19 @@ class MapGuide:
             "motion_description": None,
             "emotion": emotion,
         }
+        if destination is not None:
+            payload["destination"] = destination
+        if path is not None:
+            payload["path"] = path
+        if found is not None:
+            payload["found"] = found
+        if path and found:
+            registry = self._get_poi_registry()
+            if registry:
+                world_points = registry_path_world(registry, path)
+                if world_points:
+                    payload["path_world"] = world_points
+                dest_world = get_place_world(registry, destination) if destination else None
+                if dest_world:
+                    payload["destination_world"] = dest_world
+        return payload

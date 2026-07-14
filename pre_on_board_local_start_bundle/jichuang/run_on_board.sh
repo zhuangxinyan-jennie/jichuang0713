@@ -68,10 +68,12 @@ sleep 1
 VIDEO_ARGS=(--no-display --action-backend "${ACTION_BACKEND}" --detector-backend "${DETECTOR_BACKEND}")
 if [[ "${BOARD_LOCAL_CAMERA}" == "1" ]]; then
   VIDEO_ARGS+=(--capture-local --camera-source "${VIDEO_DEVICE}" --result-host "${BOARD_RESULT_HOST}")
+  nohup "${PY_VIDEO}" board_deploy/run_board_runtime.py "${VIDEO_ARGS[@]}" \
+    > "${OUTPUT_DIR}/board_video_runtime.log" 2>&1 &
+  echo "${!}" > "${OUTPUT_DIR}/board_video.pid"
+else
+  echo "[INFO] BOARD_LOCAL_CAMERA=0: skip board video runtime (camera off)"
 fi
-nohup "${PY_VIDEO}" board_deploy/run_board_runtime.py "${VIDEO_ARGS[@]}" \
-  > "${OUTPUT_DIR}/board_video_runtime.log" 2>&1 &
-echo "${!}" > "${OUTPUT_DIR}/board_video.pid"
 
 if [[ -x "${PY_ASR}" ]]; then
   ASR_ARGS=(--backend "${ASR_BACKEND}" --summary-dir "${OUTPUT_DIR}")

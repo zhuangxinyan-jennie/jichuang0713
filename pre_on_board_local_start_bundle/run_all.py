@@ -209,13 +209,14 @@ def wait_board_ports(
     can_ssh_check_audio: bool = True,
     board_local_mic: bool = True,
     board_local_camera: bool = True,
+    need_video_port: bool = False,
 ) -> bool:
     """
     等待板端端口就绪。
 
     板载摄像头/麦克风模式：不依赖 PC 推流端口 18080/18081。
     """
-    if not board_local_camera:
+    if need_video_port:
         log("[STEP] wait board video port 18080")
         for i in range(tries):
             try:
@@ -228,8 +229,10 @@ def wait_board_ports(
                 time.sleep(2)
         else:
             raise RuntimeError("board port 18080 is not ready (video)")
-    else:
+    elif board_local_camera:
         log("[INFO] board-local camera mode: skip TCP 18080 check")
+    else:
+        log("[INFO] video disabled: skip TCP 18080 check")
 
     if board_local_mic:
         log("[INFO] board-local mic mode: skip TCP 18081 check")
@@ -448,7 +451,12 @@ def main() -> None:
         "--board-local-camera",
         action="store_true",
         default=True,
-        help="板端本地摄像头（默认开启；与 --pc-video-sender 互斥）。",
+        help="板端本地摄像头（默认开启；与 --pc-video-sender / --no-board-local-camera 互斥）。",
+    )
+    parser.add_argument(
+        "--no-board-local-camera",
+        action="store_true",
+        help="关闭板端摄像头与视觉推理（仅保留麦克风 ASR，省 NPU/带宽）。",
     )
     parser.add_argument(
         "--pc-video-sender",
@@ -535,7 +543,11 @@ def main() -> None:
             raise RuntimeError(f"不是有效的 bear_agent 根目录：{bear_root}")
 
     board_local_mic = bool(args.board_local_mic) and not bool(args.pc_audio_sender)
-    board_local_camera = bool(args.board_local_camera) and not bool(args.pc_video_sender)
+    board_local_camera = (
+        bool(args.board_local_camera)
+        and not bool(args.pc_video_sender)
+        and not bool(args.no_board_local_camera)
+    )
 
     log("[INFO] launching multimodal suite")
     cleanup_local()
@@ -556,6 +568,7 @@ def main() -> None:
         can_ssh_check_audio=not args.no_board,
         board_local_mic=board_local_mic,
         board_local_camera=board_local_camera,
+        need_video_port=not board_local_camera and not bool(args.no_board_local_camera),
     )
     start_local_processes(
         args.host,
@@ -573,6 +586,8 @@ def main() -> None:
 
     if board_local_mic and board_local_camera and not args.no_board:
         print(f"Started board runtimes (local mic+camera, asr={args.asr_backend}), PC listeners only.")
+    elif board_local_mic and not board_local_camera and not args.no_board:
+        print(f"Started board runtimes (local mic only, no camera, asr={args.asr_backend}), PC listeners only.")
     elif board_local_mic and not args.no_board:
         print(f"Started board runtimes (local mic, backend={args.asr_backend}), PC video sender + result listeners.")
     elif args.no_board:
