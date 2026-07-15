@@ -5,6 +5,8 @@ import { UnityEmbed } from "./components/UnityEmbed";
 import { ActionPanel } from "./components/ActionPanel";
 import { BottomCommandBar } from "./components/BottomCommandBar";
 import { MapUnityEmbed } from "./components/MapUnityEmbed";
+import { GestureCursorOverlay } from "./gesture/GestureCursorOverlay";
+import { useGestureCursor } from "./gesture/useGestureCursor";
 import type { TopNavId } from "./types";
 import type { SmplhActionItem } from "./data/smplhActions";
 import { makeAgentContext } from "./services/agentContext";
@@ -84,6 +86,18 @@ export default function App() {
   const unityStatusText = unityReady
     ? "WebGL 已连接（PlaySmplStreamingRelativePath）"
     : "未加载（占位 / 调试用，仍会更新当前 SMPL 路径）";
+
+  /** 仅地图页启用手势光标（本机摄像头 MediaPipe，不依赖板端） */
+  const gestureEnabled = topNav === "map";
+  const gesture = useGestureCursor(gestureEnabled);
+
+  const onSelect2DPlace = useCallback(
+    (name: string) => {
+      setSubtitle(`2D地图已选：${name}（捏合星星可选其它地点）`);
+      setGuestInput((prev) => (prev.trim() ? prev : `我想去${name}`));
+    },
+    [setSubtitle, setGuestInput]
+  );
 
   const onSelectSmpl = useCallback(
     (item: SmplhActionItem) => {
@@ -490,7 +504,10 @@ export default function App() {
                   <UnityEmbed blockGamePointer={terminalIslandFocused} />
                 </div>
                 <div className={topNav === "map" ? "flex min-h-0 flex-1 flex-col" : "hidden"}>
-                  <MapUnityEmbed blockGamePointer={terminalIslandFocused} />
+                  <MapUnityEmbed
+                    blockGamePointer={terminalIslandFocused}
+                    onSelect2DPlace={onSelect2DPlace}
+                  />
                 </div>
               </div>
             </motion.div>
@@ -606,6 +623,13 @@ export default function App() {
           />
         </div>
       </div>
+      {gestureEnabled ? (
+        <GestureCursorOverlay
+          state={gesture.state}
+          serviceOk={gesture.serviceOk}
+          mockMode={gesture.mockMode}
+        />
+      ) : null}
     </div>
   );
 }

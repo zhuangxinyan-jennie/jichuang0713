@@ -3,16 +3,19 @@ import { MapPinned } from "lucide-react";
 import { isMapUnityFullyReady, setMapUnityInstance } from "../services/unityMapBridge";
 import { lastMapUnityLoadError, tryLoadUnityWebGL } from "../unity/loadUnityWebGL";
 import { useEffect, useState } from "react";
+import { ParkMap2DOverlay } from "./ParkMap2DOverlay";
 
 type MapUnityEmbedProps = {
   blockGamePointer?: boolean;
+  /** 2D 地图选中地点时回调（用于底部字幕等） */
+  onSelect2DPlace?: (name: string) => void;
 };
 
 /**
  * 地图查询页：加载 ParkMap3DBlockout 的 WebGL（/webgl-map/）。
- * 与语音页的熊大 WebGL（/webgl/）相互独立。
+ * 与语音页的熊大 WebGL（/webgl/）相互独立；右下角保留 2D 平面图入口。
  */
-export function MapUnityEmbed({ blockGamePointer = false }: MapUnityEmbedProps) {
+export function MapUnityEmbed({ blockGamePointer = false, onSelect2DPlace }: MapUnityEmbedProps) {
   const [ready, setReady] = useState(false);
   const [bootHint, setBootHint] = useState<string | null>(null);
 
@@ -102,6 +105,11 @@ export function MapUnityEmbed({ blockGamePointer = false }: MapUnityEmbedProps) 
             ) : null}
           </motion.div>
         )}
+      </div>
+
+      {/* 放在 pointer-events-none 之外，保证鼠标/手势都能点 2D 图 */}
+      <div className="pointer-events-none absolute inset-0 z-30 [&_button]:pointer-events-auto">
+        <ParkMap2DOverlay onSelectPlace={onSelect2DPlace} />
       </div>
     </div>
   );

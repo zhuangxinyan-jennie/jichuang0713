@@ -7,6 +7,7 @@ import webbrowser
 
 import cv2
 
+from camera_utils import nudge_exposure, open_camera, restore_auto_exposure, soft_clamp_brightness
 from config import CAMERA_INDEX, HTTP_HOST, MIRROR_FRAME
 from hand_tracker import HandTracker
 from landmarks_server import LandmarksStore, start_server
@@ -35,6 +36,7 @@ def main():
             print("无摄像头模式：页面内用鼠标模拟手势光标")
         else:
             print("举起手掌移动光标，捏合抓星；预览窗口按 ESC 退出")
+            print("曝光：默认自动（与原项目一致）。过亮/过暗时：按 [ 变暗，] 变亮，按 a 恢复自动曝光")
         if not args.no_browser:
             webbrowser.open(url)
 
@@ -61,9 +63,10 @@ def main():
             print("已退出")
         return
 
-    cap = cv2.VideoCapture(args.camera)
-    if not cap.isOpened():
-        raise SystemExit(f"无法打开摄像头 index={args.camera}")
+    try:
+        cap = open_camera(args.camera)
+    except Exception as e:
+        raise SystemExit(str(e)) from e
 
     try:
         with HandTracker() as tracker:
@@ -73,21 +76,35 @@ def main():
                     break
                 if mirror_frame:
                     frame = cv2.flip(frame, 1)
+                # 仅极端过亮时轻微压暗；正常亮度保持相机画面
+                frame = soft_clamp_brightness(frame)
                 landmarks = tracker.process_bgr(frame)
                 store.set(landmarks)
                 tracker.draw_skeleton(frame, landmarks)
+                mean_v = float(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY).mean())
+                try:
+                    exp = float(cap.get(cv2.CAP_PROP_EXPOSURE))
+                except Exception:
+                    exp = float("nan")
                 cv2.putText(
                     frame,
-                    f"landmarks={len(landmarks)}",
+                    f"landmarks={len(landmarks)}  bright={mean_v:.0f}  exp={exp:.1f}  [/]=adj  a=auto",
                     (10, 28),
                     cv2.FONT_HERSHEY_SIMPLEX,
-                    0.7,
-                    (0, 255, 0),
+                    0.55,
+                    (0, 255, 0) if landmarks else (0, 165, 255),
                     2,
                 )
                 cv2.imshow("paw_stars gesture (ESC quit)", frame)
-                if cv2.waitKey(1) & 0xFF == 27:
+                key = cv2.waitKey(1) & 0xFF
+                if key == 27:
                     break
+                if key in (ord("["), ord("{")):
+                    nudge_exposure(cap, -1.0)
+                elif key in (ord("]"), ord("}")):
+                    nudge_exposure(cap, 1.0)
+                elif key in (ord("a"), ord("A")):
+                    restore_auto_exposure(cap)
     finally:
         cap.release()
         cv2.destroyAllWindows()

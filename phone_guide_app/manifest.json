@@ -1,0 +1,45 @@
+{
+  "name": "Phone Guide",
+  "appid": "__UNI__PHONEGUIDE",
+  "description": "流式语音到板端 ASR",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "app-plus": {
+    "usingComponents": true,
+    "nvueStyleCompiler": "uni-app",
+    "splashscreen": {
+      "alwaysShowBeforeRender": true,
+      "waiting": true,
+      "autoclose": true,
+      "delay": 0
+    },
+    "modules": {},
+    "distribute": {
+      "android": {
+        "permissions": [
+          "<uses-permission android:name=\"android.permission.RECORD_AUDIO\"/>",
+          "<uses-permission android:name=\"android.permission.INTERNET\"/>",
+          "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+          "<uses-permission android:name=\"android.permission.MODIFY_AUDIO_SETTINGS\"/>"
+        ]
+      },
+      "ios": {
+        "privacyDescription": {
+          "NSMicrophoneUsageDescription": "用于把你的语音实时传到乐园导览板端做识别",
+          "NSCameraUsageDescription": "用于扫描大屏二维码连接导览"
+        },
+        "idfa": false
+      },
+      "sdkConfigs": {}
+    }
+  },
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false
+    }
+  },
+  "vueVersion": "3",
+  "locale": "zh-Hans"
+}

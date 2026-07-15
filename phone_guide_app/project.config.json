@@ -1,0 +1,17 @@
+{
+  "description": "Phone Guide UniApp — iPhone 用 HBuilderX 打开本目录",
+  "packOptions": {
+    "ignore": []
+  },
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "minified": true
+  },
+  "compileType": "uni",
+  "appid": "__UNI__PHONEGUIDE",
+  "projectname": "phone-guide-app",
+  "uniapp": {
+    "version": "3.0.0"
+  }
+}

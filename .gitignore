@@ -87,15 +87,24 @@ XiongdaUnityProject/background/
 XiongdaUnityProject/xiongda_app/
 xiongda_app/public/webgl/Build/
 xiongda_app/public/webgl/StreamingAssets/
-# 地图 WebGL 二进制需提交给队友直接运行（大文件走 Git LFS，见 .gitattributes）
+# 地图 WebGL 二进制走 Git LFS（见 .gitattributes）；若未装 LFS 可本地 Unity 构建
 # xiongda_app/public/webgl-map/Build/
 
-# Unity 地图源码仅本地开发用；队友 clone 后直接用 public/webgl-map/ 即可
-XiongdaParkMapProject/
-
-# Unity 光照烘焙数据体积过大
-**/LightingData.asset
-**/LightingData.asset.meta
+# 乐园地图 Unity 工程（与 XiongdaUnityProject 同样忽略本地缓存）
+XiongdaParkMapProject/Library/
+XiongdaParkMapProject/Temp/
+XiongdaParkMapProject/Obj/
+XiongdaParkMapProject/Build/
+XiongdaParkMapProject/Builds/
+XiongdaParkMapProject/Logs/
+XiongdaParkMapProject/UserSettings/
+XiongdaParkMapProject/.vs/
+XiongdaParkMapProject/*.csproj
+XiongdaParkMapProject/*.sln
 
 # CosyVoice local virtual environment
 third_party/CosyVoice/.venv*/
+
+# UniApp / HBuilder local build output
+phone_guide_app/unpackage/
+exports_for_teammate/

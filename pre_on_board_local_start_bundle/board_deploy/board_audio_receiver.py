@@ -524,7 +524,11 @@ def run_asr_stream(
     long_clause_min_ms = int(runtime_cfg.get("long_clause_min_ms", 7000))
     long_clause_extend_ms = int(runtime_cfg.get("long_clause_extend_ms", 1200))
     start_voice_ms = int(runtime_cfg.get("start_voice_ms", 400))
-    fast_start_rms = max(float(runtime_cfg.get("fast_start_rms", 0.37)), 0.055)
+    # 允许 asr_config.yaml 把 fast_start_rms 调到 ~0.008，配合 capture_gain 支持 1~1.5m
+    fast_start_rms = max(float(runtime_cfg.get("fast_start_rms", 0.020)), 0.008)
+    capture_gain = max(float(runtime_cfg.get("capture_gain", 1.0)), 1.0)
+    capture_gain = min(capture_gain, 4.0)
+    rms_debug = bool(runtime_cfg.get("rms_debug", False))
     pre_roll_ms = int(runtime_cfg.get("pre_roll_ms", 240))
     no_preview_decode_ms = int(runtime_cfg.get("no_preview_decode_ms", 2200))
     post_final_ignore_ms = int(runtime_cfg.get("post_final_ignore_ms", 250))
@@ -576,8 +580,12 @@ def run_asr_stream(
             if post_final_cooldown_ms > 0:
                 post_final_cooldown_ms = max(0, post_final_cooldown_ms - block_ms)
                 continue
+            if capture_gain != 1.0:
+                chunk = np.clip(chunk * capture_gain, -1.0, 1.0)
             pre_roll_chunks.append(chunk.copy())
             rms = float(np.sqrt(np.mean(np.square(chunk)))) if chunk.size > 0 else 0.0
+            if rms_debug and rms >= min_voice_rms * 0.5:
+                print(f"[RMS] block rms={rms:.4f} voiced={rms >= min_voice_rms}", flush=True)
             is_voiced = rms >= min_voice_rms
 
             if speech_started:
@@ -687,9 +695,9 @@ def run_asr_stream(
                 has_preview_text = bool(longest_sentence_text.strip() or last_partial.strip())
                 utterance_avg_rms = utterance_rms_sum / utterance_rms_count if utterance_rms_count > 0 else 0.0
                 noise_like = (
-                    utterance_voice_ms < max(250, start_voice_ms)
-                    and utterance_peak_rms < fast_start_rms
-                    and utterance_avg_rms < min_voice_rms
+                    utterance_voice_ms < max(200, start_voice_ms)
+                    and utterance_peak_rms < (fast_start_rms * 0.85)
+                    and utterance_avg_rms < (min_voice_rms * 0.85)
                 )
                 if noise_like:
                     print(
@@ -1310,24 +1318,30 @@ def main() -> None:
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind((args.host, args.port))
-    server.listen(1)
+    server.listen(4)
     print(f"[BOARD-ASR] listening on {args.host}:{args.port}", flush=True)
-    conn, addr = server.accept()
-    print(f"[BOARD-ASR] connected from {addr}", flush=True)
-    hello = recv_json(conn)
-    print(f"[BOARD-ASR] hello={hello}", flush=True)
-    result_host = str(args.result_host).strip() or str(addr[0])
-    try:
-        run_asr_stream(iter_tcp_audio_chunks(conn), result_host=result_host, **stream_kwargs)
-    finally:
+    while True:
+        conn, addr = server.accept()
+        print(f"[BOARD-ASR] connected from {addr}", flush=True)
         try:
-            conn.close()
-        except OSError:
-            pass
-        try:
-            server.close()
-        except OSError:
-            pass
+            try:
+                hello = recv_json(conn)
+            except ConnectionError as exc:
+                print(f"[BOARD-ASR] peer closed before hello ({exc}); wait next client", flush=True)
+                continue
+            print(f"[BOARD-ASR] hello={hello}", flush=True)
+            result_host = str(args.result_host).strip() or str(addr[0])
+            run_asr_stream(iter_tcp_audio_chunks(conn), result_host=result_host, **stream_kwargs)
+            print("[BOARD-ASR] client stream ended; wait next client", flush=True)
+        except ConnectionError as exc:
+            print(f"[BOARD-ASR] stream disconnected: {exc}; wait next client", flush=True)
+        except Exception as exc:
+            print(f"[BOARD-ASR] session error: {exc}; wait next client", flush=True)
+        finally:
+            try:
+                conn.close()
+            except OSError:
+                pass
 
 
 if __name__ == "__main__":

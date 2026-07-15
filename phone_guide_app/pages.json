@@ -1,0 +1,57 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "语音识别",
+        "navigationBarBackgroundColor": "#0a0a0a",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#0a0a0a"
+      }
+    },
+    {
+      "path": "pages/connect/connect",
+      "style": {
+        "navigationBarTitleText": "连接电脑",
+        "navigationBarBackgroundColor": "#0a0a0a",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#0a0a0a"
+      }
+    },
+    {
+      "path": "pages/map/map",
+      "style": {
+        "navigationBarTitleText": "地图导览",
+        "navigationBarBackgroundColor": "#0a0a0a",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#0a0a0a"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "Phone Guide",
+    "navigationBarBackgroundColor": "#0a0a0a",
+    "backgroundColor": "#0a0a0a"
+  },
+  "tabBar": {
+    "color": "#8b8b8b",
+    "selectedColor": "#82aaff",
+    "backgroundColor": "#141414",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "语音"
+      },
+      {
+        "pagePath": "pages/map/map",
+        "text": "地图"
+      },
+      {
+        "pagePath": "pages/connect/connect",
+        "text": "连接"
+      }
+    ]
+  }
+}

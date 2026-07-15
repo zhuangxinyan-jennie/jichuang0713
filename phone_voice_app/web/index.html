@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"
+    />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Phone Voice · 流式识别</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <span class="dot" aria-hidden="true"></span>
+          <div>
+            <h1>Phone Voice</h1>
+            <p class="sub">流式语音 → 昇腾板端 ASR</p>
+          </div>
+        </div>
+        <div id="connPill" class="pill pill-muted">连接中…</div>
+      </header>
+
+      <main class="main">
+        <section class="card transcript-card">
+          <div class="card-label">识别中</div>
+          <p id="partialText" class="partial">等待说话…</p>
+          <div class="divider"></div>
+          <div class="card-label">已确认</div>
+          <p id="finalText" class="final">—</p>
+        </section>
+
+        <section class="card meta-card">
+          <div class="row">
+            <span class="muted">板端</span>
+            <span id="boardLabel" class="mono">—</span>
+          </div>
+          <div class="row">
+            <span class="muted">状态</span>
+            <span id="statusLabel">未连接</span>
+          </div>
+          <div class="row">
+            <span class="muted">本机网址</span>
+            <span id="urlLabel" class="mono wrap">—</span>
+          </div>
+        </section>
+      </main>
+
+      <footer class="dock">
+        <button id="talkBtn" class="talk" type="button" aria-pressed="false">
+          <span class="talk-ring" aria-hidden="true"></span>
+          <span id="talkLabel">按住说话</span>
+        </button>
+        <p class="hint">按住按钮说话 · 松手停止发送 · 边说边出字</p>
+      </footer>
+    </div>
+    <script type="module" src="/src/app.js"></script>
+  </body>
+</html>

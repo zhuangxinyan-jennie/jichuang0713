@@ -1,0 +1,9 @@
+{
+  "name": "phone-guide-app",
+  "displayName": "Phone Guide",
+  "description": "手机流式语音 → 昇腾板端 ASR + 导览预留",
+  "version": "1.0.0",
+  "transformPrivate": false,
+  "appid": "__UNI__PHONEGUIDE",
+  "compilerVersion": 3
+}

@@ -153,6 +153,36 @@ Unity Hub 打开 `XiongdaParkMapProject/`。
 
 产物目录：`xiongda_app/public/webgl-map/`（与熊大 `public/webgl/` **分开，不会互相覆盖**）。
 
+### 5.3 2D 平面图 + 本机手势光标（可不启板端）
+
+地图查询页 **右下角** 有「2D地图」缩略图（`public/map/park-map.png`），**不删不替** 3D WebGL；点击后浮层放大，地点显示为星星。
+
+手势（本机摄像头，不开板端）：
+
+```powershell
+# 窗口 A：手势服务
+.\gesture_cursor_project\启动2D地图手势演示.bat
+
+# 窗口 B：前端
+cd xiongda_app
+npm run dev
+```
+
+浏览器 → **地图查询** → 点「2D地图」→ 举手移动光标，捏合拇指与食指点星星。  
+未开 8770 时会自动进入鼠标演示模式。星星坐标：`xiongda_app/public/map/places_2d.json`。
+
+### 5.4 手机流式语音 → 板端 ASR
+
+```powershell
+cd phone_voice_app
+.\start.bat
+# 或: python server\bridge.py --board-host 192.168.137.100
+```
+
+手机与电脑同一 WiFi，打开控制台里的 `http://<电脑IP>:8788/`，**按住说话**即可流式识别。详细见 [phone_voice_app/README.md](../phone_voice_app/README.md)。
+
+注意：演示时请勿与其它程序抢占本机 **18083**（除非加 `--no-asr-listen`）。
+
 ---
 
 ## 6. 常用脚本
@@ -160,6 +190,8 @@ Unity Hub 打开 `XiongdaParkMapProject/`。
 | 脚本 | 作用 |
 |------|------|
 | `start-pc-stack.ps1` | PC 全栈 |
+| `phone_voice_app/start.bat` | 手机流式语音桥接（8788 → 板端 18081） |
+| `gesture_cursor_project/启动2D地图手势演示.bat` | 本机手势光标（8770，地图 2D 用） |
 | `start-pc-asr-terminal.ps1` | 仅听 18083 看识别 |
 | `start-pc-board-viewer.ps1` | 看板端视觉回传 |
 | `run-latency-benchmark.ps1` | 延时测试 |

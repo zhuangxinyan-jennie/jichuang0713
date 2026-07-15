@@ -41,6 +41,15 @@ export default defineConfig(({ mode }) => {
   const proxyTarget = env.VITE_BEAR_AGENT_PROXY_TARGET?.trim() || "http://127.0.0.1:8765";
   const useAgentProxy = env.VITE_BEAR_AGENT_USE_PROXY === "1" || env.VITE_BEAR_AGENT_USE_PROXY?.toLowerCase() === "true";
 
+  /** 本机手势 landmarks（MediaPipe），与熊大 Agent /api 分开，避免端口冲突 */
+  const gestureProxy = {
+    "/gesture-api": {
+      target: "http://127.0.0.1:8770",
+      changeOrigin: true,
+      rewrite: (p: string) => p.replace(/^\/gesture-api/, ""),
+    },
+  };
+
   return {
     plugins: [react(), webglMimePlugin()],
     server: {
@@ -48,8 +57,9 @@ export default defineConfig(({ mode }) => {
         ? {
             "/api": { target: proxyTarget, changeOrigin: true },
             "/health": { target: proxyTarget, changeOrigin: true },
+            ...gestureProxy,
           }
-        : undefined,
+        : { ...gestureProxy },
     },
   };
 });

@@ -10,6 +10,7 @@
 | **[docs/PC.md](docs/PC.md)** | PC 环境、启动、Agent、TTS、Unity |
 | **[docs/BOARD.md](docs/BOARD.md)** | 板端部署、模型、启动、端口 |
 | **[docs/FPGA_AV_EventFusion.md](docs/FPGA_AV_EventFusion.md)** | PG2L100H 异构协同、改造清单、EdgeEvent 协议、开源参考 |
+| **[docs/FPGA_DayNight_Preprocess_Requirements.md](docs/FPGA_DayNight_Preprocess_Requirements.md)** | 室外昼夜滤光需求、与 Intel 板差异、可发给硬件同学的说明 |
 
 ---
 
@@ -35,6 +36,9 @@ git lfs pull
 | `XiongdaUnityProject/` | Unity 熊大角色 WebGL 源码 | ✅（❌ `Library/` 等缓存） |
 | `XiongdaParkMapProject/` | Unity 3D 乐园地图 WebGL 源码 | ✅（❌ `Library/` 等缓存） |
 | `pre_on_board_local_start_bundle/` | 板端 Python 运行时 + OM 模型 + 启动脚本 | ✅ |
+| `gesture_cursor_project/` | 本机摄像头手势光标（地图页 2D 图用） | ✅ |
+| `phone_voice_app/` | 手机流式语音桥接（PC server；web 仅调试） | ✅ |
+| `phone_guide_app/` | **交付用** UniApp（iPhone 语音→板端 ASR） | ✅ |
 | `cosyvoice_live_release/` | CosyVoice TTS 服务 | ✅ |
 | `third_party/CosyVoice/` | CosyVoice 源码 | ❌ 本地安装 |
 | `pretrained_models/` | TTS 权重 | ❌ 脚本下载 |
@@ -55,6 +59,13 @@ powershell -ExecutionPolicy Bypass -File .\setup-env.ps1
 ```
 
 浏览器：**http://127.0.0.1:5173**
+
+手机流式语音（→ 板端 ASR）：
+
+- **默认直连板子**：手机 → `192.168.137.100:8788` → 板端识别（见 [`phone_guide_app/README.md`](phone_guide_app/README.md)）
+- **交付 App**：[`phone_guide_app/`](phone_guide_app/)（**需用 HBuilderX 装到 iPhone**，做完直连不会自动安装）
+- **备选 PC 中转**：`phone_voice_app\start.bat`；直连时 PC 看结果用 `pc_asr_mirror_terminal.py`
+- 网页 `phone_voice_app/web` 仅临时调试
 
 板端联调见 **[docs/BOARD.md](docs/BOARD.md)**，完整 PC 说明见 **[docs/PC.md](docs/PC.md)**。
 
