@@ -39,7 +39,7 @@ git lfs pull
 | `third_party/CosyVoice/` | CosyVoice 源码 | ❌ 本地安装 |
 | `pretrained_models/` | TTS 权重 | ❌ 脚本下载 |
 
-`board_handoff_for_teammate/` 为历史交接快照，**日常开发请忽略**。
+`board_handoff_for_teammate/` 为历史交接快照，**日常开发请忽略**。其中已合并队友 PR#1（静态 AIPP pose OM、校验脚本、板端「最新帧 Condition 唤醒」调度）；这些改动目前只在 handoff 里，**正式板端路径仍是** `pre_on_board_local_start_bundle/board_deploy/`，要用 AIPP 需再移植过去。
 
 ---
 
@@ -57,10 +57,6 @@ powershell -ExecutionPolicy Bypass -File .\setup-env.ps1
 浏览器：**http://127.0.0.1:5173**
 
 板端联调见 **[docs/BOARD.md](docs/BOARD.md)**，完整 PC 说明见 **[docs/PC.md](docs/PC.md)**。
-    → [CPU] whisper 特征 + CTC 解码
-    → TCP 推送到 PC :18082 / :18083
-    → board_bridge → Bear Agent → xiongda_app / Unity
-```
 
 - **ASR 推荐**：`ASR_BACKEND=ctc_om`（NPU 流式 CTC，T=45，步进 32 帧）
 - **动作识别**：`ACTION_BACKEND=stgcn`（NPU `action_stgcn.om`）
