@@ -1,0 +1,45 @@
+{
+  "onnx": "C:\\Users\\tanza\\Desktop\\\u5feb\u70b9\u5b66\u4e60\uff01\\\u7b2c\u5341\u5c4a\u96c6\u521b\u8d5b\\board_full_project\\yolo11n_pose_640.onnx",
+  "onnx_md5": "00b7c688db36321b9a7b862f5dbf7783",
+  "onnx_sha256": "75c29734ce577f1f8cb33df013903ea3a5746d7608bea1aa1910f44eda06ee89",
+  "input": {
+    "name": "images",
+    "shape": [
+      1,
+      3,
+      640,
+      640
+    ],
+    "type": "tensor(float)"
+  },
+  "output": {
+    "name": "output0",
+    "shape": [
+      1,
+      56,
+      8400
+    ],
+    "dtype": "float32"
+  },
+  "preprocess": {
+    "source": "deterministic BGR uint8 640x480",
+    "letterbox": "640x640, padding value 114",
+    "channel_order": "BGR to RGB",
+    "layout": "HWC to NCHW",
+    "normalization": "float32 / 255",
+    "ratio": [
+      1.0,
+      1.0
+    ],
+    "pad": [
+      0.0,
+      80.0
+    ]
+  },
+  "output_stats": {
+    "min": -12.820698738098145,
+    "max": 670.68212890625,
+    "mean": 207.861083984375,
+    "std": 211.00698852539062
+  }
+}

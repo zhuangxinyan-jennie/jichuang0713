@@ -1,0 +1,132 @@
+{
+  "golden": "profiling_results/pose640_aipp_golden.npz",
+  "warmup": 10,
+  "loops": 100,
+  "reference": {
+    "model": "models_om/yolo11n_pose_640_source_ref.om",
+    "model_size_bytes": 7475616,
+    "host_input_shape": [
+      1,
+      3,
+      640,
+      640
+    ],
+    "host_input_dtype": "float32",
+    "host_input_bytes": 4915200,
+    "inputs": [
+      {
+        "name": "images",
+        "shape": [
+          1,
+          3,
+          640,
+          640
+        ],
+        "datatype": "dtype.float32",
+        "size": 4915200,
+        "realsize": 4915200
+      }
+    ],
+    "outputs": [
+      {
+        "name": "/model.23/Concat_5:0:output0",
+        "shape": [
+          1,
+          56,
+          8400
+        ],
+        "datatype": "dtype.float32",
+        "size": 1881600,
+        "realsize": 1881600
+      }
+    ],
+    "comparison_to_onnx": {
+      "shape": [
+        1,
+        56,
+        8400
+      ],
+      "mae": 0.07320733601322435,
+      "rmse": 0.15138593109165577,
+      "max_abs": 5.5166015625,
+      "cosine_similarity": 0.9999998698772751,
+      "reference_best_index": 8002,
+      "candidate_best_index": 6442,
+      "reference_best_score": 0.00013136863708496094,
+      "candidate_score_at_reference_best": 0.00013136863708496094,
+      "candidate_best_score": 0.0001323223114013672,
+      "top10_index_overlap": 10
+    },
+    "inference": {
+      "loops": 100,
+      "mean_ms": 28.111751880041993,
+      "p50_ms": 27.394547499852706,
+      "p95_ms": 33.58596570010376,
+      "min_ms": 26.984822000031272,
+      "max_ms": 36.59849500036216
+    }
+  },
+  "aipp": {
+    "model": "models_om/yolo11n_pose_640_aipp.om",
+    "model_size_bytes": 7471380,
+    "host_input_shape": [
+      640,
+      640,
+      3
+    ],
+    "host_input_dtype": "uint8",
+    "host_input_bytes": 1228800,
+    "inputs": [
+      {
+        "name": "images",
+        "shape": [
+          1,
+          640,
+          640,
+          3
+        ],
+        "datatype": "dtype.uint8",
+        "size": 1228800,
+        "realsize": 1228800
+      }
+    ],
+    "outputs": [
+      {
+        "name": "/model.23/Concat_5:0:output0",
+        "shape": [
+          1,
+          56,
+          8400
+        ],
+        "datatype": "dtype.float32",
+        "size": 1881600,
+        "realsize": 1881600
+      }
+    ],
+    "comparison_to_onnx": {
+      "shape": [
+        1,
+        56,
+        8400
+      ],
+      "mae": 0.07430801949603166,
+      "rmse": 0.1557693969093869,
+      "max_abs": 5.0166015625,
+      "cosine_similarity": 0.9999998621180894,
+      "reference_best_index": 8002,
+      "candidate_best_index": 6442,
+      "reference_best_score": 0.00013136863708496094,
+      "candidate_score_at_reference_best": 0.0001304149627685547,
+      "candidate_best_score": 0.00013136863708496094,
+      "top10_index_overlap": 10
+    },
+    "inference": {
+      "loops": 100,
+      "mean_ms": 18.500309690020913,
+      "p50_ms": 18.160443000169835,
+      "p95_ms": 19.18427650018657,
+      "min_ms": 17.977721000079327,
+      "max_ms": 26.987321999968117
+    }
+  }
+}
