@@ -103,6 +103,7 @@ chmod +x /home/HwHiAiUser/jichuang/*.sh
 
 export BOARD_LOCAL_MIC=1
 export BOARD_LOCAL_CAMERA=1
+export BOARD_LOCAL_DISPLAY=1           # 1=摄像头全屏显示到板子 HDMI 扩展屏；0=只推流不弹窗
 export BOARD_RESULT_HOST=192.168.137.1    # 改成你 PC 的 USB 网 IP
 export ASR_BACKEND=ctc_om
 export ACTION_BACKEND=stgcn
@@ -165,6 +166,24 @@ bash /home/HwHiAiUser/jichuang/stop_board.sh
 PC `board_bridge` 监听 18082 后，会把关键点落到 `latest_hand_landmarks.json`，并在本机 **:8770** 提供网页光标接口（**非 MediaPipe**）。
 
 PC 必须先监听（如 `run_all.py --bear-bridge` / `run_pc_asr_terminal.py`），板子再启动。
+
+---
+
+## 8.1 HDMI 扩展屏显示互动网页（kiosk）
+
+板子接好 HDMI 后，可在扩展屏全屏打开熊大网页（Firefox），PC 仍跑 Agent / TTS / 前端：
+
+```bash
+# PC：前端需监听局域网（vite host:true），Agent/TTS 默认已绑 0.0.0.0
+# 浏览器地址用 PC 的 USB 网 IP，例如：
+# http://192.168.137.1:5173/
+
+bash /home/HwHiAiUser/jichuang/start_hdmi_kiosk.sh
+# 停止：
+bash /home/HwHiAiUser/jichuang/stop_hdmi_kiosk.sh
+```
+
+说明：脚本会暂时关掉板子 OpenCV 本地全屏窗，避免挡住网页；摄像头仍推流到 PC，网页里照常能用手势/预览。
 
 ---
 

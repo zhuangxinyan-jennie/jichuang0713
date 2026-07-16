@@ -10,7 +10,6 @@
 | **[docs/PC.md](docs/PC.md)** | PC 环境、启动、Agent、TTS、Unity |
 | **[docs/BOARD.md](docs/BOARD.md)** | 板端部署、模型、启动、端口 |
 | **[docs/FPGA_AV_EventFusion.md](docs/FPGA_AV_EventFusion.md)** | PG2L100H 异构协同、改造清单、EdgeEvent 协议、开源参考 |
-| **[docs/FPGA_DayNight_Preprocess_Requirements.md](docs/FPGA_DayNight_Preprocess_Requirements.md)** | 室外昼夜滤光需求、与 Intel 板差异、可发给硬件同学的说明 |
 
 ---
 
@@ -36,9 +35,6 @@ git lfs pull
 | `XiongdaUnityProject/` | Unity 熊大角色 WebGL 源码 | ✅（❌ `Library/` 等缓存） |
 | `XiongdaParkMapProject/` | Unity 3D 乐园地图 WebGL 源码 | ✅（❌ `Library/` 等缓存） |
 | `pre_on_board_local_start_bundle/` | 板端 Python 运行时 + OM 模型 + 启动脚本 | ✅ |
-| `gesture_cursor_project/` | 地图 2D 手势光标说明/脚本（默认跟板端 NPU，非 MediaPipe） | ✅ |
-| `phone_voice_app/` | 手机流式语音桥接（PC server；web 仅调试） | ✅ |
-| `phone_guide_app/` | **交付用** UniApp（iPhone 语音→板端 ASR） | ✅ |
 | `cosyvoice_live_release/` | CosyVoice TTS 服务 | ✅ |
 | `third_party/CosyVoice/` | CosyVoice 源码 | ❌ 本地安装 |
 | `pretrained_models/` | TTS 权重 | ❌ 脚本下载 |
@@ -60,22 +56,7 @@ powershell -ExecutionPolicy Bypass -File .\setup-env.ps1
 
 浏览器：**http://127.0.0.1:5173**
 
-手机流式语音（→ 板端 ASR）：
-
-- **默认直连板子**：手机 → `192.168.137.100:8788` → 板端识别（见 [`phone_guide_app/README.md`](phone_guide_app/README.md)）
-- **交付 App**：[`phone_guide_app/`](phone_guide_app/)（**需用 HBuilderX 装到 iPhone**，做完直连不会自动安装）
-- **备选 PC 中转**：`phone_voice_app\start.bat`；直连时 PC 看结果用 `pc_asr_mirror_terminal.py`
-- 网页 `phone_voice_app/web` 仅临时调试
-
 板端联调见 **[docs/BOARD.md](docs/BOARD.md)**，完整 PC 说明见 **[docs/PC.md](docs/PC.md)**。
-
----
-
-## 系统架构（当前默认）
-
-```text
-板载麦克风/摄像头
-    → [NPU] 视觉 OM + Zipformer2 CTC encoder
     → [CPU] whisper 特征 + CTC 解码
     → TCP 推送到 PC :18082 / :18083
     → board_bridge → Bear Agent → xiongda_app / Unity
@@ -101,9 +82,6 @@ git -c safe.directory=(Get-Location) -c core.sshCommand="C:/Windows/System32/Ope
 
 ## 常见问题
 
-**Q：手势光标还要开电脑摄像头 / MediaPipe 吗？**  
-A：**不要。** 默认用板载摄像头 + `hand_landmark_sparse.om`，光标走 UDP **18085**（快）+ `board_bridge` 内存 → `:8770`；18082 仍给 Agent/预览。MediaPipe 仅作离线备用。
-
 **Q：队友 clone 后缺模型？**  
 A：执行 `git lfs pull`；板端再补 `model.int8.onnx`（见 BOARD 文档）。
 
@@ -113,8 +91,14 @@ A：只看 `README.md`、`docs/PC.md`、`docs/BOARD.md`，其它 `.md` 已废弃
 **Q：板子怎么启动？**  
 A：`bash /home/HwHiAiUser/jichuang/run_on_board.sh`，脚本来自仓库 `pre_on_board_local_start_bundle/jichuang/`。
 
-**Q：网页「正在说」出现 `<0xE8>` / 「询」「螺」丢字？**  
-A：词表里这些字是 SentencePiece 字节回退（三个 `<0xXX>` 拼成一个汉字）。板端 `om_streaming_ctc.py` 必须凑齐再出字；半截字节不再展示，且未拼完时禁止 endpoint。已修后需重启板端 `board_audio_receiver.py`（NPU `ctc_om`）。
+**Q：board_bridge 还是固定 0.2 秒轮询 Agent 吗？**  
+A：不是。现在改成了“**新 ASR / 视觉数据到达时优先唤醒**，`poll_interval` 只作为闸门状态检查的超时兜底”。也就是信号优先、短轮询兜底，既减少空等，又不会漏掉 `playback-done` 之后的恢复。
 
-**Q：熊大播报时麦克风又识别成游客说话？**  
-A：Agent 多模态闸门会在「有 speech / 剧情音频」时保持 busy，前端 `playback-start` → 播完 `playback-done`，再排空约 **4.5s**（`BEAR_AGENT_PLAYBACK_DRAIN_SEC`）。排空期间 `board_bridge` 清空 ASR，避免喇叭回声进玩法。仍串音时先把喇叭声量调小、麦克风略离音箱。
+**Q：单目相机怎么测距？准吗？**  
+A：不是深度相机测绘，而是用人脸框大小估**交互距离档**：`near`（约 1.2m 内）/ `mid`（约 1.2–2.8m）/ `far`（更远）。字段在板端 `summary` 与 Agent `perception` 里：`distance_band`、`distance_m_est`、`distance_confidence`。规则上 **`far` 不自动触发打招呼**，避免远处路人误开场。标定可改板端/PC 的 `distance_estimate.py` 常量。
+
+**Q：怎么把摄像头画面显示到板子 HDMI 扩展屏？**  
+A：板子接好 HDMI 后，启动时设 `BOARD_LOCAL_DISPLAY=1`（`run_on_board.sh` 默认已开）。脚本会加载显示驱动、使用 SDDM 的 `:0` 桌面，并把 `run_board_runtime` 预览全屏到扩展屏。若只要推流到 PC、不要本地窗口，设 `BOARD_LOCAL_DISPLAY=0`。
+
+**Q：能不能把互动网页也显示在板子 HDMI 扩展屏上？**  
+A：可以。PC 开好前端（`npm run dev`，需能用 `http://192.168.137.1:5173` 打开）和 Agent/TTS 后，在板子执行：`bash /home/HwHiAiUser/jichuang/start_hdmi_kiosk.sh`。会用 Firefox 全屏打开互动页。停止：`bash /home/HwHiAiUser/jichuang/stop_hdmi_kiosk.sh`。

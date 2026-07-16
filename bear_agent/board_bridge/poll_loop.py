@@ -54,6 +54,7 @@ def poll_loop(
     response_dump: Path | None = None,
     stop_flag: Any | None = None,
     utterance_clear_event: Any | None = None,
+    wakeup_event: Any | None = None,
     log_print=print,
 ) -> None:
     cfg = load_bridge_runtime_config()
@@ -72,6 +73,10 @@ def poll_loop(
     while True:
         if stop_flag is not None and getattr(stop_flag, "is_set", lambda: False)():
             break
+
+        if wakeup_event is not None:
+            wakeup_event.wait(timeout=poll_interval_sec)
+            wakeup_event.clear()
 
         vdoc = read_json_file(vision_path)
         adoc = read_json_file(asr_path)
@@ -103,7 +108,6 @@ def poll_loop(
             last_fp = None
             fusion.reset_trigger_memory()
             post_board_asr_live(url, partial="", final="", normalized="")
-            time.sleep(poll_interval_sec)
             continue
 
         if gate_busy:
@@ -114,13 +118,15 @@ def poll_loop(
             last_fp = None
             fusion.reset_trigger_memory()
             post_board_asr_live(url, partial="", final="", normalized="")
-            time.sleep(poll_interval_sec)
             continue
 
         post_board_asr_live(url, partial=partial, final=final_txt, normalized=norm_txt)
 
         stable_batch = fusion.process(vdoc, adoc)
-        postworthy = fusion.find_postworthy(stable_batch)
+        postworthy = fusion.find_postworthy(
+            stable_batch,
+            distance_band=str(perception.get("distance_band") or ""),
+        )
         try:
             fpga_path.parent.mkdir(parents=True, exist_ok=True)
             atomic_write_json(fpga_path, stable_event_doc(postworthy or fusion.last_postworthy, fusion.stats))
@@ -207,4 +213,3 @@ def poll_loop(
             except urllib.error.URLError as e:
                 log_print(f"[board_bridge] POST failed: {e}")
 
-        time.sleep(poll_interval_sec)

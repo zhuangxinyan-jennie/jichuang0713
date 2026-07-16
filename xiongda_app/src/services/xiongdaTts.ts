@@ -13,6 +13,7 @@
  * 请在**同一次点击**里先调用 `prepareBearAudioPlayback()`（再发 Agent / 再等 TTS）。
  */
 import { createTtsLatencyProbe } from "./ttsLatencyProbe";
+import { rewriteLoopbackServiceUrl } from "./lanServiceUrl";
 
 const DEFAULT_TTS_BASE = "http://127.0.0.1:9890";
 const FETCH_TIMEOUT_MS = 180_000;
@@ -181,7 +182,7 @@ export function speakBrowserFallback(text: string, onEnded?: () => void): void {
 
 function ttsBaseUrl(): string {
   const raw = (import.meta.env.VITE_XIONGDA_TTS_URL as string | undefined)?.trim();
-  return (raw || DEFAULT_TTS_BASE).replace(/\/$/, "");
+  return rewriteLoopbackServiceUrl(raw, DEFAULT_TTS_BASE);
 }
 
 function ttsDeviceBody(): Record<string, string> {

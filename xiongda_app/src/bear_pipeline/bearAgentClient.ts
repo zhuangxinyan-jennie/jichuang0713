@@ -15,6 +15,7 @@ function numOrNull(v: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 import { normalizePerceptionPayload } from "./normalizeBoardPerception";
+import { rewriteLoopbackServiceUrl } from "../services/lanServiceUrl";
 
 type HttpProbe = {
   mark: (name: string, data?: Record<string, unknown>) => void;
@@ -37,12 +38,14 @@ export function bearAgentBaseLabel(): string {
 
 function baseUrl(): string {
   const explicit = (import.meta.env.VITE_BEAR_AGENT_URL as string | undefined)?.trim();
-  if (explicit) return explicit.replace(/\/$/, "");
+  if (explicit) {
+    return rewriteLoopbackServiceUrl(explicit, "http://127.0.0.1:8765");
+  }
   const useProxy = (import.meta.env.VITE_BEAR_AGENT_USE_PROXY as string | undefined)?.trim().toLowerCase();
   if (import.meta.env.DEV && (useProxy === "1" || useProxy === "true")) {
     return "";
   }
-  return "http://127.0.0.1:8765";
+  return rewriteLoopbackServiceUrl(undefined, "http://127.0.0.1:8765");
 }
 
 export async function postProcessTest(

@@ -588,7 +588,7 @@ def health(request: Request):
 
 
 def main() -> None:
-    host = os.environ.get("XIONGDA_TTS_HOST", "127.0.0.1")
+    host = os.environ.get("XIONGDA_TTS_HOST", "0.0.0.0")
     port = int(os.environ.get("XIONGDA_TTS_PORT", "9888"))
     import uvicorn
 

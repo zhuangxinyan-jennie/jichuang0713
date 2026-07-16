@@ -102,6 +102,7 @@ class PerceptionFusion:
         gesture = perception_result.get("gesture", "none")
         hand_gesture = perception_result.get("hand_gesture", "none")
         speech_text = perception_result.get("speech_text", "")
+        distance_band = str(perception_result.get("distance_band") or "").strip().lower()
 
         # 构建自然语言描述
         description_parts = []
@@ -122,13 +123,20 @@ class PerceptionFusion:
         emotion_cn = self.emotion_map.get(emotion, "平静")
         description_parts.append(f"表情{emotion_cn}")
 
+        if distance_band == "near":
+            description_parts.append("站得较近")
+        elif distance_band == "mid":
+            description_parts.append("站在互动距离")
+        elif distance_band == "far":
+            description_parts.append("站得较远")
+
         # 语音描述
         if speech_text:
             description_parts.append(f"说：{speech_text}")
 
         description = "，".join(description_parts) if description_parts else "游客站在你面前"
 
-        return {
+        out = {
             "person_detected": True,
             "emotion": emotion,
             "gesture": gesture,
@@ -136,3 +144,8 @@ class PerceptionFusion:
             "speech_text": speech_text,
             "description": description
         }
+        if distance_band in ("near", "mid", "far", "unknown"):
+            out["distance_band"] = distance_band
+        if perception_result.get("distance_m_est") is not None:
+            out["distance_m_est"] = perception_result.get("distance_m_est")
+        return out

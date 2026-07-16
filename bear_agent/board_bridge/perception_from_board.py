@@ -201,6 +201,20 @@ def summary_and_speech_to_perception(
     }
     if face_bbox:
         out["face_bbox"] = face_bbox
+
+    band = str(summary.get("distance_band") or "").strip().lower()
+    if band in ("near", "mid", "far", "unknown"):
+        out["distance_band"] = band
+    try:
+        if summary.get("distance_m_est") is not None:
+            out["distance_m_est"] = float(summary.get("distance_m_est"))
+    except (TypeError, ValueError):
+        pass
+    try:
+        if summary.get("distance_confidence") is not None:
+            out["distance_confidence"] = min(1.0, max(0.0, float(summary.get("distance_confidence"))))
+    except (TypeError, ValueError):
+        pass
     return out
 
 

@@ -50,9 +50,18 @@ class FusionSession:
         )
         return self.engine.ingest_many(events)
 
-    def find_postworthy(self, stable_events: list[StableEvent]) -> StableEvent | None:
+    def find_postworthy(
+        self,
+        stable_events: list[StableEvent],
+        *,
+        distance_band: str | None = None,
+    ) -> StableEvent | None:
+        from .distance_estimate import greeting_allowed
+
         for item in stable_events:
             if item.stable_id not in POST_STABLE_IDS:
+                continue
+            if item.stable_id == StableEventId.USER_GREETING and not greeting_allowed(distance_band):
                 continue
             key = f"{int(item.stable_id)}:{item.timestamp_ms}"
             if key == self._last_stable_key:

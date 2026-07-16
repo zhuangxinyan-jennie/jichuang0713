@@ -53,6 +53,10 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react(), webglMimePlugin()],
     server: {
+      // 允许板子浏览器通过 PC IP 访问（HDMI 扩展屏 kiosk）
+      host: true,
+      port: 5173,
+      strictPort: true,
       proxy: useAgentProxy
         ? {
             "/api": { target: proxyTarget, changeOrigin: true },

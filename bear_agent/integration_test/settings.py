@@ -45,7 +45,7 @@ def env_str(name: str, default: str = "") -> str:
 
 @dataclass(frozen=True)
 class ServerSettings:
-    host: str = "127.0.0.1"
+    host: str = "0.0.0.0"
     port: int = 8765
     cors_origins: tuple[str, ...] = ("*",)
     pass_body_gesture: bool = False
@@ -62,7 +62,7 @@ def load_server_settings() -> ServerSettings:
     origins_raw = env_str("BEAR_AGENT_CORS_ORIGINS", "*")
     origins = tuple(x.strip() for x in origins_raw.split(",") if x.strip()) or ("*",)
     return ServerSettings(
-        host=env_str("BEAR_AGENT_HOST", "127.0.0.1") or "127.0.0.1",
+        host=env_str("BEAR_AGENT_HOST", "0.0.0.0") or "0.0.0.0",
         port=env_int("BEAR_AGENT_PORT", 8765),
         cors_origins=origins,
         pass_body_gesture=env_bool("BEAR_AGENT_PASS_BODY_GESTURE", False),

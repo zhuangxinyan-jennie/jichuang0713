@@ -8,6 +8,7 @@ from typing import Any
 
 from .perception_from_board import summary_and_speech_to_perception
 from .speech_pick import pick_speech_text
+from .distance_estimate import estimate_from_summary
 
 
 def shallow_merge_summary(a: dict[str, Any], b: dict[str, Any]) -> dict[str, Any]:
@@ -104,6 +105,12 @@ def build_perception(vision_doc: dict[str, Any], asr_doc: dict[str, Any]) -> dic
     merged = merge_vision_asr_summary_for_perception(vs, ass)
     speech = pick_speech_text(asr_doc)
     face_bbox = primary_face_bbox(merged)
+    if face_bbox and not merged.get("face_bbox"):
+        merged["face_bbox"] = face_bbox
+    # 板端未带距离时，PC 用脸框回算兜底
+    dist = estimate_from_summary(merged)
+    for k, v in dist.as_dict().items():
+        merged[k] = v
     return summary_and_speech_to_perception(merged, speech, face_bbox=face_bbox)
 
 

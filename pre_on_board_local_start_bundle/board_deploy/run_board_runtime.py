@@ -2343,7 +2343,11 @@ def build_runtime_summary(
         "face_count": len(face_tracks),
     }
 
-    return {
+    primary_face = max(face_tracks, key=lambda t: (t.bbox[2] - t.bbox[0]) * (t.bbox[3] - t.bbox[1]), default=None)
+    face_bbox = [int(v) for v in primary_face.bbox] if primary_face is not None else None
+    frame_width = int(frame_shape[1]) if frame_shape is not None and len(frame_shape) >= 2 else None
+
+    summary = {
         "face_count": len(face_tracks),
         "hand_count": len(hand_tracks),
         "person_count": len(person_tracks),
@@ -2360,6 +2364,7 @@ def build_runtime_summary(
                 "id": int(t.track_id),
                 "emotion": str(t.emotion_label or ""),
                 "confidence": float(t.emotion_confidence),
+                "bbox": [int(t.bbox[0]), int(t.bbox[1]), int(t.bbox[2]), int(t.bbox[3])],
             }
             for t in face_tracks
         ],
@@ -2378,6 +2383,18 @@ def build_runtime_summary(
         "crowding": crowding,
         "timestamp": time.time(),
     }
+    if face_bbox is not None:
+        summary["face_bbox"] = face_bbox
+    try:
+        from distance_estimate import attach_distance_fields
+
+        attach_distance_fields(summary, face_bbox, frame_width)
+    except Exception:
+        if frame_width:
+            summary["frame_width"] = frame_width
+        summary.setdefault("distance_band", "unknown")
+        summary.setdefault("distance_confidence", 0.0)
+    return summary
 
 
 def merge_summary_with_cache(current: dict, cached: dict, hold_seconds: float = 1.2) -> dict:
@@ -2391,6 +2408,11 @@ def merge_summary_with_cache(current: dict, cached: dict, hold_seconds: float = 
         merged["face_count"] = int(cached.get("face_count", 0) or 0)
         merged["faces"] = list(cached.get("faces", [])) if isinstance(cached.get("faces", []), list) else []
         merged["top_emotion"] = dict(cached.get("top_emotion", {})) if isinstance(cached.get("top_emotion", {}), dict) else {}
+        if cached.get("face_bbox"):
+            merged["face_bbox"] = list(cached.get("face_bbox"))
+        for key in ("distance_band", "distance_m_est", "distance_confidence", "frame_width"):
+            if key in cached:
+                merged[key] = cached[key]
     if int(current.get("hand_count", 0) or 0) == 0 and int(cached.get("hand_count", 0) or 0) > 0:
         merged["hand_count"] = int(cached.get("hand_count", 0) or 0)
         merged["hands"] = list(cached.get("hands", [])) if isinstance(cached.get("hands", []), list) else []
@@ -2814,6 +2836,13 @@ def main() -> None:
                 time.sleep(0.01)
                 profile_finish_frame(loop_started)
                 continue
+            if not getattr(args, "_display_window_ready", False):
+                cv2.namedWindow("board_runtime", cv2.WINDOW_NORMAL)
+                try:
+                    cv2.setWindowProperty("board_runtime", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+                except Exception:
+                    pass
+                args._display_window_ready = True
             cv2.imshow("board_runtime", show)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break

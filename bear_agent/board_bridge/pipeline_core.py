@@ -37,6 +37,7 @@ def run_board_bridge_blocking(
     out_dir = output_dir.resolve()
     stop = stop_event or threading.Event()
     utter_clear: threading.Event | None = None
+    bridge_wakeup = threading.Event()
     threads: list[threading.Thread] = []
 
     if not no_tcp_sinks:
@@ -52,6 +53,7 @@ def run_board_bridge_blocking(
                         "port": vision_port,
                         "stop_event": stop,
                         "log": log_print,
+                        "bridge_wakeup_event": bridge_wakeup,
                     },
                     name="vision-sink",
                     daemon=True,
@@ -65,6 +67,7 @@ def run_board_bridge_blocking(
                         "stop_event": stop,
                         "log": log_print,
                         "utterance_clear_event": utter_clear,
+                        "bridge_wakeup_event": bridge_wakeup,
                     },
                     name="asr-sink",
                     daemon=True,
@@ -122,6 +125,7 @@ def run_board_bridge_blocking(
                 response_dump=response_json,
                 stop_flag=stop,
                 utterance_clear_event=utter_clear,
+                wakeup_event=bridge_wakeup,
                 log_print=log_print,
             )
     finally:

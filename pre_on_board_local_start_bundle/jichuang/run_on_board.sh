@@ -28,6 +28,8 @@ PY_ASR="${PY_ASR:-/usr/local/miniconda3/bin/python3}"
 
 BOARD_LOCAL_MIC="${BOARD_LOCAL_MIC:-1}"
 BOARD_LOCAL_CAMERA="${BOARD_LOCAL_CAMERA:-1}"
+# 1=把摄像头预览全屏显示到板子 HDMI/扩展屏；0=无窗口（仅推流到 PC）
+BOARD_LOCAL_DISPLAY="${BOARD_LOCAL_DISPLAY:-1}"
 AUDIO_DEVICE="${AUDIO_DEVICE:-0}"
 VIDEO_DEVICE="${VIDEO_DEVICE:-0}"
 AUDIO_BACKEND="${AUDIO_BACKEND:-auto}"
@@ -59,16 +61,35 @@ if [[ "${ASR_BACKEND}" == "om" ]]; then
   done
 fi
 
-echo "[INFO] BOARD_LOCAL_MIC=${BOARD_LOCAL_MIC} BOARD_LOCAL_CAMERA=${BOARD_LOCAL_CAMERA} ASR_BACKEND=${ASR_BACKEND} ACTION_BACKEND=${ACTION_BACKEND} → ${BOARD_RESULT_HOST}:18082/18083"
+echo "[INFO] BOARD_LOCAL_MIC=${BOARD_LOCAL_MIC} BOARD_LOCAL_CAMERA=${BOARD_LOCAL_CAMERA} BOARD_LOCAL_DISPLAY=${BOARD_LOCAL_DISPLAY} ASR_BACKEND=${ASR_BACKEND} ACTION_BACKEND=${ACTION_BACKEND} → ${BOARD_RESULT_HOST}:18082/18083"
 
 pkill -f "[r]un_board_runtime.py" >/dev/null 2>&1 || true
 pkill -f "[b]oard_audio_receiver.py" >/dev/null 2>&1 || true
 sleep 1
 
-VIDEO_ARGS=(--no-display --action-backend "${ACTION_BACKEND}" --detector-backend "${DETECTOR_BACKEND}")
+VIDEO_ARGS=(--action-backend "${ACTION_BACKEND}" --detector-backend "${DETECTOR_BACKEND}")
+if [[ "${BOARD_LOCAL_DISPLAY}" == "1" ]]; then
+  if [[ -x "${SCRIPT_DIR}/ensure_hdmi_display.sh" ]]; then
+    bash "${SCRIPT_DIR}/ensure_hdmi_display.sh" || true
+  fi
+  # 继承 ensure_hdmi_display.sh 设好的 DISPLAY / XAUTHORITY
+  AUTH_FILE=""
+  for f in /var/run/sddm/*; do
+    if [[ -f "$f" ]]; then AUTH_FILE="$f"; break; fi
+  done
+  export DISPLAY="${DISPLAY:-:0}"
+  if [[ -n "${AUTH_FILE}" ]]; then
+    export XAUTHORITY="${AUTH_FILE}"
+  fi
+  export QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-xcb}"
+  echo "[INFO] local HDMI preview on DISPLAY=${DISPLAY}"
+else
+  VIDEO_ARGS+=(--no-display)
+fi
 if [[ "${BOARD_LOCAL_CAMERA}" == "1" ]]; then
   VIDEO_ARGS+=(--capture-local --camera-source "${VIDEO_DEVICE}" --result-host "${BOARD_RESULT_HOST}")
-  nohup "${PY_VIDEO}" board_deploy/run_board_runtime.py "${VIDEO_ARGS[@]}" \
+  nohup env DISPLAY="${DISPLAY:-}" XAUTHORITY="${XAUTHORITY:-}" QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-xcb}" \
+    "${PY_VIDEO}" board_deploy/run_board_runtime.py "${VIDEO_ARGS[@]}" \
     > "${OUTPUT_DIR}/board_video_runtime.log" 2>&1 &
   echo "${!}" > "${OUTPUT_DIR}/board_video.pid"
 else

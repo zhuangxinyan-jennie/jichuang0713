@@ -48,6 +48,7 @@ def _flush_utterance_clear_if_needed(
     st: dict,
     flush_asr_file: Callable[[], None],
     clear_event: threading.Event | None,
+    wakeup_event: threading.Event | None,
 ) -> None:
     if clear_event is None or not clear_event.is_set():
         return
@@ -59,9 +60,16 @@ def _flush_utterance_clear_if_needed(
     if isinstance(summ, dict):
         _strip_summary_speech_fields(summ)
     flush_asr_file()
+    if wakeup_event is not None:
+        wakeup_event.set()
 
 
-def _vision_connection_loop(conn: socket.socket, vision_latest: Path, stop_event: threading.Event) -> None:
+def _vision_connection_loop(
+    conn: socket.socket,
+    vision_latest: Path,
+    stop_event: threading.Event,
+    wakeup_event: threading.Event | None = None,
+) -> None:
     landmarks_latest = vision_latest.parent / "latest_hand_landmarks.json"
     preview_jpg = vision_latest.parent / "latest_preview.jpg"
     last_preview_at = 0.0
@@ -101,6 +109,8 @@ def _vision_connection_loop(conn: socket.socket, vision_latest: Path, stop_event
                     },
                 )
                 last_vision_json_at = now
+                if wakeup_event is not None:
+                    wakeup_event.set()
             # 光标关键点默认只由 UDP 快通道写。慢通道（JPEG）仅在快通道超过 1.2s 无心跳时兜底。
             alive_marker = vision_latest.parent / ".cursor_fast_alive"
             cursor_fast_live = False
@@ -149,6 +159,7 @@ def run_vision_sink(
     port: int = 18082,
     stop_event: threading.Event | None = None,
     log: Callable[[str], None] | None = None,
+    bridge_wakeup_event: threading.Event | None = None,
 ) -> None:
     stop_event = stop_event or threading.Event()
     log = log or (lambda m: print(m, flush=True))
@@ -173,7 +184,7 @@ def run_vision_sink(
             finally:
                 server.settimeout(None)
             log(f"[board_bridge] vision connected from {addr}")
-            _vision_connection_loop(conn, latest, stop_event)
+            _vision_connection_loop(conn, latest, stop_event, bridge_wakeup_event)
             log("[board_bridge] vision connection closed, waiting for next")
         except OSError as e:
             if stop_event.is_set():
@@ -194,6 +205,7 @@ def run_asr_sink(
     stop_event: threading.Event | None = None,
     log: Callable[[str], None] | None = None,
     utterance_clear_event: threading.Event | None = None,
+    bridge_wakeup_event: threading.Event | None = None,
 ) -> None:
     stop_event = stop_event or threading.Event()
     log = log or (lambda m: print(m, flush=True))
@@ -221,6 +233,8 @@ def run_asr_sink(
                 "ts": time.time(),
             },
         )
+        if bridge_wakeup_event is not None:
+            bridge_wakeup_event.set()
 
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -246,13 +260,13 @@ def run_asr_sink(
                     try:
                         msg = recv_json(conn)
                     except socket.timeout:
-                        _flush_utterance_clear_if_needed(st, flush_asr_file, utterance_clear_event)
+                        _flush_utterance_clear_if_needed(st, flush_asr_file, utterance_clear_event, bridge_wakeup_event)
                         continue
                     except json.JSONDecodeError:
                         break
                     if not msg:
                         break
-                    _flush_utterance_clear_if_needed(st, flush_asr_file, utterance_clear_event)
+                    _flush_utterance_clear_if_needed(st, flush_asr_file, utterance_clear_event, bridge_wakeup_event)
                     msg_type = str(msg.get("type", "")).strip()
                     if msg_type == "asr_partial":
                         st["partial"] = str(msg.get("text", ""))
