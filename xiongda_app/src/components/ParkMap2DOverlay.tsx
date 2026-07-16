@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPinned, Maximize2, X, Star } from "lucide-react";
+import { MapPinned, Maximize2, X, Star, Camera } from "lucide-react";
 
 const MAP_SRC = "/map/park-map.png";
 const PLACES_URL = "/map/places_2d.json";
+const PREVIEW_URL = "/gesture-api/api/preview.jpg";
 
 export type Place2D = {
   name: string;
@@ -18,9 +19,65 @@ type ParkMap2DOverlayProps = {
   onSelectPlace?: (name: string) => void;
 };
 
+/** 板载摄像头预览（经 board_bridge :8770，约 5fps 刷新） */
+function BoardCameraPreview({ className = "" }: { className?: string }) {
+  const [src, setSrc] = useState(`${PREVIEW_URL}?t=0`);
+  const [alive, setAlive] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const tick = () => {
+      if (cancelled) return;
+      const url = `${PREVIEW_URL}?t=${Date.now()}`;
+      const img = new Image();
+      img.onload = () => {
+        if (cancelled) return;
+        setSrc(url);
+        setAlive(true);
+      };
+      img.onerror = () => {
+        if (!cancelled) setAlive(false);
+      };
+      img.src = url;
+    };
+    tick();
+    const id = window.setInterval(tick, 450);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, []);
+
+  return (
+    <div
+      className={`overflow-hidden rounded-xl border-2 border-emerald-300/70 bg-black/70 shadow-lg backdrop-blur ${className}`}
+    >
+      <div className="flex items-center gap-1 bg-emerald-600/90 px-2 py-1 text-[11px] font-bold text-emerald-50">
+        <Camera className="h-3.5 w-3.5" aria-hidden />
+        板载摄像头
+        <span className={`ml-auto h-2 w-2 rounded-full ${alive ? "bg-lime-300" : "bg-rose-400"}`} />
+      </div>
+      {alive ? (
+        <img
+          src={src}
+          alt="板载摄像头画面"
+          className="block h-auto w-full scale-x-[-1] object-cover"
+          draggable={false}
+        />
+      ) : (
+        <div className="flex h-28 items-center justify-center px-2 text-center text-[10px] text-slate-300">
+          等待板端画面…
+          <br />
+          请确认 bridge 已开且板子在推流
+        </div>
+      )}
+    </div>
+  );
+}
+
 /**
  * 地图查询页：右下角 2D 缩略图；点击后浮层放大，地点以星星标注，支持手势捏合点击。
- * 不替换 3D Unity 地图。
+ * 不替换 3D Unity 地图。左下角同步显示板载摄像头。
  */
 export function ParkMap2DOverlay({ open: openProp, onOpenChange, onSelectPlace }: ParkMap2DOverlayProps) {
   const [internalOpen, setInternalOpen] = useState(false);
@@ -91,7 +148,7 @@ export function ParkMap2DOverlay({ open: openProp, onOpenChange, onSelectPlace }
                       <p className="truncate text-[11px] text-amber-50/90 md:text-xs">
                         {selected
                           ? `已选：${selected}（再捏合其它星星可换）`
-                          : "举起手掌移动光标，捏合星星选择地点"}
+                          : "举起手掌移动光标，捏合星星选择地点 · 左下角是板载画面"}
                       </p>
                     </div>
                     <button
@@ -156,6 +213,9 @@ export function ParkMap2DOverlay({ open: openProp, onOpenChange, onSelectPlace }
                         );
                       })}
                     </div>
+                    <div className="pointer-events-none sticky bottom-3 left-3 z-20 m-3 w-[min(42vw,240px)]">
+                      <BoardCameraPreview />
+                    </div>
                   </div>
                 </motion.div>
               </motion.div>
@@ -168,38 +228,43 @@ export function ParkMap2DOverlay({ open: openProp, onOpenChange, onSelectPlace }
   return (
     <>
       {!open ? (
-        <button
-          type="button"
-          data-gesture-clickable
-          aria-label="2D地图"
-          title="打开 2D 平面图"
-          onClick={() => setOpen(true)}
-          className="group absolute bottom-3 right-3 z-30 flex w-[min(42vw,220px)] flex-col overflow-hidden rounded-xl border-2 border-amber-300/80 bg-black/55 shadow-[0_8px_28px_rgba(0,0,0,0.45)] backdrop-blur transition hover:scale-[1.02] hover:border-amber-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
-        >
-          <div className="flex items-center justify-between gap-1 bg-amber-500/90 px-2 py-1 text-[11px] font-black text-amber-950">
-            <span className="flex items-center gap-1">
-              <MapPinned className="h-3.5 w-3.5" aria-hidden />
-              2D地图
-            </span>
-            <Maximize2 className="h-3.5 w-3.5 opacity-80" aria-hidden />
+        <>
+          <div className="absolute bottom-3 left-3 z-30 w-[min(42vw,240px)]">
+            <BoardCameraPreview />
           </div>
-          {imgErr ? (
-            <div className="flex h-28 items-center justify-center bg-slate-800 px-2 text-center text-[10px] text-slate-200">
-              缺少 park-map.png
+          <button
+            type="button"
+            data-gesture-clickable
+            aria-label="2D地图"
+            title="打开 2D 平面图"
+            onClick={() => setOpen(true)}
+            className="group absolute bottom-3 right-3 z-30 flex w-[min(42vw,220px)] flex-col overflow-hidden rounded-xl border-2 border-amber-300/80 bg-black/55 shadow-[0_8px_28px_rgba(0,0,0,0.45)] backdrop-blur transition hover:scale-[1.02] hover:border-amber-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
+          >
+            <div className="flex items-center justify-between gap-1 bg-amber-500/90 px-2 py-1 text-[11px] font-black text-amber-950">
+              <span className="flex items-center gap-1">
+                <MapPinned className="h-3.5 w-3.5" aria-hidden />
+                2D地图
+              </span>
+              <Maximize2 className="h-3.5 w-3.5 opacity-80" aria-hidden />
             </div>
-          ) : (
-            <img
-              src={MAP_SRC}
-              alt=""
-              className="h-28 w-full object-cover object-center"
-              draggable={false}
-              onError={() => setImgErr(true)}
-            />
-          )}
-          <span className="bg-black/70 px-2 py-1 text-[10px] font-semibold text-amber-100 group-hover:text-white">
-            点击放大 · 星星=地点
-          </span>
-        </button>
+            {imgErr ? (
+              <div className="flex h-28 items-center justify-center bg-slate-800 px-2 text-center text-[10px] text-slate-200">
+                缺少 park-map.png
+              </div>
+            ) : (
+              <img
+                src={MAP_SRC}
+                alt=""
+                className="h-28 w-full object-cover object-center"
+                draggable={false}
+                onError={() => setImgErr(true)}
+              />
+            )}
+            <span className="bg-black/70 px-2 py-1 text-[10px] font-semibold text-amber-100 group-hover:text-white">
+              点击放大 · 星星=地点
+            </span>
+          </button>
+        </>
       ) : null}
       {modal}
     </>

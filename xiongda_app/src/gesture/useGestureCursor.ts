@@ -10,7 +10,7 @@ import {
 } from "./gestureCursorController";
 
 const LANDMARKS_URL = "/gesture-api/api/landmarks";
-const POLL_MS = 20;
+const POLL_MS = 16;
 
 type LandmarksPayload = {
   hand_landmarks?: GestureLandmark[];
@@ -18,8 +18,8 @@ type LandmarksPayload = {
 };
 
 /**
- * 轮询本机 MediaPipe landmarks 服务，驱动 GestureCursorController。
- * 服务不可用时自动降级：鼠标移动 = 光标，左键按住 = 捏合。
+ * 轮询板上 NPU 关键点（经 board_bridge :8770），驱动 GestureCursorController。
+ * 数据源是手部 OM，不是 MediaPipe；连不上时降级鼠标模拟。
  */
 export function useGestureCursor(enabled: boolean) {
   const [state, setState] = useState<GestureCursorState>(createIdleState);
@@ -40,11 +40,13 @@ export function useGestureCursor(enabled: boolean) {
 
     configRef.current = { ...DEFAULT_GESTURE_CURSOR_CONFIG };
     let cancelled = false;
-    let pollId = 0;
     let rafId = 0;
+    let pollTimer = 0;
+    let inflight = false;
 
     const pull = async () => {
-      if (cancelled) return;
+      if (cancelled || inflight) return;
+      inflight = true;
       try {
         const res = await fetch(LANDMARKS_URL, { cache: "no-store" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -70,6 +72,13 @@ export function useGestureCursor(enabled: boolean) {
           fake[8] = { x: x + tipGap / 2, y, z: 0 };
           controllerRef.current.update(fake, configRef.current);
         }
+      } finally {
+        inflight = false;
+        if (!cancelled) {
+          pollTimer = window.setTimeout(() => {
+            void pull();
+          }, POLL_MS);
+        }
       }
     };
 
@@ -89,10 +98,11 @@ export function useGestureCursor(enabled: boolean) {
     window.addEventListener("mousedown", onDown);
     window.addEventListener("mouseup", onUp);
 
-    pollId = window.setInterval(() => void pull(), POLL_MS);
+    void pull();
 
     const tick = () => {
       if (cancelled) return;
+      controllerRef.current.markStale(performance.now(), configRef.current.staleAfterMs);
       const next = controllerRef.current.tickDisplay(configRef.current);
       setState(next);
       rafId = window.requestAnimationFrame(tick);
@@ -101,7 +111,7 @@ export function useGestureCursor(enabled: boolean) {
 
     return () => {
       cancelled = true;
-      window.clearInterval(pollId);
+      window.clearTimeout(pollTimer);
       window.cancelAnimationFrame(rafId);
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mousedown", onDown);

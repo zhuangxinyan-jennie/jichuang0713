@@ -1,0 +1,45 @@
+asr:
+  model_name: "paraformer-zh-streaming"
+  sample_rate: 16000
+  chunk_size: [0, 5, 5]
+  encoder_chunk_look_back: 4
+  decoder_chunk_look_back: 1
+  hotwords:
+    - "熊大"
+    - "熊二"
+    - "光头强"
+    - "方特"
+    - "过山车"
+    - "导航"
+    - "带我去"
+    - "你好"
+
+audio:
+  sample_rate: 16000
+  channels: 1
+  block_duration_ms: 200
+
+runtime:
+  enable_qwen: false
+  print_partial_result: true
+  min_text_length: 1
+  manual_finalize_only: false
+  model_device: "cuda:0"
+  # 1~1.5m 远场：软件增益 + 更低 RMS 门槛（嘈杂环境误触发会增加）
+  capture_gain: 2.5
+  min_voice_rms: 0.007
+  silence_rms_threshold: 0.003
+  endpoint_silence_ms: 500
+  long_utterance_silence_ms: 2200
+  long_clause_min_ms: 7000
+  long_clause_extend_ms: 1200
+  min_utterance_ms: 600
+  endpoint_inactive_ms: 900
+  endpoint_text_stable_ms: 450
+  start_voice_ms: 120
+  fast_start_voice_ms: 100
+  fast_start_rms: 0.020
+  no_preview_decode_ms: 650
+  pre_roll_ms: 700
+  post_final_ignore_ms: 200
+  rms_debug: false

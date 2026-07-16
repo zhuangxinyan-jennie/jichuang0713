@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import json
+import os
 import socket
 import threading
 import time
@@ -13,10 +14,28 @@ from pathlib import Path
 from typing import Callable
 
 from .asr_multimodal import smooth_segment_summaries
-from .json_io import atomic_write_json
+from .json_io import atomic_write_json, atomic_write_json_fast
 from .perception_merge import merge_vision_sink_summary
 from .perception_from_board import vision_meta_to_summary
 from .stream_protocol import recv_json, recv_packet
+
+
+def _atomic_write_bytes(path: Path, data: bytes, *, fsync: bool = False) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+    try:
+        with open(tmp, "wb") as f:
+            f.write(data)
+            f.flush()
+            if fsync:
+                os.fsync(f.fileno())
+        tmp.replace(path)
+    except OSError:
+        try:
+            if tmp.is_file():
+                tmp.unlink()
+        except OSError:
+            pass
 
 
 def _strip_summary_speech_fields(summary: dict) -> None:
@@ -43,6 +62,12 @@ def _flush_utterance_clear_if_needed(
 
 
 def _vision_connection_loop(conn: socket.socket, vision_latest: Path, stop_event: threading.Event) -> None:
+    landmarks_latest = vision_latest.parent / "latest_hand_landmarks.json"
+    preview_jpg = vision_latest.parent / "latest_preview.jpg"
+    last_preview_at = 0.0
+    last_vision_json_at = 0.0
+    preview_interval = 0.20  # 预览约 5fps，避免拖慢关键点落盘
+    vision_json_interval = 0.15
     try:
         hello = recv_json(conn)
         atomic_write_json(
@@ -54,22 +79,63 @@ def _vision_connection_loop(conn: socket.socket, vision_latest: Path, stop_event
             if not meta:
                 break
             try:
-                recv_packet(conn)
+                jpeg = recv_packet(conn)
             except ConnectionError:
                 break
+            now = time.time()
+            if jpeg and (now - last_preview_at) >= preview_interval:
+                _atomic_write_bytes(preview_jpg, jpeg, fsync=False)
+                last_preview_at = now
             derived = vision_meta_to_summary(meta)
             board_summary = meta.get("summary") if isinstance(meta.get("summary"), dict) else {}
             # 保留板端 summary（人脸 / 表情 / faces.bbox 等）；手势骨架字段由 meta 叠加补齐。
             # 合并时避免板端空 label 覆盖 gesture_overlays 推导出的标签（见 merge_vision_sink_summary）。
             summary = merge_vision_sink_summary(derived, board_summary)
-            atomic_write_json(
-                vision_latest,
-                {
-                    "summary": summary,
-                    "raw_meta_keys": sorted(meta.keys()) if isinstance(meta, dict) else [],
-                    "ts": time.time(),
-                },
-            )
+            if (now - last_vision_json_at) >= vision_json_interval:
+                atomic_write_json_fast(
+                    vision_latest,
+                    {
+                        "summary": summary,
+                        "raw_meta_keys": sorted(meta.keys()) if isinstance(meta, dict) else [],
+                        "ts": now,
+                    },
+                )
+                last_vision_json_at = now
+            # 光标关键点默认只由 UDP 快通道写。慢通道（JPEG）仅在快通道超过 1.2s 无心跳时兜底。
+            alive_marker = vision_latest.parent / ".cursor_fast_alive"
+            cursor_fast_live = False
+            try:
+                if alive_marker.is_file() and (time.time() - alive_marker.stat().st_mtime) < 1.2:
+                    cursor_fast_live = True
+            except OSError:
+                cursor_fast_live = False
+            if cursor_fast_live:
+                pass
+            else:
+                landmarks = meta.get("hand_landmarks") if isinstance(meta, dict) else None
+                lm_meta = meta.get("hand_landmarks_meta") if isinstance(meta, dict) else None
+                if not isinstance(lm_meta, dict):
+                    lm_meta = {"mirror_frame": True, "source": "board_npu"}
+                pts = landmarks if isinstance(landmarks, list) else []
+                try:
+                    from .landmarks_store import STORE
+
+                    STORE.set(pts, lm_meta, channel="vision_tcp_fallback")
+                except Exception:
+                    pass
+                atomic_write_json_fast(
+                    landmarks_latest,
+                    {
+                        "hand_landmarks": pts,
+                        "meta": lm_meta,
+                        "ts": now,
+                        "channel": "vision_tcp_fallback",
+                        "frame": {
+                            "width": meta.get("width") if isinstance(meta, dict) else None,
+                            "height": meta.get("height") if isinstance(meta, dict) else None,
+                        },
+                    },
+                )
     finally:
         try:
             conn.close()

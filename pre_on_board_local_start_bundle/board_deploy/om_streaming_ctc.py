@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
@@ -25,6 +26,8 @@ except Exception:
     sherpa_onnx = None
 
 SPECIAL_TOKENS = {"<blk>", "<blank>", "<s>", "</s>", "<unk>", "<sos/eos>"}
+# SentencePiece byte_fallback：词表里没有「询」「螺」等字时，会输出 <0xE8>...
+_BYTE_TOKEN_RE = re.compile(r"^<0x([0-9A-Fa-f]{2})>$")
 
 
 def normalize_whisper_features(features: np.ndarray) -> np.ndarray:
@@ -82,8 +85,38 @@ def load_tokens(tokens_path: Path) -> list[str]:
     return table
 
 
+def _token_byte_value(tok: str) -> int | None:
+    m = _BYTE_TOKEN_RE.match(tok)
+    return int(m.group(1), 16) if m else None
+
+
+def _flush_byte_buf(buf: bytearray, pieces: list[str], *, force: bool) -> None:
+    """把攒到的 UTF-8 字节尽量解成字符；未凑齐的先留着。
+
+    force=True：仍拼不出完整字时 **丢弃半截字节，绝不输出 <0xE8> 字面量**
+   （字面量会进网页「正在说」并污染玩法匹配）。半截字应靠「未完成则不准 endpoint」来等齐。
+    """
+    while buf:
+        decoded = False
+        for end in range(len(buf), 0, -1):
+            try:
+                pieces.append(bytes(buf[:end]).decode("utf-8"))
+                del buf[:end]
+                decoded = True
+                break
+            except UnicodeDecodeError:
+                continue
+        if decoded:
+            continue
+        if not force:
+            return
+        del buf[0]
+
+
 def tokens_to_text(tokens: list[str], ids: Iterable[int]) -> str:
+    """CTC id → 文本。必须把 SentencePiece `<0xXX>` 字节回退合成汉字。"""
     pieces: list[str] = []
+    byte_buf = bytearray()
     for idx in ids:
         idx = int(idx)
         if idx < 0 or idx >= len(tokens):
@@ -91,22 +124,150 @@ def tokens_to_text(tokens: list[str], ids: Iterable[int]) -> str:
         tok = tokens[idx]
         if tok in SPECIAL_TOKENS:
             continue
+        byte_v = _token_byte_value(tok)
+        if byte_v is not None:
+            byte_buf.append(byte_v)
+            _flush_byte_buf(byte_buf, pieces, force=False)
+            continue
+        _flush_byte_buf(byte_buf, pieces, force=True)
         pieces.append(tok)
+    # 展示用：只吐完整字；尾部未完成字节先不进文本
+    _flush_byte_buf(byte_buf, pieces, force=False)
     return "".join(pieces).replace("▁", "").replace("@@", "").strip()
+
+
+def token_ids_have_incomplete_utf8(tokens: list[str], ids: Iterable[int]) -> bool:
+    """是否还卡在未完成的 UTF-8 多字节字上（用于推迟 endpoint）。"""
+    byte_buf = bytearray()
+    for idx in ids:
+        idx = int(idx)
+        if idx < 0 or idx >= len(tokens):
+            continue
+        tok = tokens[idx]
+        if tok in SPECIAL_TOKENS:
+            continue
+        byte_v = _token_byte_value(tok)
+        if byte_v is not None:
+            byte_buf.append(byte_v)
+            while byte_buf:
+                progressed = False
+                for end in range(len(byte_buf), 0, -1):
+                    try:
+                        bytes(byte_buf[:end]).decode("utf-8")
+                        del byte_buf[:end]
+                        progressed = True
+                        break
+                    except UnicodeDecodeError:
+                        continue
+                if not progressed:
+                    break
+            continue
+        byte_buf.clear()
+    return bool(byte_buf)
+
+def _utf8_remaining_need(buf: bytes) -> int:
+    """未完成 UTF-8 序列还差几个 continuation byte；完整则 0。"""
+    if not buf:
+        return 0
+    b0 = buf[0]
+    if 0x00 <= b0 <= 0x7F:
+        need = 1
+    elif 0xC2 <= b0 <= 0xDF:
+        need = 2
+    elif 0xE0 <= b0 <= 0xEF:
+        need = 3
+    elif 0xF0 <= b0 <= 0xF4:
+        need = 4
+    else:
+        return 0
+    return max(0, need - len(buf))
 
 
 @dataclass
 class CtcGreedyDecoder:
+    """对齐 sherpa-onnx OnlineCtcGreedySearchDecoder：
+
+    - blank 会重置 prev（blank 后可以再次输出同一 label）
+    - 同一非 blank 在无 blank 间隔时才折叠
+    - 若刚输出了未完成的 UTF-8 前导字节，优先选 continuation / blank，
+      避免 greedy 一把跳到「湾」「查」等整字，拆掉「螺」「询」
+    """
+
     blank_id: int
     tokens: list[str]
     token_ids: list[int]
     trailing_silence: int = 0
     num_frames_decoded: int = 0
+    blank_penalty: float = 0.0
+    _byte_id_to_val: dict[int, int] | None = None
+    _cont_byte_ids: tuple[int, ...] | None = None
+
+    def __post_init__(self) -> None:
+        byte_map: dict[int, int] = {}
+        cont: list[int] = []
+        for i, tok in enumerate(self.tokens):
+            v = _token_byte_value(tok)
+            if v is None:
+                continue
+            byte_map[i] = v
+            if 0x80 <= v <= 0xBF:
+                cont.append(i)
+        self._byte_id_to_val = byte_map
+        self._cont_byte_ids = tuple(cont)
 
     def reset(self) -> None:
         self.token_ids = []
         self.trailing_silence = 0
         self.num_frames_decoded = 0
+
+    def _pending_utf8(self) -> bytes:
+        raw = bytearray()
+        for tid in self.token_ids:
+            v = (self._byte_id_to_val or {}).get(int(tid))
+            if v is None:
+                raw.clear()
+                continue
+            raw.append(v)
+            # 能解出一个完整字就把缓冲清掉，只留后缀未完成部分
+            while raw:
+                progressed = False
+                for end in range(len(raw), 0, -1):
+                    try:
+                        bytes(raw[:end]).decode("utf-8")
+                        del raw[:end]
+                        progressed = True
+                        break
+                    except UnicodeDecodeError:
+                        continue
+                if not progressed:
+                    break
+        return bytes(raw)
+
+    def _pick_y(self, row: np.ndarray) -> int:
+        scores = np.asarray(row, dtype=np.float32).copy()
+        if self.blank_penalty and 0 <= self.blank_id < scores.size:
+            scores[self.blank_id] -= float(self.blank_penalty)
+
+        y = int(np.argmax(scores))
+        pending = self._pending_utf8()
+        need = _utf8_remaining_need(pending)
+        if need <= 0:
+            return y
+
+        # 已开始多字节字：优先 continuation，其次 blank；禁止整字抢跑
+        cont_set = set(self._cont_byte_ids or ())
+        k = min(32, scores.size)
+        top = np.argpartition(-scores, k - 1)[:k]
+        ranked = sorted((int(i) for i in top), key=lambda i: float(scores[i]), reverse=True)
+        for cand in ranked:
+            if cand in cont_set:
+                return cand
+        for cand in ranked:
+            if cand == self.blank_id:
+                return cand
+        if y == self.blank_id or y in cont_set:
+            return y
+        return self.blank_id
 
     def decode_chunk(self, log_probs: np.ndarray) -> None:
         arr = np.asarray(log_probs, dtype=np.float32)
@@ -114,21 +275,30 @@ class CtcGreedyDecoder:
             arr = arr[0]
         if arr.ndim != 2:
             raise ValueError(f"expected log_probs [T,V], got {log_probs.shape}")
+
+        # 与 sherpa OnlineCtcGreedySearchDecoder::Decode 一致
+        prev_id = -1
+        if self.token_ids:
+            prev_id = self.blank_id if self.trailing_silence > 0 else int(self.token_ids[-1])
+
         for row in arr:
             self.num_frames_decoded += 1
-            token_id = int(np.argmax(row))
-            if token_id == self.blank_id:
+            y = self._pick_y(row)
+            if y == self.blank_id:
                 self.trailing_silence += 1
-                continue
-            if self.token_ids and token_id == self.token_ids[-1]:
+            else:
                 self.trailing_silence = 0
-                continue
-            self.token_ids.append(token_id)
-            self.trailing_silence = 0
+            if y != self.blank_id and y != prev_id:
+                self.token_ids.append(y)
+            prev_id = y
 
     @property
     def text(self) -> str:
         return tokens_to_text(self.tokens, self.token_ids)
+
+    @property
+    def utf8_incomplete(self) -> bool:
+        return token_ids_have_incomplete_utf8(self.tokens, self.token_ids)
 
     @property
     def has_token(self) -> bool:
@@ -150,6 +320,9 @@ class CtcEndpointDetector:
 
     def is_endpoint(self, decoder: CtcGreedyDecoder, *, num_processed_frames: int) -> bool:
         if num_processed_frames < self.rule3_frames:
+            return False
+        # 多字节汉字未拼完时绝不 endpoint，否则会变成「地图查」/半截字节
+        if getattr(decoder, "utf8_incomplete", False):
             return False
         trailing = decoder.trailing_silence * 4
         if trailing >= self.rule1_frames:
@@ -238,7 +411,17 @@ class OmStreamingCTC:
             rule3_min_utterance_length=300,
         )
         self._stream = self._feat_recognizer.create_stream()
-        self._decoder = CtcGreedyDecoder(self.blank_id, self.tokens, token_ids=[])
+        # blank_penalty：抑制 blank 抢走弱音素；默认 0.8，可用环境变量 CTC_BLANK_PENALTY 调
+        import os
+
+        blank_penalty = float(os.environ.get("CTC_BLANK_PENALTY", "0.8"))
+        self._decoder = CtcGreedyDecoder(
+            self.blank_id,
+            self.tokens,
+            token_ids=[],
+            blank_penalty=blank_penalty,
+        )
+        print(f"[BOARD-ASR] ctc_om blank_penalty={blank_penalty}", flush=True)
         self._endpoint = CtcEndpointDetector()
         self._states = [arr.copy() for arr in self._init_states]
         self._num_processed = 0
@@ -334,6 +517,9 @@ class OmStreamingCTC:
         endpoint = self._endpoint.is_endpoint(
             self._decoder, num_processed_frames=self._num_processed
         ) or is_final
+        # 尾帧强制 final 时若 UTF-8 未完成，仍推迟到下一轮（除非调用方极长静音）
+        if endpoint and self._decoder.utf8_incomplete and not is_final:
+            endpoint = False
         return ASRResult(
             text=self._decoder.text or self._last_text,
             is_final=endpoint,
@@ -342,5 +528,6 @@ class OmStreamingCTC:
                 "backend": "ctc_om",
                 "processed_frames": self._num_processed,
                 "trailing_silence": self._decoder.trailing_silence,
+                "utf8_incomplete": self._decoder.utf8_incomplete,
             },
         )

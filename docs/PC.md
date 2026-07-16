@@ -153,23 +153,29 @@ Unity Hub 打开 `XiongdaParkMapProject/`。
 
 产物目录：`xiongda_app/public/webgl-map/`（与熊大 `public/webgl/` **分开，不会互相覆盖**）。
 
-### 5.3 2D 平面图 + 本机手势光标（可不启板端）
+### 5.3 2D 平面图 + 板端手势光标（默认，非 MediaPipe）
 
-地图查询页 **右下角** 有「2D地图」缩略图（`public/map/park-map.png`），**不删不替** 3D WebGL；点击后浮层放大，地点显示为星星。
+地图查询页 **右下角**「2D地图」缩略图；点击放大后用手势光标点星星。
 
-手势（本机摄像头，不开板端）：
+**默认数据源 = 板载摄像头 + NPU `hand_landmark_sparse.om`**（不 import MediaPipe、不用 PC 摄像头）：
+
+```text
+板视觉 → 18082 带 hand_landmarks → board_bridge → :8770 → 网页光标
+```
 
 ```powershell
-# 窗口 A：手势服务
-.\gesture_cursor_project\启动2D地图手势演示.bat
+# 窗口 A：桥接（监听 18082，并开 landmarks HTTP :8770）
+python pre_on_board_local_start_bundle\run_all.py --bear-bridge
 
 # 窗口 B：前端
 cd xiongda_app
 npm run dev
 ```
 
-浏览器 → **地图查询** → 点「2D地图」→ 举手移动光标，捏合拇指与食指点星星。  
-未开 8770 时会自动进入鼠标演示模式。星星坐标：`xiongda_app/public/map/places_2d.json`。
+浏览器 → **地图查询** → **2D地图** → 对着**板子**摄像头举手/捏合。  
+仅缺 8770 时可跑 `gesture_cursor_project\启动板端手势光标.bat`。  
+旧本机 MediaPipe 脚本仅供离线调试：`启动2D地图手势演示.bat`。  
+星星坐标：`xiongda_app/public/map/places_2d.json`。
 
 ### 5.4 手机流式语音 → 板端 ASR
 
@@ -191,7 +197,8 @@ cd phone_voice_app
 |------|------|
 | `start-pc-stack.ps1` | PC 全栈 |
 | `phone_voice_app/start.bat` | 手机流式语音桥接（8788 → 板端 18081） |
-| `gesture_cursor_project/启动2D地图手势演示.bat` | 本机手势光标（8770，地图 2D 用） |
+| `gesture_cursor_project/启动板端手势光标.bat` | 板端 NPU 光标 :8770（默认；无 MediaPipe） |
+| `gesture_cursor_project/启动2D地图手势演示.bat` | 【旧】本机 MediaPipe（仅离线调试） |
 | `start-pc-asr-terminal.ps1` | 仅听 18083 看识别 |
 | `start-pc-board-viewer.ps1` | 看板端视觉回传 |
 | `run-latency-benchmark.ps1` | 延时测试 |

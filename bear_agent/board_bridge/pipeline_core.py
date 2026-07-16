@@ -8,6 +8,8 @@ from pathlib import Path
 
 from .perception_merge import build_perception, fingerprint_for_trigger
 from .pc_tcp_sinks import run_asr_sink, run_vision_sink
+from .landmarks_http import run_landmarks_http
+from .cursor_udp_sink import run_cursor_udp_sink
 from .poll_loop import poll_loop
 
 
@@ -17,6 +19,8 @@ def run_board_bridge_blocking(
     bind_host: str = "0.0.0.0",
     vision_port: int = 18082,
     asr_port: int = 18083,
+    cursor_udp_port: int = 18085,
+    landmarks_http_port: int = 8770,
     agent_url: str = "http://127.0.0.1:8765/api/process",
     poll_interval: float = 0.2,
     min_post_interval: float = 1.0,
@@ -37,6 +41,7 @@ def run_board_bridge_blocking(
 
     if not no_tcp_sinks:
         utter_clear = threading.Event()
+        landmarks_path = out_dir / "vision" / "latest_hand_landmarks.json"
         threads.extend(
             [
                 threading.Thread(
@@ -62,6 +67,31 @@ def run_board_bridge_blocking(
                         "utterance_clear_event": utter_clear,
                     },
                     name="asr-sink",
+                    daemon=True,
+                ),
+                threading.Thread(
+                    target=run_landmarks_http,
+                    kwargs={
+                        "landmarks_path": landmarks_path,
+                        "preview_path": out_dir / "vision" / "latest_preview.jpg",
+                        "host": "127.0.0.1",
+                        "port": landmarks_http_port,
+                        "stop_event": stop,
+                        "log": log_print,
+                    },
+                    name="landmarks-http",
+                    daemon=True,
+                ),
+                threading.Thread(
+                    target=run_cursor_udp_sink,
+                    kwargs={
+                        "output_dir": out_dir,
+                        "host": bind_host,
+                        "port": cursor_udp_port,
+                        "stop_event": stop,
+                        "log": log_print,
+                    },
+                    name="cursor-udp",
                     daemon=True,
                 ),
             ]

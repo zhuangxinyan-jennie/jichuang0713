@@ -225,6 +225,8 @@ def emit_partial(
     *,
     backend: str = "",
 ) -> socket.socket | None:
+    # 与 final 一样走归一化：去掉残留 <0xXX>，禁止污染网页「正在说」
+    text = normalize_asr_text(text)
     if not text:
         return sock
     if sock is None:
@@ -676,19 +678,26 @@ def run_asr_stream(
                 if utterance_audio_ms >= long_clause_min_ms and not has_sentence_boundary(longest_sentence_text):
                     effective_silence_ms = max(effective_silence_ms, long_clause_extend_ms)
                 ctc_endpoint = bool(getattr(result, "is_final", False)) if result is not None else False
-                should_finalize = (
-                    utterance_audio_ms >= min_utterance_ms
-                    and (
-                        silent_ms >= effective_silence_ms
-                        or (inactive_ms >= endpoint_inactive_ms and rms < silence_rms_threshold)
-                        or (stable_text_ms >= endpoint_text_stable_ms and rms < silence_rms_threshold)
-                        or (
-                            backend in ("ctc", "ctc_om")
-                            and ctc_endpoint
-                            and utterance_audio_ms >= max(min_utterance_ms, 1200)
+                # NPU CTC：半截 UTF-8（询/螺）未完成时禁止 finalize
+                utf8_pending = False
+                if result is not None and isinstance(getattr(result, "raw", None), dict):
+                    utf8_pending = bool(result.raw.get("utf8_incomplete"))
+                if utf8_pending:
+                    should_finalize = False
+                else:
+                    should_finalize = (
+                        utterance_audio_ms >= min_utterance_ms
+                        and (
+                            silent_ms >= effective_silence_ms
+                            or (inactive_ms >= endpoint_inactive_ms and rms < silence_rms_threshold)
+                            or (stable_text_ms >= endpoint_text_stable_ms and rms < silence_rms_threshold)
+                            or (
+                                backend in ("ctc", "ctc_om")
+                                and ctc_endpoint
+                                and utterance_audio_ms >= max(min_utterance_ms, 1200)
+                            )
                         )
                     )
-                )
 
             if should_finalize:
                 utterance_audio_ms = int(len(utterance_audio) * 1000 / sample_rate)

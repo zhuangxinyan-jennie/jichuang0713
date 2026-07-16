@@ -36,7 +36,7 @@ git lfs pull
 | `XiongdaUnityProject/` | Unity 熊大角色 WebGL 源码 | ✅（❌ `Library/` 等缓存） |
 | `XiongdaParkMapProject/` | Unity 3D 乐园地图 WebGL 源码 | ✅（❌ `Library/` 等缓存） |
 | `pre_on_board_local_start_bundle/` | 板端 Python 运行时 + OM 模型 + 启动脚本 | ✅ |
-| `gesture_cursor_project/` | 本机摄像头手势光标（地图页 2D 图用） | ✅ |
+| `gesture_cursor_project/` | 地图 2D 手势光标说明/脚本（默认跟板端 NPU，非 MediaPipe） | ✅ |
 | `phone_voice_app/` | 手机流式语音桥接（PC server；web 仅调试） | ✅ |
 | `phone_guide_app/` | **交付用** UniApp（iPhone 语音→板端 ASR） | ✅ |
 | `cosyvoice_live_release/` | CosyVoice TTS 服务 | ✅ |
@@ -101,6 +101,9 @@ git -c safe.directory=(Get-Location) -c core.sshCommand="C:/Windows/System32/Ope
 
 ## 常见问题
 
+**Q：手势光标还要开电脑摄像头 / MediaPipe 吗？**  
+A：**不要。** 默认用板载摄像头 + `hand_landmark_sparse.om`，光标走 UDP **18085**（快）+ `board_bridge` 内存 → `:8770`；18082 仍给 Agent/预览。MediaPipe 仅作离线备用。
+
 **Q：队友 clone 后缺模型？**  
 A：执行 `git lfs pull`；板端再补 `model.int8.onnx`（见 BOARD 文档）。
 
@@ -109,3 +112,9 @@ A：只看 `README.md`、`docs/PC.md`、`docs/BOARD.md`，其它 `.md` 已废弃
 
 **Q：板子怎么启动？**  
 A：`bash /home/HwHiAiUser/jichuang/run_on_board.sh`，脚本来自仓库 `pre_on_board_local_start_bundle/jichuang/`。
+
+**Q：网页「正在说」出现 `<0xE8>` / 「询」「螺」丢字？**  
+A：词表里这些字是 SentencePiece 字节回退（三个 `<0xXX>` 拼成一个汉字）。板端 `om_streaming_ctc.py` 必须凑齐再出字；半截字节不再展示，且未拼完时禁止 endpoint。已修后需重启板端 `board_audio_receiver.py`（NPU `ctc_om`）。
+
+**Q：熊大播报时麦克风又识别成游客说话？**  
+A：Agent 多模态闸门会在「有 speech / 剧情音频」时保持 busy，前端 `playback-start` → 播完 `playback-done`，再排空约 **4.5s**（`BEAR_AGENT_PLAYBACK_DRAIN_SEC`）。排空期间 `board_bridge` 清空 ASR，避免喇叭回声进玩法。仍串音时先把喇叭声量调小、麦克风略离音箱。

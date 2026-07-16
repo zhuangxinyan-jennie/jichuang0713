@@ -56,6 +56,14 @@ class BridgeRuntimeConfig:
     def use_fingerprint_trigger(self) -> bool:
         return self.trigger_mode.strip().lower() in ("fingerprint", "fp", "legacy")
 
+    @property
+    def use_stable_event_trigger(self) -> bool:
+        return self.trigger_mode.strip().lower() in ("stable_event", "fpga", "fusion")
+
+    @property
+    def use_hybrid_trigger(self) -> bool:
+        return self.trigger_mode.strip().lower() == "hybrid"
+
 
 def load_bridge_runtime_config() -> BridgeRuntimeConfig:
     return BridgeRuntimeConfig(

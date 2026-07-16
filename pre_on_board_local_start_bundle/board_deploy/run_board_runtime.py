@@ -82,7 +82,7 @@ if DETECTOR_BACKEND not in {"pose_om", "yolo", "hybrid"}:
     DETECTOR_BACKEND = "hybrid"
 ACTION_POSE_CONF_THRES = _read_float_env("ACTION_POSE_CONF_THRES", 0.25)
 ACTION_POSE_IOU_THRES = _read_float_env("ACTION_POSE_IOU_THRES", 0.45)
-RESULT_JPEG_QUALITY = _read_int_env("RESULT_JPEG_QUALITY", 75)
+RESULT_JPEG_QUALITY = _read_int_env("RESULT_JPEG_QUALITY", 45)
 POSE_INPUT_SIZE = _read_int_env("POSE_INPUT_SIZE", 0)
 PIXEL_FORMAT_YUV_SEMIPLANAR_420 = 1
 ACL_MEMCPY_DEVICE_TO_HOST = 2
@@ -113,6 +113,14 @@ HAND_BBOX_SMOOTH_ALPHA = _read_float_env("HAND_BBOX_SMOOTH_ALPHA", 0.55)
 HAND_LANDMARK_SMOOTH_ALPHA = _read_float_env("HAND_LANDMARK_SMOOTH_ALPHA", 0.65)
 HAND_LANDMARK_HOLD_SECONDS = _read_float_env("HAND_LANDMARK_HOLD_SECONDS", 0.60)
 HAND_LANDMARK_BOX_PAD_RATIO = _read_float_env("HAND_LANDMARK_BOX_PAD_RATIO", 0.22)
+# 光标快通道：独立高频 landmark，不影响手势分类间隔 / 18082 JPEG
+CURSOR_FAST_ENABLE = os.environ.get("CURSOR_FAST", "1").strip() != "0"
+CURSOR_LANDMARK_INTERVAL_SECONDS = _read_float_env("CURSOR_LANDMARK_INTERVAL_SECONDS", 0.033)
+CURSOR_LANDMARK_SMOOTH_ALPHA = _read_float_env("CURSOR_LANDMARK_SMOOTH_ALPHA", 0.08)
+CURSOR_UDP_PORT = _read_int_env("CURSOR_UDP_PORT", 18085)
+# 已有手跟踪时隔帧跳过 Pose/YOLO，只沿用框，提高光标刷新；不影响分类逻辑
+CURSOR_LIGHT_DETECT = os.environ.get("CURSOR_LIGHT_DETECT", "1").strip() != "0"
+CURSOR_FULL_DETECT_INTERVAL_SECONDS = _read_float_env("CURSOR_FULL_DETECT_INTERVAL_SECONDS", 0.22)
 GESTURE_VOTE_WINDOW = _read_int_env("GESTURE_VOTE_WINDOW", 7)
 GESTURE_HOLD_SECONDS = _read_float_env("GESTURE_HOLD_SECONDS", 0.55)
 HYBRID_YOLO_REFRESH_SECONDS = _read_float_env("HYBRID_YOLO_REFRESH_SECONDS", 0.45)
@@ -823,6 +831,9 @@ class Track:
     hand_landmarks: np.ndarray | None = None
     hand_landmarks_updated_at: float = 0.0
     handedness: str = ""
+    # 光标快通道专用（可与手势分类不同频）
+    cursor_landmarks: np.ndarray | None = None
+    cursor_landmarks_updated_at: float = 0.0
 
 
 @dataclass
@@ -1753,6 +1764,154 @@ def collect_gesture_overlays(tracks: list[Track]) -> list[dict]:
     return overlays
 
 
+def _has_live_hand_track(tracks: list[Track], now: float, hold: float = 0.40) -> bool:
+    for track in tracks:
+        if track.label != "hand":
+            continue
+        seen = track.last_real_seen_at or track.last_seen_at
+        if now - float(seen) <= hold:
+            return True
+    return False
+
+
+def collect_cursor_hand_landmarks(
+    tracks: list[Track],
+    frame_shape: tuple[int, int, int] | tuple[int, int],
+    *,
+    mirror_frame: bool = True,
+    prefer_cursor_buffer: bool = True,
+) -> tuple[list[dict], dict]:
+    """把板端 NPU 21 点换成整帧归一化坐标，供网页光标使用（非 MediaPipe）。"""
+    h = int(frame_shape[0])
+    w = int(frame_shape[1])
+    now = time.monotonic()
+    best: Track | None = None
+    best_score = -1.0
+    for track in tracks:
+        if track.label != "hand":
+            continue
+        pts = None
+        age = 1e9
+        if prefer_cursor_buffer and track.cursor_landmarks is not None:
+            pts = track.cursor_landmarks
+            age = now - track.cursor_landmarks_updated_at
+        if pts is None or age > HAND_LANDMARK_HOLD_SECONDS:
+            pts = track.hand_landmarks
+            age = now - track.hand_landmarks_updated_at
+        if pts is None or getattr(pts, "shape", None) is None or pts.shape[0] < 21:
+            continue
+        if age > HAND_LANDMARK_HOLD_SECONDS:
+            continue
+        # 优先更新更「新」的手；手势置信度作次要排序
+        score = (10.0 - min(age, 10.0)) + float(track.gesture_confidence or 0.0) * 0.01
+        if score > best_score:
+            best_score = score
+            best = track
+    meta = {
+        "mirror_frame": bool(mirror_frame),
+        "source": "board_npu_fast" if prefer_cursor_buffer else "board_npu",
+        "model": "hand_landmark_sparse.om",
+    }
+    if best is None:
+        return [], meta
+    if prefer_cursor_buffer and best.cursor_landmarks is not None and (
+        now - best.cursor_landmarks_updated_at <= HAND_LANDMARK_HOLD_SECONDS
+    ):
+        pts = best.cursor_landmarks
+    else:
+        pts = best.hand_landmarks
+    assert pts is not None
+    out: list[dict] = []
+    for i in range(21):
+        x = float(pts[i, 0]) / max(1, w)
+        y = float(pts[i, 1]) / max(1, h)
+        z = float(pts[i, 2]) if pts.shape[1] > 2 else 0.0
+        out.append(
+            {
+                "x": float(min(1.0, max(0.0, x))),
+                "y": float(min(1.0, max(0.0, y))),
+                "z": z,
+            }
+        )
+    meta["track_id"] = int(best.track_id)
+    if best.gesture_label:
+        meta["gesture"] = str(best.gesture_label)
+    return out, meta
+
+
+def refresh_cursor_landmarks(
+    frame: np.ndarray,
+    tracks: list[Track],
+    gesture_runtime: BoardGestureRuntime | None,
+) -> None:
+    """光标专用：可更频繁跑 landmark OM，不改手势分类间隔。"""
+    if gesture_runtime is None or not CURSOR_FAST_ENABLE:
+        return
+    now = time.monotonic()
+    for track in tracks:
+        if track.label != "hand":
+            continue
+        if now - track.first_seen_at < STABLE_SECONDS_BY_LABEL.get("hand", 0.2):
+            continue
+        # 手势路径刚更新过则复用，避免同帧双跑 NPU
+        if (
+            track.hand_landmarks is not None
+            and now - track.hand_landmarks_updated_at <= CURSOR_LANDMARK_INTERVAL_SECONDS
+        ):
+            track.cursor_landmarks = track.hand_landmarks
+            track.cursor_landmarks_updated_at = track.hand_landmarks_updated_at
+            continue
+        if now - track.cursor_landmarks_updated_at < CURSOR_LANDMARK_INTERVAL_SECONDS:
+            continue
+        hand_box = track.smoothed_hand_bbox if track.smoothed_hand_bbox is not None else track.bbox
+        result = gesture_runtime.infer_landmarks(frame, hand_box)
+        if result is None:
+            continue
+        landmarks = result.landmarks
+        if (
+            track.cursor_landmarks is not None
+            and track.cursor_landmarks.shape == landmarks.shape
+            and now - track.cursor_landmarks_updated_at <= HAND_LANDMARK_HOLD_SECONDS
+        ):
+            alpha = min(max(CURSOR_LANDMARK_SMOOTH_ALPHA, 0.0), 0.95)
+            landmarks = (track.cursor_landmarks * alpha + landmarks * (1.0 - alpha)).astype(np.float32)
+        track.cursor_landmarks = landmarks
+        track.cursor_landmarks_updated_at = now
+
+
+def send_cursor_landmarks_udp(
+    sock: socket.socket | None,
+    host: str,
+    port: int,
+    landmarks: list[dict],
+    meta: dict,
+    timestamp: float,
+) -> socket.socket | None:
+    """光标快通道：UDP 小包，不阻塞 18082 JPEG。"""
+    if not host or not CURSOR_FAST_ENABLE:
+        return sock
+    payload = {
+        "type": "cursor_landmarks",
+        "timestamp": float(timestamp),
+        "hand_landmarks": landmarks,
+        "meta": meta,
+    }
+    raw = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    try:
+        if sock is None:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.setblocking(False)
+        sock.sendto(raw, (host, int(port)))
+    except OSError:
+        if sock is not None:
+            try:
+                sock.close()
+            except OSError:
+                pass
+        sock = None
+    return sock
+
+
 def collect_action_overlay(action_label: str, action_confidence: float) -> dict | None:
     if not action_label:
         return None
@@ -2130,6 +2289,8 @@ def send_result_frame(
     gesture_overlays: list[dict] | None = None,
     action_overlay: dict | None = None,
     summary: dict | None = None,
+    hand_landmarks: list[dict] | None = None,
+    hand_landmarks_meta: dict | None = None,
 ) -> None:
     ok, buf = cv2.imencode(".jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), int(jpeg_quality)])
     if not ok:
@@ -2144,6 +2305,10 @@ def send_result_frame(
             "gesture_overlays": gesture_overlays or [],
             "action_overlay": action_overlay or {},
             "summary": summary or {},
+            # 网页虚拟光标：板端 NPU 21 点（非 MediaPipe）
+            "hand_landmarks": hand_landmarks or [],
+            "hand_landmarks_meta": hand_landmarks_meta
+            or {"mirror_frame": True, "source": "board_npu"},
         },
     )
     send_packet(sock, buf.tobytes())
@@ -2257,6 +2422,12 @@ def main() -> None:
         help="Local camera index or video path (default 0 / VIDEO_DEVICE env).",
     )
     parser.add_argument("--result-port", type=int, default=18082)
+    parser.add_argument(
+        "--cursor-host",
+        default="",
+        help="光标快通道 UDP 目标；默认与 --result-host 相同。设空且 CURSOR_FAST=0 可关。",
+    )
+    parser.add_argument("--cursor-port", type=int, default=CURSOR_UDP_PORT)
     parser.add_argument("--yolo-om", type=Path, default=DEFAULT_YOLO_OM)
     parser.add_argument("--gesture-om", type=Path, default=DEFAULT_GESTURE_OM)
     parser.add_argument("--hand-landmark-om", type=Path, default=DEFAULT_HAND_LANDMARK_OM)
@@ -2278,6 +2449,8 @@ def main() -> None:
     args = parser.parse_args()
     if args.capture_local and not str(args.result_host).strip():
         args.result_host = resolve_result_host("")
+    if not str(args.cursor_host).strip():
+        args.cursor_host = str(args.result_host).strip()
 
     shared = LatestFrame()
     if args.capture_local:
@@ -2368,12 +2541,19 @@ def main() -> None:
             action_runtime = None
             print(f"[BOARD] action runtime disabled: {exc}", flush=True)
     tracker = IoUTracker(match_thres=0.35, max_missed=6, center_thres=0.12)
+    cursor_udp_sock: socket.socket | None = None
     result_state_lock = threading.Lock()
     result_state: dict[str, object] = {
         "result_sock": None,
         "result_connecting": False,
         "next_result_connect_at": 0.0,
     }
+    if CURSOR_FAST_ENABLE and str(args.cursor_host).strip():
+        print(
+            f"[BOARD] cursor fast-path UDP → {args.cursor_host}:{int(args.cursor_port)} "
+            f"interval={CURSOR_LANDMARK_INTERVAL_SECONDS:.3f}s",
+            flush=True,
+        )
     profile_frames = 0
     profile_sums: dict[str, float] = {}
     profile_window_start = time.perf_counter()
@@ -2415,6 +2595,7 @@ def main() -> None:
     try:
         last_processed_timestamp = 0.0
         last_hybrid_yolo_at = 0.0
+        last_full_detector_at = 0.0
         last_summary_write_at = 0.0
         last_no_display_log_at = 0.0
         while True:
@@ -2438,57 +2619,83 @@ def main() -> None:
             yolo_hands: list[dict] = []
             current_now = time.monotonic()
             shared_preprocess: YoloPosePreprocess | None = None
-            if (
-                args.detector_backend == "hybrid"
-                and pose_runtime is not None
-                and yolo is not None
-                and pose_runtime.input_shape == yolo.input_shape
-            ):
-                shared_t0 = time.perf_counter()
-                shared_preprocess = prepare_yolo_pose_preprocess(show, new_shape=pose_runtime.input_shape)
-                profile_add("shared.preprocess", time.perf_counter() - shared_t0)
-            if args.detector_backend in {"pose_om", "hybrid"}:
-                if pose_runtime is not None:
-                    pose_result = pose_runtime.infer_result(
-                        show,
-                        conf_thres=args.conf_thres,
-                        preprocessed=shared_preprocess,
+            use_light_detect = (
+                CURSOR_FAST_ENABLE
+                and CURSOR_LIGHT_DETECT
+                and _has_live_hand_track(tracker.tracks, current_now)
+                and (current_now - last_full_detector_at) < CURSOR_FULL_DETECT_INTERVAL_SECONDS
+            )
+            if use_light_detect:
+                detections = carry_face_hand_detections(tracker.tracks, current_now)
+                for track in tracker.tracks:
+                    if track.label != "person":
+                        continue
+                    seen = track.last_real_seen_at or track.last_seen_at
+                    if current_now - float(seen) > 0.5:
+                        continue
+                    detections.append(
+                        {
+                            "label": "person",
+                            "bbox": track.bbox,
+                            "confidence": max(0.01, min(0.99, float(track.confidence) * 0.98)),
+                            "source": "carry",
+                        }
                     )
-                    detections.extend(pose_result.detections)
-                    pose_hands = pose_hand_detections(pose_result.pose, show.shape)
-                    if args.detector_backend == "pose_om":
-                        detections.extend(pose_hands)
-            if args.detector_backend in {"yolo", "hybrid"}:
-                if yolo is not None:
-                    run_yolo = True
-                    if args.detector_backend == "hybrid":
-                        run_yolo = should_refresh_hybrid_yolo(tracker.tracks, current_now, last_hybrid_yolo_at)
-                    if run_yolo:
-                        yolo_t0 = time.perf_counter()
-                        yolo_detections = yolo.infer_detections(
+                profile_add("detector", time.perf_counter() - t0)
+                profile_add("hybrid.carry", time.perf_counter() - t0)
+            else:
+                if (
+                    args.detector_backend == "hybrid"
+                    and pose_runtime is not None
+                    and yolo is not None
+                    and pose_runtime.input_shape == yolo.input_shape
+                ):
+                    shared_t0 = time.perf_counter()
+                    shared_preprocess = prepare_yolo_pose_preprocess(show, new_shape=pose_runtime.input_shape)
+                    profile_add("shared.preprocess", time.perf_counter() - shared_t0)
+                if args.detector_backend in {"pose_om", "hybrid"}:
+                    if pose_runtime is not None:
+                        pose_result = pose_runtime.infer_result(
                             show,
                             conf_thres=args.conf_thres,
-                            iou_thres=args.iou_thres,
                             preprocessed=shared_preprocess,
                         )
-                        profile_add("yolo", time.perf_counter() - yolo_t0)
+                        detections.extend(pose_result.detections)
+                        pose_hands = pose_hand_detections(pose_result.pose, show.shape)
+                        if args.detector_backend == "pose_om":
+                            detections.extend(pose_hands)
+                if args.detector_backend in {"yolo", "hybrid"}:
+                    if yolo is not None:
+                        run_yolo = True
                         if args.detector_backend == "hybrid":
-                            last_hybrid_yolo_at = current_now
-                    else:
-                        carry_t0 = time.perf_counter()
-                        yolo_detections = carry_face_hand_detections(tracker.tracks, current_now)
-                        profile_add("hybrid.carry", time.perf_counter() - carry_t0)
-                    if args.detector_backend == "hybrid":
-                        yolo_faces = [d for d in yolo_detections if d["label"] == "face"]
-                        yolo_hands = [d for d in yolo_detections if d["label"] == "hand"]
-                        detections.extend(yolo_faces)
-                        detections.extend(yolo_hands)
-                        detections.extend(pose_hand_fallbacks(pose_hands, yolo_hands))
-                    else:
-                        detections = yolo_detections
-            if args.detector_backend == "hybrid":
-                detections = merge_overlapping_detections(detections)
-            profile_add("detector", time.perf_counter() - t0)
+                            run_yolo = should_refresh_hybrid_yolo(tracker.tracks, current_now, last_hybrid_yolo_at)
+                        if run_yolo:
+                            yolo_t0 = time.perf_counter()
+                            yolo_detections = yolo.infer_detections(
+                                show,
+                                conf_thres=args.conf_thres,
+                                iou_thres=args.iou_thres,
+                                preprocessed=shared_preprocess,
+                            )
+                            profile_add("yolo", time.perf_counter() - yolo_t0)
+                            if args.detector_backend == "hybrid":
+                                last_hybrid_yolo_at = current_now
+                        else:
+                            carry_t0 = time.perf_counter()
+                            yolo_detections = carry_face_hand_detections(tracker.tracks, current_now)
+                            profile_add("hybrid.carry", time.perf_counter() - carry_t0)
+                        if args.detector_backend == "hybrid":
+                            yolo_faces = [d for d in yolo_detections if d["label"] == "face"]
+                            yolo_hands = [d for d in yolo_detections if d["label"] == "hand"]
+                            detections.extend(yolo_faces)
+                            detections.extend(yolo_hands)
+                            detections.extend(pose_hand_fallbacks(pose_hands, yolo_hands))
+                        else:
+                            detections = yolo_detections
+                if args.detector_backend == "hybrid":
+                    detections = merge_overlapping_detections(detections)
+                profile_add("detector", time.perf_counter() - t0)
+                last_full_detector_at = current_now
             t0 = time.perf_counter()
             tracks = tracker.update(detections, current_now)
             smooth_hand_tracks(tracks, show.shape)
@@ -2496,6 +2703,21 @@ def main() -> None:
             t0 = time.perf_counter()
             enrich_tracks_with_gesture(show, tracks, gesture_runtime)
             profile_add("gesture", time.perf_counter() - t0)
+            # 光标快通道：手势之后立刻刷点并发 UDP，不等表情/动作/画框/JPEG
+            t0 = time.perf_counter()
+            refresh_cursor_landmarks(show, tracks, gesture_runtime)
+            cursor_landmarks, cursor_meta = collect_cursor_hand_landmarks(tracks, show.shape)
+            # 有无手数都发 UDP（空包保活），避免 PC 慢通道盖住快通道
+            if str(args.cursor_host).strip() and CURSOR_FAST_ENABLE:
+                cursor_udp_sock = send_cursor_landmarks_udp(
+                    cursor_udp_sock,
+                    str(args.cursor_host).strip(),
+                    int(args.cursor_port),
+                    cursor_landmarks,
+                    cursor_meta,
+                    shared.timestamp,
+                )
+            profile_add("cursor_fast", time.perf_counter() - t0)
             t0 = time.perf_counter()
             enrich_tracks_with_emotion(show, tracks, emotion_runtime)
             profile_add("emotion", time.perf_counter() - t0)
@@ -2571,6 +2793,8 @@ def main() -> None:
                         gesture_overlays=gesture_overlays,
                         action_overlay=action_overlay,
                         summary=summary,
+                        hand_landmarks=cursor_landmarks,
+                        hand_landmarks_meta=cursor_meta,
                     )
                 except OSError:
                     try:

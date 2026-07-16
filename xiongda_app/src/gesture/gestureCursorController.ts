@@ -46,6 +46,7 @@ export const DEFAULT_GESTURE_CURSOR_CONFIG: GestureCursorConfig = {
   positionSource: "palm",
   filterMode: "oneEuro",
   smoothing: 0.22,
+  // 板端快通道实际刷新率常低于浏览器 raf，参数过激会放大阶梯感/抖动。
   oneEuroMinCutoff: 1.0,
   oneEuroBeta: 0.06,
   mapMargin: 0.1,

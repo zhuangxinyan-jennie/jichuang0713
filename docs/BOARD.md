@@ -159,10 +159,12 @@ bash /home/HwHiAiUser/jichuang/stop_board.sh
 
 | 端口 | 内容 |
 |------|------|
-| 18082 | 视觉 JSON、动作标签、JPEG 预览 |
+| 18082 | 视觉 JSON（含 **hand_landmarks** 21 点）、动作标签、JPEG 预览 |
 | 18083 | ASR partial / final 文本 |
 
-PC 必须先监听（如 `run_pc_asr_terminal.py`），板子再启动。
+PC `board_bridge` 监听 18082 后，会把关键点落到 `latest_hand_landmarks.json`，并在本机 **:8770** 提供网页光标接口（**非 MediaPipe**）。
+
+PC 必须先监听（如 `run_all.py --bear-bridge` / `run_pc_asr_terminal.py`），板子再启动。
 
 ---
 

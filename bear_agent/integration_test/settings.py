@@ -54,7 +54,8 @@ class ServerSettings:
     latency_log_file: str = ""
     multimodal_gate_enabled: bool = True
     playback_guard_sec: float = 90.0
-    playback_drain_sec: float = 2.5
+    # 播完后继续挡一阵，排空板端对喇叭回声的 final（默认偏短会误吸「熊大尾音」）
+    playback_drain_sec: float = 4.5
 
 
 def load_server_settings() -> ServerSettings:
@@ -70,5 +71,5 @@ def load_server_settings() -> ServerSettings:
         latency_log_file=env_str("BEAR_LATENCY_LOG_FILE", ""),
         multimodal_gate_enabled=not env_bool("BEAR_AGENT_DISABLE_MULTIMODAL_GATE", False),
         playback_guard_sec=env_float("BEAR_AGENT_PLAYBACK_GUARD_SEC", 90.0),
-        playback_drain_sec=env_float("BEAR_AGENT_PLAYBACK_DRAIN_SEC", 2.5),
+        playback_drain_sec=env_float("BEAR_AGENT_PLAYBACK_DRAIN_SEC", 4.5),
     )

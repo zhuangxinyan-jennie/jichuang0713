@@ -17,9 +17,16 @@ from .agent_http import (
     post_json,
 )
 from .config import load_bridge_runtime_config
+from .fpga_fusion_bridge import (
+    FusionSession,
+    enrich_perception,
+    ensure_speech_for_greeting,
+    stable_event_doc,
+)
 from .json_io import atomic_write_json, read_json_file
 from .perception_merge import build_perception, fingerprint_for_trigger
 from .speech_pick import pick_speech_text
+from fpga_bridge.event_types import StableEventId
 
 
 def clear_latest_asr_utterance(path: Path) -> None:
@@ -52,8 +59,10 @@ def poll_loop(
     cfg = load_bridge_runtime_config()
     vision_path = output_dir / "vision" / "latest_vision.json"
     asr_path = output_dir / "asr" / "latest_asr.json"
+    fpga_path = output_dir / "fpga" / "latest_stable.json"
     url = agent_url.strip()
     use_fingerprint_trigger = cfg.use_fingerprint_trigger
+    fusion = FusionSession()
 
     last_fp: str | None = None
     last_post_mono = 0.0
@@ -92,6 +101,7 @@ def poll_loop(
             clear_latest_asr_utterance(asr_path)
             last_posted_speech = ""
             last_fp = None
+            fusion.reset_trigger_memory()
             post_board_asr_live(url, partial="", final="", normalized="")
             time.sleep(poll_interval_sec)
             continue
@@ -102,11 +112,26 @@ def poll_loop(
             clear_latest_asr_utterance(asr_path)
             last_posted_speech = ""
             last_fp = None
+            fusion.reset_trigger_memory()
             post_board_asr_live(url, partial="", final="", normalized="")
             time.sleep(poll_interval_sec)
             continue
 
         post_board_asr_live(url, partial=partial, final=final_txt, normalized=norm_txt)
+
+        stable_batch = fusion.process(vdoc, adoc)
+        postworthy = fusion.find_postworthy(stable_batch)
+        try:
+            fpga_path.parent.mkdir(parents=True, exist_ok=True)
+            atomic_write_json(fpga_path, stable_event_doc(postworthy or fusion.last_postworthy, fusion.stats))
+        except OSError:
+            pass
+
+        trigger_mode = (
+            "hybrid"
+            if cfg.use_hybrid_trigger
+            else ("stable_event" if cfg.use_stable_event_trigger else ("fingerprint" if use_fingerprint_trigger else "speech_novelty"))
+        )
         try:
             atomic_write_json(
                 output_dir / "perception_preview.json",
@@ -119,32 +144,52 @@ def poll_loop(
                     "asr_ts": adoc.get("ts"),
                     "ts": time.time(),
                     "bridge_trigger": {
-                        "mode": "fingerprint" if use_fingerprint_trigger else "speech_novelty",
+                        "mode": trigger_mode,
                         "speech_now": speech_now,
                         "last_posted_speech_to_agent": last_posted_speech,
                         "fingerprint": fp,
+                        "stable_event": (postworthy.stable_id.name if postworthy else ""),
+                        "fpga_stats": stable_event_doc(None, fusion.stats)["stats"],
                     },
                 },
             )
         except OSError:
             pass
 
-        if use_fingerprint_trigger:
-            post_eligible = fp != last_fp and (now - last_post_mono) >= min_post_interval_sec
+        interval_ok = (now - last_post_mono) >= min_post_interval_sec
+        post_eligible = False
+        perception_to_post = perception
+
+        if cfg.use_stable_event_trigger:
+            post_eligible = postworthy is not None and interval_ok
+            if postworthy is not None:
+                perception_to_post = enrich_perception(perception, postworthy)
+                if postworthy.stable_id == StableEventId.USER_GREETING:
+                    perception_to_post = ensure_speech_for_greeting(perception_to_post, speech_now or partial)
+        elif cfg.use_hybrid_trigger:
+            speech_hit = bool(speech_now) and speech_now != last_posted_speech and interval_ok
+            stable_hit = postworthy is not None and interval_ok
+            post_eligible = speech_hit or stable_hit
+            if stable_hit and postworthy is not None:
+                perception_to_post = enrich_perception(perception, postworthy)
+                if postworthy.stable_id == StableEventId.USER_GREETING:
+                    perception_to_post = ensure_speech_for_greeting(perception_to_post, speech_now or partial)
+        elif use_fingerprint_trigger:
+            post_eligible = fp != last_fp and interval_ok
         else:
-            post_eligible = bool(speech_now) and speech_now != last_posted_speech and (now - last_post_mono) >= min_post_interval_sec
+            post_eligible = bool(speech_now) and speech_now != last_posted_speech and interval_ok
 
         if post_eligible:
             try:
                 t_http = time.perf_counter()
-                agent_out = post_json(url, perception)
+                agent_out = post_json(url, perception_to_post)
                 if latency_log_enabled():
                     _ln = f"[latency] board_bridge POST {url} {(time.perf_counter() - t_http) * 1000.0:.1f}ms"
                     log_print(_ln, flush=True)
                     latency_log_append(_ln)
-                log_print(f"[board_bridge] POST {url}\n  perception={json.dumps(perception, ensure_ascii=False)}")
+                log_print(f"[board_bridge] POST {url}\n  perception={json.dumps(perception_to_post, ensure_ascii=False)}")
                 log_print(f"[board_bridge] agent_out keys={list(agent_out.keys())}")
-                if partial and not (perception.get("speech_text") or "").strip():
+                if partial and not (perception_to_post.get("speech_text") or "").strip():
                     log_print(f"[board_bridge] ASR 实时草稿 partial（尚未 final）: {partial[:120]}", flush=True)
                 if response_dump and agent_out:
                     atomic_write_json(response_dump, agent_out)
@@ -152,6 +197,8 @@ def poll_loop(
                 last_posted_speech = speech_now
                 if use_fingerprint_trigger:
                     last_fp = fp
+                if postworthy is not None:
+                    fusion.mark_posted(postworthy)
                 if cfg.clear_asr_after_post:
                     if utterance_clear_event is not None:
                         utterance_clear_event.set()

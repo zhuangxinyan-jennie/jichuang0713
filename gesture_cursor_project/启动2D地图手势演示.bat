@@ -1,14 +1,12 @@
 @echo off
 chcp 65001 >nul
-title 2D地图手势光标服务 (端口 8770)
+title 【旧】本机 MediaPipe 手势 :8770
 cd /d "%~dp0"
 
 echo.
-echo === 2D 地图手势演示（仅本机摄像头，不开板端）===
-echo 1) 本窗口会启动 MediaPipe 手部关键点服务 :8770
-echo 2) 请另开终端启动前端:  cd xiongda_app ^&^& npm run dev
-echo 3) 浏览器打开 http://127.0.0.1:5173  → 点顶栏「地图查询」
-echo 4) 右下角点「2D地图」放大；举手移动光标，捏合点星星
+echo === 【旧方案】本机摄像头 + MediaPipe（仅离线调试）===
+echo 交付演示请改用：启动板端手势光标.bat
+echo   或直接开 run_all.py --bear-bridge（已含 :8770）
 echo.
 echo 预览窗按 ESC 退出本服务
 echo.

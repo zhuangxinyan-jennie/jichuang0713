@@ -22,6 +22,9 @@ class PerceptionIn(BaseModel):
     person_count: int = 1
     face_bbox: list[float] | None = None
     speech_text: str = ""
+    stable_event: str = ""
+    stable_event_score: int = 0
+    fpga_fusion_delay_ms: int = 0
 
     @model_validator(mode="before")
     @classmethod

@@ -16,19 +16,24 @@ def gate_enabled() -> bool:
 
 
 def agent_output_expects_playback_wait(out: Any) -> bool:
-    """是否与前端 handleBearAgentPayload 中「会发声」的路径大致一致。"""
+    """是否与前端 handleBearAgentPayload 中「会发声」的路径大致一致。
+
+    注意：剧情/随机只要会播熊大声音，推理结束就必须先占住闸门。
+    否则从返回结果到 audio.play()/playback-start 之间，麦克风会把喇叭声录回去，
+    造成「熊大说的话又被识别成游客」。playback-start 仍会刷新 busy/watchdog。
+    """
     if out is None:
         return False
     if not isinstance(out, dict):
         return False
-    it = str(out.get("interaction_type") or "")
-    # 剧情固定 WAV 很长，推理结束时不硬等；前端真正开始播放后会 POST playback-start，
-    # 播完再 POST playback-done。这样页面已进剧情后，游客下一句不会被推理闸门长期卡住。
-    if it == "story_interaction":
-        return False
     speech = (out.get("speech") or "").strip()
     if speech:
         return True
+    it = str(out.get("interaction_type") or "")
+    if it == "story_interaction":
+        clips = out.get("clip_ids") or out.get("story_voice_ids")
+        if isinstance(clips, (list, tuple)) and len(clips) > 0:
+            return True
     return False
 
 
