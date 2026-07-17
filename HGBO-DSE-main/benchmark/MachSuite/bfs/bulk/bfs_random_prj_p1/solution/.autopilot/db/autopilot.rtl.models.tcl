@@ -1,0 +1,8 @@
+set SynModuleInfo {
+  {SRCNAME bfs MODELNAME bfs RTLNAME bfs IS_TOP 1
+    SUBMODULES {
+      {MODELNAME bfs_mux_21_8_1_1 RTLNAME bfs_mux_21_8_1_1 BINDTYPE op TYPE mux IMPL auto LATENCY 0 ALLOW_PRAGMA 1}
+      {MODELNAME bfs_mux_253_64_1_1 RTLNAME bfs_mux_253_64_1_1 BINDTYPE op TYPE mux IMPL auto LATENCY 0 ALLOW_PRAGMA 1}
+    }
+  }
+}

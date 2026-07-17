@@ -1,0 +1,24 @@
+node_id,node_name,node_type,line_num,rtl_name,op_type,bitwidth,const_type,content
+0_98,empty,2,0,not_exist,not_exist,32,0,1
+0_103,empty,2,0,not_exist,not_exist,64,0,1
+0_107,empty,2,0,not_exist,not_exist,64,0,0
+0_110,empty,2,0,not_exist,not_exist,8,0,0
+0_126,empty,2,0,not_exist,not_exist,8,0,1
+0_133,empty,2,0,not_exist,not_exist,9,0,0
+0_139,empty,2,0,not_exist,not_exist,9,0,256
+0_142,empty,2,0,not_exist,not_exist,9,0,1
+0_163,empty,2,0,not_exist,not_exist,32,0,7
+0_167,empty,2,0,not_exist,not_exist,32,0,6
+0_172,empty,2,0,not_exist,not_exist,7,0,0
+0_199,empty,2,0,not_exist,not_exist,32,0,64
+0_201,empty,2,0,not_exist,not_exist,32,0,127
+0_216,bfs_Pipeline_loop_neighbors,2,0,not_exist,not_exist,1,6,<constant bfs_Pipeline_loop_neighbors>
+1_87,empty,2,0,not_exist,not_exist,32,0,1
+1_129,empty,2,0,not_exist,not_exist,64,0,2
+1_140,empty,2,0,not_exist,not_exist,32,0,11
+1_144,empty,2,0,not_exist,not_exist,64,0,0
+1_162,empty,2,0,not_exist,not_exist,8,0,127
+1_172,empty,2,0,not_exist,not_exist,64,0,1
+1_175,empty,2,0,not_exist,not_exist,12,0,1
+1_178,empty,2,0,not_exist,not_exist,1,0,1
+1_226,empty,2,0,not_exist,not_exist,1,0,0

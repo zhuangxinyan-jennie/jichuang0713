@@ -1,0 +1,268 @@
+{"sourceFile": [{
+      "name": "",
+      "directive": [
+        {
+          "functionName": "bfs",
+          "label": "",
+          "functionLabel": "",
+          "id": "1",
+          "sourceFile": "\/home\/noel\/Documents\/HGBO-DSE-main\/dse_ds\/MachSuite\/random_ds\/bfs\/bulk\/p1\/script\/dir_99.tcl",
+          "sourceLine": "1",
+          "pragma": {
+            "name": "EXPRESSION_BALANCE",
+            "option": [{
+                "name": "off",
+                "value": ""
+              }]
+          }
+        },
+        {
+          "functionName": "bfs",
+          "label": "loop_neighbors",
+          "functionLabel": "",
+          "id": "2",
+          "sourceFile": "\/home\/noel\/Documents\/HGBO-DSE-main\/dse_ds\/MachSuite\/random_ds\/bfs\/bulk\/p1\/script\/dir_99.tcl",
+          "sourceLine": "2",
+          "pragma": {
+            "name": "PIPELINE",
+            "option": [{
+                "name": "off",
+                "value": ""
+              }]
+          }
+        },
+        {
+          "functionName": "bfs",
+          "label": "",
+          "functionLabel": "",
+          "id": "3",
+          "sourceFile": "\/home\/noel\/Documents\/HGBO-DSE-main\/dse_ds\/MachSuite\/random_ds\/bfs\/bulk\/p1\/script\/dir_99.tcl",
+          "sourceLine": "3",
+          "pragma": {
+            "name": "ARRAY_PARTITION",
+            "option": [
+              {
+                "name": "variable",
+                "value": "edges"
+              },
+              {
+                "name": "block",
+                "value": ""
+              },
+              {
+                "name": "factor",
+                "value": "2"
+              },
+              {
+                "name": "dim",
+                "value": "1"
+              }
+            ]
+          }
+        },
+        {
+          "functionName": "bfs",
+          "label": "",
+          "functionLabel": "",
+          "id": "4",
+          "sourceFile": "\/home\/noel\/Documents\/HGBO-DSE-main\/dse_ds\/MachSuite\/random_ds\/bfs\/bulk\/p1\/script\/dir_99.tcl",
+          "sourceLine": "4",
+          "pragma": {
+            "name": "ARRAY_RESHAPE",
+            "option": [
+              {
+                "name": "variable",
+                "value": "edges"
+              },
+              {
+                "name": "cyclic",
+                "value": ""
+              },
+              {
+                "name": "factor",
+                "value": "2"
+              },
+              {
+                "name": "dim",
+                "value": "1"
+              }
+            ]
+          }
+        },
+        {
+          "functionName": "bfs",
+          "label": "",
+          "functionLabel": "",
+          "id": "5",
+          "sourceFile": "\/home\/noel\/Documents\/HGBO-DSE-main\/dse_ds\/MachSuite\/random_ds\/bfs\/bulk\/p1\/script\/dir_99.tcl",
+          "sourceLine": "5",
+          "pragma": {
+            "name": "ARRAY_PARTITION",
+            "option": [
+              {
+                "name": "variable",
+                "value": "level"
+              },
+              {
+                "name": "cyclic",
+                "value": ""
+              },
+              {
+                "name": "factor",
+                "value": "2"
+              },
+              {
+                "name": "dim",
+                "value": "1"
+              }
+            ]
+          }
+        },
+        {
+          "functionName": "bfs",
+          "label": "loop_horizons",
+          "functionLabel": "",
+          "id": "6",
+          "sourceFile": "\/home\/noel\/Documents\/HGBO-DSE-main\/dse_ds\/MachSuite\/random_ds\/bfs\/bulk\/p1\/script\/dir_99.tcl",
+          "sourceLine": "6",
+          "pragma": {
+            "name": "BIND_OP",
+            "option": [
+              {
+                "name": "variable",
+                "value": "horizon"
+              },
+              {
+                "name": "op",
+                "value": "add"
+              },
+              {
+                "name": "impl",
+                "value": "fabric"
+              },
+              {
+                "name": "latency",
+                "value": "-1"
+              }
+            ]
+          }
+        },
+        {
+          "functionName": "bfs",
+          "label": "loop_nodes",
+          "functionLabel": "",
+          "id": "7",
+          "sourceFile": "\/home\/noel\/Documents\/HGBO-DSE-main\/dse_ds\/MachSuite\/random_ds\/bfs\/bulk\/p1\/script\/dir_99.tcl",
+          "sourceLine": "7",
+          "pragma": {
+            "name": "BIND_OP",
+            "option": [
+              {
+                "name": "variable",
+                "value": "n"
+              },
+              {
+                "name": "op",
+                "value": "add"
+              },
+              {
+                "name": "impl",
+                "value": "dsp"
+              },
+              {
+                "name": "latency",
+                "value": "-1"
+              }
+            ]
+          }
+        },
+        {
+          "functionName": "bfs",
+          "label": "loop_neighbors",
+          "functionLabel": "",
+          "id": "8",
+          "sourceFile": "\/home\/noel\/Documents\/HGBO-DSE-main\/dse_ds\/MachSuite\/random_ds\/bfs\/bulk\/p1\/script\/dir_99.tcl",
+          "sourceLine": "8",
+          "pragma": {
+            "name": "BIND_OP",
+            "option": [
+              {
+                "name": "variable",
+                "value": "e"
+              },
+              {
+                "name": "op",
+                "value": "add"
+              },
+              {
+                "name": "impl",
+                "value": "dsp"
+              },
+              {
+                "name": "latency",
+                "value": "-1"
+              }
+            ]
+          }
+        },
+        {
+          "functionName": "bfs",
+          "label": "loop_neighbors",
+          "functionLabel": "",
+          "id": "9",
+          "sourceFile": "\/home\/noel\/Documents\/HGBO-DSE-main\/dse_ds\/MachSuite\/random_ds\/bfs\/bulk\/p1\/script\/dir_99.tcl",
+          "sourceLine": "9",
+          "pragma": {
+            "name": "BIND_OP",
+            "option": [
+              {
+                "name": "variable",
+                "value": "cnt"
+              },
+              {
+                "name": "op",
+                "value": "add"
+              },
+              {
+                "name": "impl",
+                "value": "fabric"
+              },
+              {
+                "name": "latency",
+                "value": "-1"
+              }
+            ]
+          }
+        },
+        {
+          "functionName": "bfs",
+          "label": "",
+          "functionLabel": "",
+          "id": "10",
+          "sourceFile": "\/home\/noel\/Documents\/HGBO-DSE-main\/dse_ds\/MachSuite\/random_ds\/bfs\/bulk\/p1\/script\/hls_99.tcl",
+          "sourceLine": "10",
+          "pragma": {
+            "name": "TOP",
+            "option": [{
+                "name": "name",
+                "value": "bfs"
+              }]
+          }
+        },
+        {
+          "functionName": "bfs",
+          "label": "",
+          "functionLabel": "",
+          "id": "11",
+          "sourceFile": "\/home\/noel\/Documents\/HGBO-DSE-main\/dse_ds\/MachSuite\/random_ds\/bfs\/bulk\/p1\/script\/hls_99.tcl",
+          "sourceLine": "10",
+          "pragma": {
+            "name": "TOP",
+            "option": [{
+                "name": "name",
+                "value": "bfs"
+              }]
+          }
+        }
+      ]
+    }]}

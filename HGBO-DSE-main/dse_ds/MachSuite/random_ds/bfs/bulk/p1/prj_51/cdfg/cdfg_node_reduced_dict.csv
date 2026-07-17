@@ -1,0 +1,49 @@
+node_id,node_name,node_type,line_num,rtl_name,op_type,core_name,bitwidth,opcode,m_delay,topo_index,oprand_edges,latency,lut,ff,dsp,bram,uram
+0_30,level_addr_write_ln18,0,18,not_exist,ram,RAM,0,store,2.26,5,"['124', '125']","['0', '0']",0,0,0,0,0
+0_32,level_counts_0_addr_write_ln19,0,19,not_exist,ram,RAM,0,store,1.14,7,"['129', '130']","['0', '0']",0,0,0,0,0
+0_33,horizon_write_ln21,0,21,not_exist,not_exist,not_exist,0,store,0.84,8,"['131', '132']","['0', '0']",0,0,0,0,0
+0_36,horizon_1,0,21,not_exist,not_exist,not_exist,64,load,0.00,10,"['134', '501']","['1', '0']",0,0,0,0,0
+0_39,add_ln21,0,21,add_ln21_fu_262_p2,add,Adder,64,add,1.81,12,"['136', '137']","['1', '0']",71,0,0,0,0
+0_40,empty,0,21,empty_fu_268_p2,add,Adder,8,add,1.35,13,"['138', '140']","['1', '0']",15,0,0,0,0
+0_47,n_1,0,24,n_1_fu_280_p2,add,Adder,9,add,1.35,18,"['154', '156']","['2', '0']",16,0,0,0,0
+0_45,icmp_ln24,0,24,icmp_ln24_fu_274_p2,icmp,Cmp,1,icmp,0.90,17,"['151', '153']","['2', '0']",11,0,0,0,0
+0_54,level_load,0,25,not_exist,ram,RAM,8,load,2.26,22,['165'],"['2', '1']",0,0,0,0,0
+0_57,icmp_ln25,0,25,icmp_ln25_fu_310_p2,icmp,Cmp,1,icmp,1.40,27,"['168', '169']","['3', '0']",29,0,0,0,0
+0_60,tmp_2,0,26,tmp_2_reg_508,not_exist,not_exist,1,bitselect,0.00,29,"['174', '175', '177']","['3', '0']",0,1,0,0,0
+0_65,nodes_0_load,0,26,not_exist,ram,RAM,256,load,2.26,33,['193'],"['3', '1']",0,0,0,0,0
+0_67,lshr_ln26,0,26,lshr_ln26_fu_350_p2,lshr,Shifter,256,lshr,2.38,38,"['195', '196']","['4', '0']",950,0,0,0,0
+0_70,nodes_1_load,0,26,not_exist,ram,RAM,256,load,2.26,35,['201'],"['3', '1']",0,0,0,0,0
+0_72,lshr_ln26_1,0,26,lshr_ln26_1_fu_364_p2,lshr,Shifter,256,lshr,2.38,41,"['203', '204']","['4', '0']",950,0,0,0,0
+0_74,tmp_begin,0,26,mux_21_64_1_1_U12,mux,Multiplexer,64,mux,0.84,43,"['207', '208', '209', '210']","['4', '0']",9,0,0,0,0
+0_77,tmp_end,0,27,mux_21_64_1_1_U13,mux,Multiplexer,64,mux,0.84,46,"['222', '223', '224', '225']","['4', '0']",9,0,0,0,0
+0_78,icmp_ln28,0,28,icmp_ln28_fu_412_p2,icmp,Cmp,1,icmp,1.40,47,"['226', '227']","['5', '0']",29,0,0,0,0
+0_81,_ln26,0,26,grp_bfs_Pipeline_loop_neighbors_fu_234,not_exist,not_exist,0,call,0.84,49,"['232', '233', '234', '235', '236', '237', '238', '239', '240', '499']","['5', '1']",1128,454,0,0,0
+0_82,cnt_1_loc_load,0,0,not_exist,not_exist,not_exist,64,load,0.00,50,"['241', '500']","['7', '0']",0,0,0,0,0
+0_89,mul_ln39,0,39,mul_64ns_66ns_68_2_1_U14,mul,Multiplier,68,mul,7.13,55,"['251', '253']","['73', '1']",179,361,6,0,0
+0_90,urem_ln39,0,39,urem_64ns_4ns_64_68_seq_1_U11,urem,DivnS_SEQ,64,urem,2.55,23,"['254', '256']","['2', '67']",469,779,0,0,0
+0_91,tmp,0,39,tmp_reg_546,not_exist,not_exist,1,bitselect,0.00,56,"['258', '259', '261']","['74', '0']",0,1,0,0,0
+0_95,level_counts_0_addr_1_write_ln39,0,39,not_exist,ram,RAM,0,store,1.14,59,"['268', '269']","['75', '0']",0,0,0,0,0
+0_99,level_counts_1_addr_write_ln39,0,39,not_exist,ram,RAM,0,store,1.14,62,"['274', '275']","['75', '0']",0,0,0,0,0
+0_102,icmp_ln39,0,39,icmp_ln39_fu_436_p2,icmp,Cmp,1,icmp,1.40,64,"['277', '278']","['75', '0']",29,0,0,0,0
+0_103,icmp_ln21,0,21,icmp_ln21_fu_442_p2,icmp,Cmp,1,icmp,1.40,65,"['279', '281']","['75', '0']",29,0,0,0,0
+0_104,and_ln39,0,39,and_ln39_fu_447_p2,and,LogicGate,1,and,0.48,66,"['282', '283']","['75', '0']",2,0,0,0,0
+0_107,horizon_write_ln39,0,39,not_exist,not_exist,not_exist,0,store,0.84,68,"['287', '288', '502', '503']","['75', '0']",0,0,0,0,0
+1_18,cnt_1_write_ln0,0,0,not_exist,not_exist,not_exist,0,store,0.84,7,"['76', '77']","['0', '0']",0,0,0,0,0
+1_19,e_write_ln0,0,0,not_exist,not_exist,not_exist,0,store,0.84,8,"['78', '79']","['0', '0']",0,0,0,0,0
+1_59,cnt_1_load_1,0,0,not_exist,not_exist,not_exist,64,load,0.00,28,"['81', '240']","['2', '0']",0,0,0,0,0
+1_22,e_1,0,29,not_exist,not_exist,not_exist,64,load,0.00,10,"['86', '239']","['1', '0']",0,0,0,0,0
+1_23,icmp_ln28,0,28,icmp_ln28_fu_153_p2,icmp,Cmp,1,icmp,1.40,11,"['87', '88']","['1', '0']",29,0,0,0,0
+1_55,e_2,0,28,e_2_fu_206_p2,add,Adder,64,add,1.81,25,"['92', '94']","['2', '0']",71,0,0,0,0
+1_56,e_write_ln28,0,28,not_exist,not_exist,not_exist,0,store,0.84,26,"['95', '96', '243', '244']","['2', '0']",0,0,0,0,0
+1_29,lshr_ln,0,29,lshr_ln_reg_307,not_exist,not_exist,53,partselect,0.00,19,"['100', '101', '103', '105']","['2', '0']",0,53,0,0,0
+1_34,edges_0_load,0,29,not_exist,ram,RAM,128,load,2.26,16,['121'],"['1', '1']",0,0,0,0,0
+1_36,lshr_ln29,0,29,lshr_ln29_fu_196_p2,lshr,Shifter,128,lshr,2.37,23,"['123', '124']","['2', '0']",423,0,0,0,0
+1_39,edges_1_load,0,29,not_exist,ram,RAM,128,load,2.26,18,['129'],"['1', '1']",0,0,0,0,0
+1_41,lshr_ln29_1,0,29,lshr_ln29_1_fu_219_p2,lshr,Shifter,128,lshr,2.37,32,"['131', '132']","['3', '0']",423,0,0,0,0
+1_43,tmp_dst,0,29,mux_253_64_1_1_U1,mux,Multiplexer,64,mux,0.84,34,"['135', '136', '137', '138']","['3', '0']",9,0,0,0,0
+1_45,tmp_level,0,30,not_exist,ram,RAM,8,load,2.26,36,['142'],"['3', '1']",0,0,0,0,0
+1_46,icmp_ln32,0,32,icmp_ln32_fu_237_p2,icmp,Cmp,1,icmp,0.86,37,"['143', '145']","['4', '0']",11,0,0,0,0
+1_49,cnt_1_load,0,34,not_exist,not_exist,not_exist,64,load,0.00,39,"['149', '241']","['4', '0']",0,0,0,0,0
+1_50,level_addr_write_ln33,0,33,not_exist,ram,RAM,0,store,2.26,40,"['150', '151', '237', '2147483647']","['4', '0']",0,0,0,0,0
+1_51,cnt_2,0,34,cnt_2_fu_246_p2,add,Adder,64,add,1.81,41,"['152', '153']","['4', '0']",71,0,0,0,0
+1_52,cnt_1_write_ln35,0,35,not_exist,not_exist,not_exist,0,store,0.84,42,"['154', '155', '238', '242']","['4', '0']",0,0,0,0,0

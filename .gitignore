@@ -56,6 +56,13 @@ pre_on_board_local_start_bundle/pc_received_output/
 *.tar.gz
 *.tar.bz2
 
+# HGBO: 昇腾 CANN 安装包请放本地 packages/，勿提交 GitHub
+HGBO/packages/*.run
+
+# HGBO-DSE: 图数据集 pt 可本地用 hgp/data_process/gen_dataset_std.py 重新生成
+HGBO-DSE-main/dataset/std/
+HGBO-DSE-main/dataset/rdc/
+
 # Large ML assets — 用 deploy 脚本在板端下载/编译，勿提交 GitHub
 pretrained_models/
 pre_on_board_local_start_bundle/cache/

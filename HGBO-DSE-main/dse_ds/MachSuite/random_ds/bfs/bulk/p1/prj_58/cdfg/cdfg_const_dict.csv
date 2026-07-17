@@ -1,0 +1,14 @@
+node_id,node_name,node_type,line_num,rtl_name,op_type,bitwidth,const_type,content
+0_179,empty,2,0,not_exist,not_exist,32,0,1
+0_185,empty,2,0,not_exist,not_exist,64,0,0
+0_188,empty,2,0,not_exist,not_exist,8,0,0
+0_194,empty,2,0,not_exist,not_exist,64,0,1
+0_205,empty,2,0,not_exist,not_exist,8,0,1
+0_212,empty,2,0,not_exist,not_exist,9,0,0
+0_221,empty,2,0,not_exist,not_exist,32,0,8
+0_245,empty,2,0,not_exist,not_exist,32,0,64
+0_247,empty,2,0,not_exist,not_exist,32,0,127
+0_290,empty,2,0,not_exist,not_exist,8,0,127
+0_305,empty,2,0,not_exist,not_exist,64,0,2
+0_309,empty,2,0,not_exist,not_exist,12,0,1
+0_468,empty,2,0,not_exist,not_exist,9,0,2

@@ -1,0 +1,7 @@
+<pragmas>
+<pragma file="bfs.c" line="1" pragmaType="express_balance" parentfunction="bfs" off="1"/>
+<pragma file="bfs.c" line="2" pragmaType="pipeline" parentfunction="bfs" off="1" ii="0" rewind="0" style=""/>
+<pragma file="bfs.c" line="3" pragmaType="array_partition" parentfunction="bfs" dim="1" factor="2" mode="block" dynamic="0" variable="edges"/>
+<pragma file="bfs.c" line="4" pragmaType="array_reshape" parentfunction="bfs" dim="1" factor="2" mode="cyclic" variable="edges"/>
+<pragma file="bfs.c" line="5" pragmaType="array_partition" parentfunction="bfs" dim="1" factor="2" mode="cyclic" dynamic="0" variable="level"/>
+</pragmas>

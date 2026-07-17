@@ -1,0 +1,255 @@
+<profile>
+
+<section name = "Vitis HLS Report for 'bfs'" level="0">
+<item name = "Date">Mon Mar 10 00:13:42 2025
+</item>
+<item name = "Version">2022.1 (Build 3526262 on Mon Apr 18 15:47:01 MDT 2022)</item>
+<item name = "Project">bfs_random_prj_p1</item>
+<item name = "Solution">solution (Vivado IP Flow Target)</item>
+<item name = "Product family">virtex7</item>
+<item name = "Target device">xc7vx485t-ffg1761-2</item>
+</section>
+
+<section name = "Performance Estimates" level="0">
+<item name = "Timing">
+<section name = "" level="1">
+<item name = "Summary"><table name="" hasTotal="0">
+<keys size="4">Clock, Target, Estimated, Uncertainty</keys>
+<column name="ap_clk">10.00 ns, 6.539 ns, 2.70 ns</column>
+</table>
+</item>
+</section>
+</item>
+<item name = "Latency">
+<section name = "" level="1">
+<item name = "Summary"><table name="" hasTotal="0">
+<keys size="8">, min, max, min, max, min, max, Type</keys>
+<column name="">?, ?, ?, ?, ?, ?, no</column>
+</table>
+</item>
+<item name = "Detail">
+<section name = "" level="1">
+<item name = "Instance"><table name="" hasTotal="0">
+<keys size="9">Instance, Module, min, max, min, max, min, max, Type</keys>
+<column name="grp_bfs_Pipeline_loop_neighbors_fu_376">bfs_Pipeline_loop_neighbors, ?, ?, ?, ?, ?, ?, no</column>
+<column name="grp_bfs_Pipeline_loop_neighbors1_fu_393">bfs_Pipeline_loop_neighbors1, ?, ?, ?, ?, ?, ?, no</column>
+<column name="grp_bfs_Pipeline_loop_neighbors2_fu_410">bfs_Pipeline_loop_neighbors2, ?, ?, ?, ?, ?, ?, no</column>
+<column name="grp_bfs_Pipeline_loop_neighbors3_fu_427">bfs_Pipeline_loop_neighbors3, ?, ?, ?, ?, ?, ?, no</column>
+</table>
+</item>
+<item name = "Loop"><table name="" hasTotal="0">
+<keys size="8">Loop Name, min, max, Latency, achieved, target, Count, Pipelined</keys>
+<column name="- loop_horizons">?, ?, ?, -, -, 1 ~ 5, no</column>
+<column name=" + loop_nodes">?, ?, ?, -, -, 128, no</column>
+<column name=" + loop_nodes">?, ?, ?, -, -, 128, no</column>
+</table>
+</item>
+</section>
+</item>
+</section>
+</item>
+</section>
+
+<section name = "Utilization Estimates" level="0">
+<item name = "Summary"><table name="" hasTotal="1">
+<keys size="6">Name, BRAM_18K, DSP, FF, LUT, URAM</keys>
+<column name="DSP">-, -, -, -, -</column>
+<column name="Expression">-, -, 0, 783, -</column>
+<column name="FIFO">-, -, -, -, -</column>
+<column name="Instance">-, -, 2192, 3420, -</column>
+<column name="Memory">-, -, -, -, -</column>
+<column name="Multiplexer">-, -, -, 576, -</column>
+<column name="Register">-, -, 1348, -, -</column>
+<specialColumn name="Available">2060, 2800, 607200, 303600, 0</specialColumn>
+<specialColumn name="Utilization (%)">0, 0, ~0, 1, 0</specialColumn>
+</table>
+</item>
+<item name = "Detail">
+<section name = "" level="1">
+<item name = "Instance"><table name="" hasTotal="1">
+<keys size="7">Instance, Module, BRAM_18K, DSP, FF, LUT, URAM</keys>
+<column name="grp_bfs_Pipeline_loop_neighbors_fu_376">bfs_Pipeline_loop_neighbors, 0, 0, 548, 855, 0</column>
+<column name="grp_bfs_Pipeline_loop_neighbors1_fu_393">bfs_Pipeline_loop_neighbors1, 0, 0, 548, 855, 0</column>
+<column name="grp_bfs_Pipeline_loop_neighbors2_fu_410">bfs_Pipeline_loop_neighbors2, 0, 0, 548, 855, 0</column>
+<column name="grp_bfs_Pipeline_loop_neighbors3_fu_427">bfs_Pipeline_loop_neighbors3, 0, 0, 548, 855, 0</column>
+</table>
+</item>
+<item name = "DSP"><table name="" hasTotal="0">
+<keys size="3">Instance, Module, Expression</keys>
+</table>
+</item>
+<item name = "Memory"><table name="" hasTotal="1">
+<keys size="10">Memory, Module, BRAM_18K, FF, LUT, URAM, Words, Bits, Banks, W*Bits*Banks</keys>
+</table>
+</item>
+<item name = "FIFO"><table name="" hasTotal="1">
+<keys size="8">Name, BRAM_18K, FF, LUT, URAM, Depth, Bits, Size:D*B</keys>
+</table>
+</item>
+<item name = "Expression"><table name="" hasTotal="1">
+<keys size="7">Variable Name, Operation, DSP, FF, LUT, Bitwidth P0, Bitwidth P1</keys>
+<column name="add_ln21_fu_740_p2">+, 0, 0, 13, 4, 2</column>
+<column name="add_ln39_fu_769_p2">+, 0, 0, 14, 7, 5</column>
+<column name="n_4_fu_715_p2">+, 0, 0, 16, 9, 2</column>
+<column name="n_7_fu_921_p2">+, 0, 0, 16, 9, 2</column>
+<column name="and_ln18_fu_511_p2">and, 0, 0, 16, 16, 16</column>
+<column name="icmp_ln21_fu_534_p2">icmp, 0, 0, 9, 4, 4</column>
+<column name="icmp_ln25_1_fu_829_p2">icmp, 0, 0, 11, 8, 8</column>
+<column name="icmp_ln25_2_fu_686_p2">icmp, 0, 0, 11, 8, 8</column>
+<column name="icmp_ln25_3_fu_891_p2">icmp, 0, 0, 11, 8, 8</column>
+<column name="icmp_ln25_fu_624_p2">icmp, 0, 0, 11, 8, 8</column>
+<column name="icmp_ln28_2_fu_839_p2">icmp, 0, 0, 29, 64, 64</column>
+<column name="icmp_ln28_3_fu_696_p2">icmp, 0, 0, 29, 64, 64</column>
+<column name="icmp_ln28_4_fu_901_p2">icmp, 0, 0, 29, 64, 64</column>
+<column name="icmp_ln28_fu_634_p2">icmp, 0, 0, 29, 64, 64</column>
+<column name="icmp_ln39_1_fu_940_p2">icmp, 0, 0, 29, 64, 1</column>
+<column name="icmp_ln39_fu_734_p2">icmp, 0, 0, 29, 64, 1</column>
+<column name="lshr_ln25_1_fu_676_p2">lshr, 0, 0, 35, 16, 16</column>
+<column name="lshr_ln25_2_fu_819_p2">lshr, 0, 0, 35, 16, 16</column>
+<column name="lshr_ln25_3_fu_881_p2">lshr, 0, 0, 35, 16, 16</column>
+<column name="lshr_ln25_fu_614_p2">lshr, 0, 0, 35, 16, 16</column>
+<column name="conv20_fu_544_p2">or, 0, 0, 4, 4, 1</column>
+<column name="n_2_fu_663_p2">or, 0, 0, 8, 8, 1</column>
+<column name="n_6_fu_868_p2">or, 0, 0, 8, 8, 1</column>
+<column name="or_ln16_1_fu_858_p2">or, 0, 0, 7, 7, 1</column>
+<column name="or_ln16_fu_653_p2">or, 0, 0, 7, 7, 1</column>
+<column name="select_ln28_1_fu_708_p3">select, 0, 0, 64, 1, 64</column>
+<column name="select_ln28_2_fu_851_p3">select, 0, 0, 64, 1, 64</column>
+<column name="select_ln28_3_fu_913_p3">select, 0, 0, 64, 1, 64</column>
+<column name="select_ln28_fu_646_p3">select, 0, 0, 64, 1, 64</column>
+<column name="shl_ln18_fu_499_p2">shl, 0, 0, 35, 8, 16</column>
+<column name="xor_ln18_fu_505_p2">xor, 0, 0, 16, 16, 2</column>
+</table>
+</item>
+<item name = "Multiplexer"><table name="" hasTotal="1">
+<keys size="5">Name, LUT, Input Size, Bits, Total Bits</keys>
+<column name="ap_NS_fsm">123, 25, 1, 25</column>
+<column name="ap_phi_mux_cnt_5_phi_fu_365_p6">9, 2, 64, 128</column>
+<column name="cnt_1_reg_323">9, 2, 64, 128</column>
+<column name="cnt_2_reg_294">9, 2, 64, 128</column>
+<column name="cnt_3_reg_347">9, 2, 64, 128</column>
+<column name="cnt_4_reg_308">13, 3, 64, 192</column>
+<column name="cnt_5_reg_361">13, 3, 64, 192</column>
+<column name="cnt_reg_270">9, 2, 64, 128</column>
+<column name="edges_0_address0">21, 5, 11, 55</column>
+<column name="edges_0_address1">21, 5, 11, 55</column>
+<column name="edges_0_ce0">21, 5, 1, 5</column>
+<column name="edges_0_ce1">21, 5, 1, 5</column>
+<column name="edges_1_address0">21, 5, 11, 55</column>
+<column name="edges_1_address1">21, 5, 11, 55</column>
+<column name="edges_1_ce0">21, 5, 1, 5</column>
+<column name="edges_1_ce1">21, 5, 1, 5</column>
+<column name="horizon_fu_116">9, 2, 4, 8</column>
+<column name="level_address0">45, 11, 7, 77</column>
+<column name="level_ce0">25, 6, 1, 6</column>
+<column name="level_counts_address0">29, 7, 3, 21</column>
+<column name="level_counts_d0">17, 4, 128, 512</column>
+<column name="level_d0">25, 6, 16, 96</column>
+<column name="level_we0">25, 6, 1, 6</column>
+<column name="n_1_reg_335">9, 2, 9, 18</column>
+<column name="n_reg_282">9, 2, 9, 18</column>
+<column name="nodes_address0">21, 5, 8, 40</column>
+</table>
+</item>
+<item name = "Register"><table name="" hasTotal="1">
+<keys size="5">Name, FF, LUT, Bits, Const Bits</keys>
+<column name="add_ln21_reg_1143">4, 0, 4, 0</column>
+<column name="and_ln1_reg_1068">1, 0, 4, 3</column>
+<column name="and_ln25_1_reg_1173">1, 0, 4, 3</column>
+<column name="ap_CS_fsm">24, 0, 24, 0</column>
+<column name="cnt_10_0_loc_fu_140">64, 0, 64, 0</column>
+<column name="cnt_13_0_loc_fu_136">64, 0, 64, 0</column>
+<column name="cnt_14_0_loc_fu_124">64, 0, 64, 0</column>
+<column name="cnt_17_0_loc_fu_120">64, 0, 64, 0</column>
+<column name="cnt_1_reg_323">64, 0, 64, 0</column>
+<column name="cnt_2_0_loc_fu_144">64, 0, 64, 0</column>
+<column name="cnt_2_reg_294">64, 0, 64, 0</column>
+<column name="cnt_3_reg_347">64, 0, 64, 0</column>
+<column name="cnt_4_0_loc_fu_148">64, 0, 64, 0</column>
+<column name="cnt_4_reg_308">64, 0, 64, 0</column>
+<column name="cnt_5_reg_361">64, 0, 64, 0</column>
+<column name="cnt_6_0_loc_fu_132">64, 0, 64, 0</column>
+<column name="cnt_9_0_loc_fu_128">64, 0, 64, 0</column>
+<column name="cnt_reg_270">64, 0, 64, 0</column>
+<column name="conv20_reg_1033">3, 0, 4, 1</column>
+<column name="grp_bfs_Pipeline_loop_neighbors1_fu_393_ap_start_reg">1, 0, 1, 0</column>
+<column name="grp_bfs_Pipeline_loop_neighbors2_fu_410_ap_start_reg">1, 0, 1, 0</column>
+<column name="grp_bfs_Pipeline_loop_neighbors3_fu_427_ap_start_reg">1, 0, 1, 0</column>
+<column name="grp_bfs_Pipeline_loop_neighbors_fu_376_ap_start_reg">1, 0, 1, 0</column>
+<column name="horizon_fu_116">4, 0, 4, 0</column>
+<column name="icmp_ln21_reg_1023">1, 0, 1, 0</column>
+<column name="icmp_ln25_1_reg_1178">1, 0, 1, 0</column>
+<column name="icmp_ln25_2_reg_1106">1, 0, 1, 0</column>
+<column name="icmp_ln25_3_reg_1211">1, 0, 1, 0</column>
+<column name="icmp_ln25_reg_1073">1, 0, 1, 0</column>
+<column name="icmp_ln28_2_reg_1192">1, 0, 1, 0</column>
+<column name="icmp_ln28_3_reg_1120">1, 0, 1, 0</column>
+<column name="icmp_ln28_4_reg_1225">1, 0, 1, 0</column>
+<column name="icmp_ln28_reg_1087">1, 0, 1, 0</column>
+<column name="icmp_ln39_reg_1139">1, 0, 1, 0</column>
+<column name="level_addr_reg_1010">7, 0, 7, 0</column>
+<column name="level_counts_addr_1_reg_1058">3, 0, 3, 0</column>
+<column name="level_counts_addr_2_reg_1163">3, 0, 3, 0</column>
+<column name="n_1_reg_335">9, 0, 9, 0</column>
+<column name="n_4_reg_1134">9, 0, 9, 0</column>
+<column name="n_reg_282">9, 0, 9, 0</column>
+<column name="reg_458">64, 0, 64, 0</column>
+<column name="targetBlock2_reg_1124">1, 0, 1, 0</column>
+<column name="targetBlock4_reg_1196">1, 0, 1, 0</column>
+<column name="targetBlock6_reg_1229">1, 0, 1, 0</column>
+<column name="targetBlock_reg_1091">1, 0, 1, 0</column>
+<column name="tmp_begin_1_reg_1187">64, 0, 64, 0</column>
+<column name="tmp_begin_2_reg_1115">64, 0, 64, 0</column>
+<column name="tmp_begin_3_reg_1220">64, 0, 64, 0</column>
+<column name="tmp_begin_reg_1082">64, 0, 64, 0</column>
+<column name="trunc_ln24_1_reg_1063">8, 0, 8, 0</column>
+<column name="trunc_ln24_2_reg_1153">7, 0, 7, 0</column>
+<column name="trunc_ln24_3_reg_1168">8, 0, 8, 0</column>
+<column name="trunc_ln24_reg_1048">7, 0, 7, 0</column>
+<column name="zext_ln21_reg_1027">4, 0, 8, 4</column>
+<column name="zext_ln24_reg_1039">3, 0, 8, 5</column>
+</table>
+</item>
+</section>
+</item>
+</section>
+
+<section name = "Interface" level="0">
+<item name = "Summary"><table name="" hasTotal="0">
+<keys size="6">RTL Ports, Dir, Bits, Protocol, Source Object, C Type</keys>
+<column name="ap_clk">in, 1, ap_ctrl_hs, bfs, return value</column>
+<column name="ap_rst">in, 1, ap_ctrl_hs, bfs, return value</column>
+<column name="ap_start">in, 1, ap_ctrl_hs, bfs, return value</column>
+<column name="ap_done">out, 1, ap_ctrl_hs, bfs, return value</column>
+<column name="ap_idle">out, 1, ap_ctrl_hs, bfs, return value</column>
+<column name="ap_ready">out, 1, ap_ctrl_hs, bfs, return value</column>
+<column name="nodes_address0">out, 8, ap_memory, nodes, array</column>
+<column name="nodes_ce0">out, 1, ap_memory, nodes, array</column>
+<column name="nodes_q0">in, 128, ap_memory, nodes, array</column>
+<column name="edges_0_address0">out, 11, ap_memory, edges_0, array</column>
+<column name="edges_0_ce0">out, 1, ap_memory, edges_0, array</column>
+<column name="edges_0_q0">in, 64, ap_memory, edges_0, array</column>
+<column name="edges_0_address1">out, 11, ap_memory, edges_0, array</column>
+<column name="edges_0_ce1">out, 1, ap_memory, edges_0, array</column>
+<column name="edges_0_q1">in, 64, ap_memory, edges_0, array</column>
+<column name="edges_1_address0">out, 11, ap_memory, edges_1, array</column>
+<column name="edges_1_ce0">out, 1, ap_memory, edges_1, array</column>
+<column name="edges_1_q0">in, 64, ap_memory, edges_1, array</column>
+<column name="edges_1_address1">out, 11, ap_memory, edges_1, array</column>
+<column name="edges_1_ce1">out, 1, ap_memory, edges_1, array</column>
+<column name="edges_1_q1">in, 64, ap_memory, edges_1, array</column>
+<column name="starting_node">in, 64, ap_none, starting_node, scalar</column>
+<column name="level_address0">out, 7, ap_memory, level, array</column>
+<column name="level_ce0">out, 1, ap_memory, level, array</column>
+<column name="level_we0">out, 1, ap_memory, level, array</column>
+<column name="level_d0">out, 16, ap_memory, level, array</column>
+<column name="level_q0">in, 16, ap_memory, level, array</column>
+<column name="level_counts_address0">out, 3, ap_memory, level_counts, array</column>
+<column name="level_counts_ce0">out, 1, ap_memory, level_counts, array</column>
+<column name="level_counts_we0">out, 1, ap_memory, level_counts, array</column>
+<column name="level_counts_d0">out, 128, ap_memory, level_counts, array</column>
+<column name="level_counts_q0">in, 128, ap_memory, level_counts, array</column>
+</table>
+</item>
+</section>
+</profile>

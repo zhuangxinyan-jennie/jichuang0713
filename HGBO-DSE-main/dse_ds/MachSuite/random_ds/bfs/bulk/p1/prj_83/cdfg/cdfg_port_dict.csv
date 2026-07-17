@@ -1,0 +1,9 @@
+node_id,node_name,node_type,line_num,rtl_name,op_type,bitwidth,direction,if_type,array_size
+0_1,nodes_0,1,0,not_exist,not_exist,256,0,1,64
+0_2,nodes_1,1,0,not_exist,not_exist,256,0,1,64
+0_3,edges,1,0,not_exist,not_exist,64,0,1,4096
+0_4,starting_node,1,0,not_exist,not_exist,64,0,0,0
+0_5,level_0,1,0,not_exist,not_exist,8,2,1,128
+0_6,level_1,1,0,not_exist,not_exist,8,2,1,128
+0_7,level_counts_0,1,0,not_exist,not_exist,64,1,1,5
+0_8,level_counts_1,1,0,not_exist,not_exist,64,1,1,5

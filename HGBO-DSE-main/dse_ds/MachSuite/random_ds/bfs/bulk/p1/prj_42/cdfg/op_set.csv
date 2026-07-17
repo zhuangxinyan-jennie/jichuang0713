@@ -1,0 +1,17 @@
+add
+alloca
+bitconcatenate
+bitselect
+br
+getelementptr
+icmp
+load
+mux
+or
+partselect
+phi
+read
+ret
+store
+trunc
+zext

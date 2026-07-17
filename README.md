@@ -36,6 +36,7 @@ git lfs pull
 | `XiongdaParkMapProject/` | Unity 3D 乐园地图 WebGL 源码 | ✅（❌ `Library/` 等缓存） |
 | `pre_on_board_local_start_bundle/` | 板端 Python 运行时 + OM 模型 + 启动脚本 | ✅ |
 | `HGBO/` | 算子优化框架 HGBO-OpTune（Ascend 310B DSE） | ✅（❌ `packages/*.run` 大包） |
+| `HGBO-DSE-main/` | HLS 设计空间探索参考框架 HGBO-DSE（登辉项目阅读材料） | ✅（❌ `dataset/std/`、`dataset/rdc/` 大图 pt，本地生成） |
 | `cosyvoice_live_release/` | CosyVoice TTS 服务 | ✅ |
 | `third_party/CosyVoice/` | CosyVoice 源码 | ❌ 本地安装 |
 | `pretrained_models/` | TTS 权重 | ❌ 脚本下载 |

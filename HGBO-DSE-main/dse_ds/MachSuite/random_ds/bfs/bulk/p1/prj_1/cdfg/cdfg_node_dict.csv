@@ -1,0 +1,311 @@
+node_id,node_name,node_type,line_num,rtl_name,op_type,core_name,bitwidth,opcode,m_delay,topo_index,oprand_edges
+0_8,starting_node_read,0,0,not_exist,not_exist,not_exist,64,read,0.00,1,"['151', '152']"
+0_9,cnt_8_0_loc,0,0,not_exist,not_exist,not_exist,64,alloca,0.00,2,['154']
+0_10,cnt_5_0_loc,0,0,not_exist,not_exist,not_exist,64,alloca,0.00,3,['155']
+0_11,cnt_2_0_loc,0,0,not_exist,not_exist,not_exist,64,alloca,0.00,4,['156']
+0_12,cnt_1_0_loc,0,0,not_exist,not_exist,not_exist,64,alloca,0.00,5,['157']
+0_13,empty,0,0,empty_fu_335_p1,not_exist,not_exist,7,trunc,0.00,6,['158']
+0_29,zext_ln18,0,18,zext_ln18_fu_339_p1,not_exist,not_exist,64,zext,0.00,7,['159']
+0_30,tmp,0,18,tmp_fu_345_p3,not_exist,not_exist,1,bitselect,0.00,8,"['161', '162', '164']"
+0_31,br_ln18,0,18,not_exist,not_exist,not_exist,0,br,0.00,9,"['165', '166', '167']"
+0_33,level_0_addr,0,18,not_exist,not_exist,not_exist,7,getelementptr,0.00,10,"['168', '170', '171']"
+0_34,level_0_addr_write_ln18,0,18,not_exist,ram,RAM,0,store,2.26,11,"['173', '174']"
+0_35,br_ln18,0,18,not_exist,not_exist,not_exist,0,br,0.00,12,['175']
+0_37,level_1_addr,0,18,not_exist,not_exist,not_exist,7,getelementptr,0.00,13,"['176', '177', '178']"
+0_38,level_1_addr_write_ln18,0,18,not_exist,ram,RAM,0,store,2.26,14,"['179', '180']"
+0_39,br_ln18,0,18,not_exist,not_exist,not_exist,0,br,0.00,15,['181']
+0_41,horizon,0,0,not_exist,not_exist,not_exist,64,alloca,0.00,16,['183']
+0_42,level_counts_addr,0,19,not_exist,not_exist,not_exist,3,getelementptr,0.00,17,"['184', '185', '186']"
+0_43,level_counts_load,0,19,not_exist,ram,RAM,128,load,1.20,18,['187']
+0_44,tmp6,0,19,tmp6_fu_358_p5,not_exist,not_exist,128,partset,0.00,20,"['189', '190', '191', '193', '195']"
+0_45,level_counts_addr_write_ln19,0,19,not_exist,ram,RAM,0,store,1.20,21,"['196', '197', '613']"
+0_46,horizon_write_ln21,0,21,not_exist,not_exist,not_exist,0,store,0.84,19,"['198', '199']"
+0_47,br_ln21,0,21,not_exist,not_exist,not_exist,0,br,0.00,22,['200']
+0_49,horizon_1,0,21,not_exist,not_exist,not_exist,64,load,0.00,23,"['201', '628']"
+0_51,trunc_ln21,0,21,trunc_ln21_fu_374_p1,not_exist,not_exist,8,trunc,0.00,24,['202']
+0_52,add_ln21,0,21,add_ln21_fu_378_p2,add,Adder,64,add,1.81,25,"['203', '204']"
+0_53,empty_22,0,21,empty_22_fu_384_p2,add,Adder,8,add,1.35,26,"['205', '207']"
+0_54,br_ln24,0,24,not_exist,not_exist,not_exist,0,br,0.84,27,['208']
+0_56,cnt,0,0,not_exist,not_exist,not_exist,64,phi,0.00,28,"['209', '210', '211', '212']"
+0_57,n,0,0,not_exist,not_exist,not_exist,9,phi,0.00,29,"['214', '215', '216', '217']"
+0_58,tmp_9,0,24,tmp_9_fu_390_p3,not_exist,not_exist,1,bitselect,0.00,30,"['219', '220', '222']"
+0_60,br_ln24,0,24,not_exist,not_exist,not_exist,0,br,0.00,31,"['223', '224', '225']"
+0_62,trunc_ln24,0,24,trunc_ln24_fu_398_p1,not_exist,not_exist,7,trunc,0.00,32,['226']
+0_64,tmp_12,0,25,tmp_12_reg_733,not_exist,not_exist,1,bitselect,0.00,39,"['227', '228', '229']"
+0_65,zext_ln25,0,25,zext_ln25_fu_402_p1,not_exist,not_exist,64,zext,0.00,33,['230']
+0_66,level_0_addr_1,0,25,not_exist,not_exist,not_exist,7,getelementptr,0.00,34,"['231', '232', '233']"
+0_67,level_0_load,0,25,not_exist,ram,RAM,8,load,2.26,35,['234']
+0_68,level_1_addr_1,0,25,not_exist,not_exist,not_exist,7,getelementptr,0.00,36,"['235', '236', '237']"
+0_69,level_1_load,0,25,not_exist,ram,RAM,8,load,2.26,37,['238']
+0_70,tmp_1,0,25,mux_21_8_1_1_U31,mux,Multiplexer,8,mux,0.84,40,"['240', '241', '242', '243']"
+0_71,sext_ln25,0,25,sext_ln25_fu_423_p1,not_exist,not_exist,32,sext,0.00,41,['244']
+0_72,zext_ln25_1,0,25,zext_ln25_1_fu_427_p1,not_exist,not_exist,64,zext,0.00,42,['245']
+0_73,icmp_ln25,0,25,icmp_ln25_fu_431_p2,icmp,Cmp,1,icmp,1.40,43,"['246', '247']"
+0_74,br_ln25,0,25,not_exist,not_exist,not_exist,0,br,0.84,44,"['248', '249', '250']"
+0_76,and_ln,0,26,and_ln_fu_436_p3,not_exist,not_exist,8,bitconcatenate,0.00,47,"['252', '253', '255']"
+0_77,nodes_addr,0,26,not_exist,not_exist,not_exist,7,getelementptr,0.00,45,"['256', '257', '258']"
+0_78,nodes_load,0,26,not_exist,ram,RAM,256,load,2.26,46,['259']
+0_79,zext_ln26,0,26,zext_ln26_fu_443_p1,not_exist,not_exist,256,zext,0.00,48,['260']
+0_80,lshr_ln26,0,26,lshr_ln26_fu_447_p2,lshr,Shifter,256,lshr,2.38,49,"['261', '262']"
+0_81,tmp_begin,0,26,tmp_begin_fu_453_p1,not_exist,not_exist,64,trunc,0.00,50,['263']
+0_82,tmp_end,0,27,tmp_end_reg_754,not_exist,not_exist,64,partselect,0.00,51,"['265', '266', '268', '270']"
+0_83,icmp_ln28,0,28,icmp_ln28_fu_469_p2,icmp,Cmp,1,icmp,1.40,52,"['271', '272']"
+0_84,br_ln28,0,28,not_exist,not_exist,not_exist,0,br,0.84,53,"['273', '274', '275']"
+0_86,targetBlock,0,28,grp_bfs_Pipeline_loop_neighbors_fu_288,not_exist,not_exist,1,call,0.84,54,"['277', '278', '279', '280', '281', '282', '283', '284', '285', '286', '287', '615', '616']"
+0_87,cnt_1_0_loc_load,0,0,not_exist,not_exist,not_exist,64,load,0.00,55,"['288', '624']"
+0_88,cnt_2_0_loc_load,0,0,not_exist,not_exist,not_exist,64,load,0.00,56,"['289', '625']"
+0_89,select_ln28,0,28,select_ln28_fu_481_p3,select,Sel,64,select,0.62,57,"['290', '291', '292']"
+0_90,br_ln0,0,0,not_exist,not_exist,not_exist,0,br,0.84,58,['293']
+0_92,cnt_1,0,0,not_exist,not_exist,not_exist,64,phi,0.00,65,"['294', '295', '296', '297', '298', '299']"
+0_93,or_ln25,0,25,or_ln25_fu_488_p2,not_exist,not_exist,7,or,0.00,59,"['300', '302']"
+0_94,zext_ln25_2,0,25,zext_ln25_2_fu_493_p1,not_exist,not_exist,64,zext,0.00,60,['303']
+0_95,level_0_addr_3,0,25,not_exist,not_exist,not_exist,7,getelementptr,0.00,61,"['304', '305', '306']"
+0_96,level_0_load_2,0,25,not_exist,ram,RAM,8,load,2.26,62,"['307', '619']"
+0_97,level_1_addr_3,0,25,not_exist,not_exist,not_exist,7,getelementptr,0.00,63,"['308', '309', '310']"
+0_98,level_1_load_2,0,25,not_exist,ram,RAM,8,load,2.26,64,"['311', '620']"
+0_99,tmp_8,0,25,mux_21_8_1_1_U31,mux,Multiplexer,8,mux,0.84,66,"['312', '313', '314', '315']"
+0_100,sext_ln25_1,0,25,sext_ln25_1_fu_499_p1,not_exist,not_exist,32,sext,0.00,67,['316']
+0_101,zext_ln25_3,0,25,zext_ln25_3_fu_503_p1,not_exist,not_exist,64,zext,0.00,68,['317']
+0_102,icmp_ln25_1,0,25,icmp_ln25_1_fu_507_p2,icmp,Cmp,1,icmp,1.40,69,"['318', '319']"
+0_103,br_ln25,0,25,not_exist,not_exist,not_exist,0,br,0.84,70,"['320', '321', '322']"
+0_105,and_ln26_1,0,26,and_ln26_1_fu_512_p3,not_exist,not_exist,8,bitconcatenate,0.00,73,"['373', '374', '375']"
+0_106,nodes_addr_1,0,26,not_exist,not_exist,not_exist,7,getelementptr,0.00,71,"['376', '377', '378']"
+0_107,nodes_load_1,0,26,not_exist,ram,RAM,256,load,2.26,72,['379']
+0_108,zext_ln26_1,0,26,zext_ln26_1_fu_519_p1,not_exist,not_exist,256,zext,0.00,74,['380']
+0_109,lshr_ln26_1,0,26,lshr_ln26_1_fu_523_p2,lshr,Shifter,256,lshr,2.38,75,"['381', '382']"
+0_110,tmp_begin_1,0,26,tmp_begin_1_fu_529_p1,not_exist,not_exist,64,trunc,0.00,76,['383']
+0_111,tmp_end_1,0,27,tmp_end_1_reg_802,not_exist,not_exist,64,partselect,0.00,77,"['384', '385', '386', '387']"
+0_112,icmp_ln28_2,0,28,icmp_ln28_2_fu_545_p2,icmp,Cmp,1,icmp,1.40,78,"['388', '389']"
+0_113,br_ln28,0,28,not_exist,not_exist,not_exist,0,br,0.84,79,"['390', '391', '392']"
+0_115,targetBlock2,0,28,grp_bfs_Pipeline_loop_neighbors1_fu_307,not_exist,not_exist,1,call,0.84,80,"['394', '395', '396', '397', '398', '399', '400', '401', '402', '403', '404', '617', '618', '621', '622', '623', '631']"
+0_116,cnt_5_0_loc_load,0,0,not_exist,not_exist,not_exist,64,load,0.00,81,"['405', '626']"
+0_117,cnt_8_0_loc_load,0,0,not_exist,not_exist,not_exist,64,load,0.00,82,"['406', '627']"
+0_118,select_ln28_1,0,28,select_ln28_1_fu_557_p3,select,Sel,64,select,0.62,83,"['407', '408', '409']"
+0_119,br_ln0,0,0,not_exist,not_exist,not_exist,0,br,0.84,84,['410']
+0_121,cnt_2,0,0,not_exist,not_exist,not_exist,64,phi,0.00,86,"['411', '412', '413', '414', '415', '416']"
+0_122,n_1,0,24,n_1_fu_564_p2,add,Adder,9,add,1.35,85,"['417', '419']"
+0_123,br_ln24,0,24,not_exist,not_exist,not_exist,0,br,0.00,87,['420']
+0_125,zext_ln39,0,39,grp_fu_573_p00,not_exist,not_exist,125,zext,0.00,88,['323']
+0_126,mul_ln39,0,39,mul_64ns_66ns_125_2_1_U33,mul,Multiplier,125,mul,7.13,89,"['324', '326']"
+0_127,tmp_10,0,39,tmp_10_reg_831,not_exist,not_exist,1,bitselect,0.00,90,"['328', '329', '331']"
+0_128,urem_ln39,0,39,urem_64ns_4ns_64_68_seq_1_U32,urem,DivnS_SEQ,64,urem,2.55,38,"['332', '334']"
+0_129,level_counts_addr_1,0,39,not_exist,not_exist,not_exist,3,getelementptr,0.00,91,"['335', '336', '337']"
+0_130,level_counts_load_1,0,39,not_exist,ram,RAM,128,load,1.20,92,['338']
+0_131,tmp_11,0,39,tmp_11_fu_587_p3,not_exist,not_exist,7,bitconcatenate,0.00,93,"['340', '341', '343']"
+0_132,zext_ln39_1,0,39,zext_ln39_1_fu_594_p1,not_exist,not_exist,128,zext,0.00,94,['344']
+0_133,shl_ln39,0,39,shl_ln39_fu_598_p2,shl,Shifter,128,shl,0.00,95,"['346', '347']"
+0_134,xor_ln39,0,39,xor_ln39_fu_604_p2,xor,LogicGate,128,xor,0.00,96,"['348', '350']"
+0_135,and_ln39_1,0,39,and_ln39_1_fu_610_p2,and,LogicGate,128,and,0.00,97,"['351', '352']"
+0_136,zext_ln39_2,0,39,zext_ln39_2_fu_616_p1,not_exist,not_exist,128,zext,0.00,98,['353']
+0_137,shl_ln39_1,0,39,shl_ln39_1_fu_620_p2,shl,Shifter,128,shl,0.00,99,"['354', '355']"
+0_138,or_ln39,0,39,or_ln39_fu_626_p2,or,LogicGate,128,or,2.35,100,"['356', '357']"
+0_139,level_counts_addr_1_write_ln39,0,39,not_exist,ram,RAM,0,store,1.20,101,"['358', '359', '614']"
+0_140,icmp_ln39,0,39,icmp_ln39_fu_633_p2,icmp,Cmp,1,icmp,1.40,102,"['360', '361']"
+0_141,icmp_ln21,0,21,icmp_ln21_fu_639_p2,icmp,Cmp,1,icmp,1.40,103,"['362', '364']"
+0_142,and_ln39,0,39,and_ln39_fu_644_p2,and,LogicGate,1,and,0.48,104,"['365', '366']"
+0_143,br_ln39,0,39,not_exist,not_exist,not_exist,0,br,0.00,105,"['367', '368', '369']"
+0_145,horizon_write_ln39,0,39,not_exist,not_exist,not_exist,0,store,0.84,106,"['370', '371', '629', '630']"
+0_146,br_ln39,0,39,not_exist,not_exist,not_exist,0,br,0.00,107,['372']
+0_148,_ln42,0,42,not_exist,not_exist,not_exist,0,ret,0.00,108,[]
+1_11,e_1_0,0,0,not_exist,not_exist,not_exist,64,alloca,0.00,1,['136']
+1_12,cnt_1_0,0,0,not_exist,not_exist,not_exist,64,alloca,0.00,2,['137']
+1_17,tmp,0,0,not_exist,not_exist,not_exist,8,read,0.00,3,"['139', '140']"
+1_18,tmp_end_read,0,0,not_exist,not_exist,not_exist,64,read,0.00,4,"['142', '143']"
+1_19,tmp_begin_read,0,0,not_exist,not_exist,not_exist,64,read,0.00,5,"['144', '145']"
+1_20,cnt_read,0,0,not_exist,not_exist,not_exist,64,read,0.00,6,"['146', '147']"
+1_21,cnt_1_0_write_ln0,0,0,not_exist,not_exist,not_exist,0,store,0.84,7,"['148', '149']"
+1_22,e_1_0_write_ln0,0,0,not_exist,not_exist,not_exist,0,store,0.84,8,"['150', '151']"
+1_23,br_ln0,0,0,not_exist,not_exist,not_exist,0,br,0.00,9,['152']
+1_25,e_1_0_load,0,29,not_exist,not_exist,not_exist,64,load,0.00,10,"['165', '492']"
+1_26,cnt_1_0_load,0,34,not_exist,not_exist,not_exist,64,load,0.00,47,"['166', '491']"
+1_27,icmp_ln28_1,0,28,icmp_ln28_1_fu_270_p2,icmp,Cmp,1,icmp,1.40,11,"['167', '168']"
+1_28,br_ln28,0,28,not_exist,not_exist,not_exist,0,br,0.00,12,"['169', '170', '171']"
+1_30,trunc_ln28,0,28,trunc_ln28_fu_275_p1,not_exist,not_exist,12,trunc,0.00,13,['272']
+1_31,trunc_ln28_3,0,28,trunc_ln28_3_fu_404_p1,not_exist,not_exist,2,trunc,0.00,48,['273']
+1_32,trunc_ln28_4,0,28,trunc_ln28_4_fu_357_p1,not_exist,not_exist,1,trunc,0.00,35,['274']
+1_35,tmp_5,0,29,tmp_5_fu_328_p3,not_exist,not_exist,1,bitselect,0.00,30,"['276', '277', '278']"
+1_36,and_ln1,0,29,and_ln1_fu_335_p3,not_exist,not_exist,7,bitconcatenate,0.00,31,"['279', '280', '281']"
+1_37,lshr_ln1,0,29,lshr_ln1_fu_279_p4,not_exist,not_exist,10,partselect,0.00,14,"['283', '284', '285', '286']"
+1_38,zext_ln29_1,0,29,zext_ln29_1_fu_289_p1,not_exist,not_exist,64,zext,0.00,15,['287']
+1_39,edges_0_addr,0,29,not_exist,not_exist,not_exist,10,getelementptr,0.00,16,"['288', '289', '290']"
+1_40,edges_0_load,0,29,not_exist,ram,RAM,128,load,2.26,17,['291']
+1_41,zext_ln29,0,29,zext_ln29_fu_343_p1,not_exist,not_exist,128,zext,0.00,32,['292']
+1_42,lshr_ln29,0,29,lshr_ln29_fu_347_p2,lshr,Shifter,128,lshr,2.37,33,"['293', '294']"
+1_43,trunc_ln29,0,29,trunc_ln29_fu_353_p1,not_exist,not_exist,64,trunc,0.00,34,['295']
+1_44,edges_1_addr,0,29,not_exist,not_exist,not_exist,10,getelementptr,0.00,18,"['296', '297', '298']"
+1_45,edges_1_load,0,29,not_exist,ram,RAM,128,load,2.26,19,['299']
+1_46,zext_ln29_6,0,29,zext_ln29_6_fu_360_p1,not_exist,not_exist,128,zext,0.00,36,['300']
+1_47,lshr_ln29_6,0,29,lshr_ln29_6_fu_363_p2,lshr,Shifter,128,lshr,2.37,37,"['301', '302']"
+1_48,trunc_ln29_4,0,29,tmp_dst_fu_372_p2,not_exist,not_exist,64,trunc,0.00,38,['303']
+1_49,tmp_dst,0,29,mux_21_64_1_1_U1,mux,Multiplexer,64,mux,0.84,39,"['304', '305', '306', '307']"
+1_50,trunc_ln30,0,30,trunc_ln30_fu_381_p1,not_exist,not_exist,7,trunc,0.00,40,['308']
+1_51,lshr_ln2,0,30,lshr_ln2_reg_657,not_exist,not_exist,57,partselect,0.00,41,"['309', '310', '311', '312']"
+1_52,zext_ln30,0,30,zext_ln30_fu_395_p1,not_exist,not_exist,64,zext,0.00,42,['313']
+1_53,level_0_addr,0,30,not_exist,not_exist,not_exist,7,getelementptr,0.00,43,"['314', '315', '316']"
+1_54,level_0_load_1,0,30,not_exist,ram,RAM,8,load,2.26,44,['317']
+1_55,level_1_addr,0,30,not_exist,not_exist,not_exist,7,getelementptr,0.00,45,"['318', '319', '320']"
+1_56,level_1_load_1,0,30,not_exist,ram,RAM,8,load,2.26,46,['321']
+1_57,tmp_level,0,30,mux_257_8_1_1_U2,mux,Multiplexer,8,mux,0.84,49,"['322', '323', '324', '325']"
+1_58,icmp_ln32,0,32,icmp_ln32_fu_416_p2,icmp,Cmp,1,icmp,0.86,50,"['326', '327']"
+1_59,br_ln32,0,32,not_exist,not_exist,not_exist,0,br,0.84,51,"['328', '329', '330']"
+1_61,tmp_6,0,33,tmp_6_fu_422_p3,not_exist,not_exist,1,bitselect,0.00,52,"['337', '338', '339']"
+1_62,br_ln33,0,33,not_exist,not_exist,not_exist,0,br,0.00,53,"['340', '341', '342']"
+1_64,level_0_addr_write_ln33,0,33,not_exist,ram,RAM,0,store,2.26,54,"['334', '335', '482']"
+1_65,br_ln33,0,33,not_exist,not_exist,not_exist,0,br,0.00,55,['336']
+1_67,level_1_addr_write_ln33,0,33,not_exist,ram,RAM,0,store,2.26,56,"['343', '344', '481']"
+1_68,br_ln33,0,33,not_exist,not_exist,not_exist,0,br,0.00,57,['345']
+1_70,add_ln34,0,34,add_ln34_fu_429_p2,add,Adder,64,add,1.81,58,"['331', '332']"
+1_71,br_ln35,0,35,not_exist,not_exist,not_exist,0,br,0.84,59,['333']
+1_73,cnt_2_0,0,34,not_exist,not_exist,not_exist,64,phi,0.00,68,"['251', '252', '253', '254']"
+1_74,add_ln28,0,28,add_ln28_fu_295_p2,add,Adder,64,add,1.81,20,"['255', '257']"
+1_75,add_ln28_4,0,28,add_ln28_4_fu_301_p2,add,Adder,12,add,1.33,21,"['258', '260']"
+1_76,add_ln28_5,0,28,add_ln28_5_fu_435_p2,add,Adder,2,add,0.85,60,"['261', '263']"
+1_77,xor_ln28,0,28,tmp_dst_s_fu_497_p3,xor,LogicGate,1,xor,0.48,69,"['264', '266']"
+1_78,icmp_ln28,0,28,icmp_ln28_fu_307_p2,icmp,Cmp,1,icmp,1.40,22,"['267', '268']"
+1_79,br_ln28,0,28,not_exist,not_exist,not_exist,0,br,0.00,23,"['269', '270', '271']"
+1_81,tmp_7,0,29,tmp_7_fu_441_p3,not_exist,not_exist,1,bitselect,0.00,61,"['185', '186', '187']"
+1_82,and_ln29_1,0,29,and_ln29_1_fu_449_p3,not_exist,not_exist,7,bitconcatenate,0.00,62,"['189', '190', '192']"
+1_83,lshr_ln29_1,0,29,lshr_ln29_1_fu_312_p4,not_exist,not_exist,10,partselect,0.00,24,"['194', '195', '197', '199']"
+1_84,zext_ln29_3,0,29,zext_ln29_3_fu_322_p1,not_exist,not_exist,64,zext,0.00,25,['200']
+1_85,edges_0_addr_1,0,29,not_exist,not_exist,not_exist,10,getelementptr,0.00,26,"['201', '203', '204']"
+1_86,edges_0_load_1,0,29,not_exist,ram,RAM,128,load,2.26,27,['205']
+1_87,zext_ln29_7,0,29,zext_ln29_7_fu_457_p1,not_exist,not_exist,128,zext,0.00,63,['206']
+1_88,lshr_ln29_7,0,29,lshr_ln29_7_fu_461_p2,lshr,Shifter,128,lshr,2.37,64,"['207', '208']"
+1_89,trunc_ln29_5,0,29,trunc_ln29_5_fu_466_p1,not_exist,not_exist,64,trunc,0.00,65,['209']
+1_90,edges_1_addr_1,0,29,not_exist,not_exist,not_exist,10,getelementptr,0.00,28,"['210', '211', '212']"
+1_91,edges_1_load_1,0,29,not_exist,ram,RAM,128,load,2.26,29,['213']
+1_92,zext_ln29_8,0,29,zext_ln29_8_fu_485_p1,not_exist,not_exist,128,zext,0.00,70,['214']
+1_93,lshr_ln29_8,0,29,lshr_ln29_8_fu_488_p2,lshr,Shifter,128,lshr,2.37,71,"['215', '216']"
+1_94,trunc_ln29_6,0,29,tmp_dst_s_fu_497_p2,not_exist,not_exist,64,trunc,0.00,72,['217']
+1_95,tmp_dst_s,0,29,mux_21_64_1_1_U3,mux,Multiplexer,64,mux,0.84,73,"['219', '220', '221', '222']"
+1_96,trunc_ln30_2,0,30,trunc_ln30_2_fu_506_p1,not_exist,not_exist,7,trunc,0.00,74,['223']
+1_97,lshr_ln30_1,0,30,lshr_ln30_1_reg_705,not_exist,not_exist,57,partselect,0.00,75,"['225', '226', '228', '230']"
+1_98,zext_ln30_1,0,30,zext_ln30_1_fu_520_p1,not_exist,not_exist,64,zext,0.00,76,['231']
+1_99,level_0_addr_2,0,30,not_exist,not_exist,not_exist,7,getelementptr,0.00,77,"['232', '233', '234']"
+1_100,level_0_load,0,30,not_exist,ram,RAM,8,load,2.26,78,"['235', '485']"
+1_101,level_1_addr_2,0,30,not_exist,not_exist,not_exist,7,getelementptr,0.00,79,"['236', '237', '238']"
+1_102,level_1_load,0,30,not_exist,ram,RAM,8,load,2.26,80,"['239', '487']"
+1_103,tmp_level_s,0,30,mux_257_8_1_1_U4,mux,Multiplexer,8,mux,0.84,81,"['241', '242', '243', '244']"
+1_104,icmp_ln32_1,0,32,icmp_ln32_1_fu_535_p2,icmp,Cmp,1,icmp,0.86,82,"['245', '247']"
+1_105,br_ln32,0,32,not_exist,not_exist,not_exist,0,br,0.84,83,"['248', '249', '250']"
+1_107,tmp_8,0,33,tmp_8_fu_541_p3,not_exist,not_exist,1,bitselect,0.00,84,"['352', '353', '354']"
+1_108,br_ln33,0,33,not_exist,not_exist,not_exist,0,br,0.00,85,"['355', '356', '357']"
+1_110,level_0_addr_2_write_ln33,0,33,not_exist,ram,RAM,0,store,2.26,86,"['349', '350', '484', '486', '490', '2147483647']"
+1_111,br_ln33,0,33,not_exist,not_exist,not_exist,0,br,0.00,87,['351']
+1_113,level_1_addr_2_write_ln33,0,33,not_exist,ram,RAM,0,store,2.26,88,"['358', '359', '483', '488', '489']"
+1_114,br_ln33,0,33,not_exist,not_exist,not_exist,0,br,0.00,89,['360']
+1_116,add_ln34_1,0,34,add_ln34_1_fu_548_p2,add,Adder,64,add,1.81,90,"['346', '347']"
+1_117,br_ln35,0,35,not_exist,not_exist,not_exist,0,br,0.84,91,['348']
+1_119,cnt_2_1,0,34,not_exist,not_exist,not_exist,64,phi,0.00,92,"['172', '173', '174', '175']"
+1_120,add_ln28_1,0,28,add_ln28_1_fu_470_p2,add,Adder,64,add,1.81,66,"['176', '178']"
+1_121,cnt_1_0_write_ln28,0,28,not_exist,not_exist,not_exist,0,store,0.84,93,"['179', '180', '493', '496']"
+1_122,e_1_0_write_ln28,0,28,not_exist,not_exist,not_exist,0,store,0.84,67,"['181', '182', '494', '495']"
+1_123,br_ln28,0,28,not_exist,not_exist,not_exist,0,br,0.00,94,['183']
+1_125,cnt_1_0_out_write_ln34,0,34,not_exist,not_exist,not_exist,0,write,0.00,95,"['158', '159', '160']"
+1_126,cnt_2_0_out_write_ln34,0,34,not_exist,not_exist,not_exist,0,write,0.00,96,"['161', '162', '163']"
+1_127,br_ln0,0,0,not_exist,not_exist,not_exist,0,br,0.84,97,['164']
+1_129,cnt_1_0_out_write_ln34,0,34,not_exist,not_exist,not_exist,0,write,0.00,100,"['154', '155', '156']"
+1_130,br_ln0,0,0,not_exist,not_exist,not_exist,0,br,0.84,101,['157']
+1_132,UnifiedRetVal,0,0,not_exist,not_exist,not_exist,1,phi,0.00,98,"['361', '362', '364', '365']"
+1_133,_ln0,0,0,not_exist,not_exist,not_exist,0,ret,0.00,99,['366']
+2_11,e_4_0,0,0,not_exist,not_exist,not_exist,64,alloca,0.00,1,['136']
+2_12,cnt_5_0,0,0,not_exist,not_exist,not_exist,64,alloca,0.00,2,['137']
+2_17,tmp,0,0,not_exist,not_exist,not_exist,8,read,0.00,3,"['139', '140']"
+2_18,tmp_end_1_read,0,0,not_exist,not_exist,not_exist,64,read,0.00,4,"['142', '143']"
+2_19,tmp_begin_1_read,0,0,not_exist,not_exist,not_exist,64,read,0.00,5,"['144', '145']"
+2_20,cnt_1_read,0,0,not_exist,not_exist,not_exist,64,read,0.00,6,"['146', '147']"
+2_21,cnt_5_0_write_ln0,0,0,not_exist,not_exist,not_exist,0,store,0.84,7,"['148', '149']"
+2_22,e_4_0_write_ln0,0,0,not_exist,not_exist,not_exist,0,store,0.84,8,"['150', '151']"
+2_23,br_ln0,0,0,not_exist,not_exist,not_exist,0,br,0.00,9,['152']
+2_25,e_4_0_load,0,29,not_exist,not_exist,not_exist,64,load,0.00,10,"['165', '492']"
+2_26,cnt_5_0_load,0,34,not_exist,not_exist,not_exist,64,load,0.00,47,"['166', '491']"
+2_27,icmp_ln28,0,28,icmp_ln28_fu_270_p2,icmp,Cmp,1,icmp,1.40,11,"['167', '168']"
+2_28,br_ln28,0,28,not_exist,not_exist,not_exist,0,br,0.00,12,"['169', '170', '171']"
+2_30,trunc_ln28,0,28,trunc_ln28_fu_275_p1,not_exist,not_exist,12,trunc,0.00,13,['272']
+2_31,trunc_ln28_1,0,28,trunc_ln28_1_fu_404_p1,not_exist,not_exist,2,trunc,0.00,48,['273']
+2_32,trunc_ln28_2,0,28,trunc_ln28_2_fu_357_p1,not_exist,not_exist,1,trunc,0.00,35,['274']
+2_35,tmp_1,0,29,tmp_1_fu_328_p3,not_exist,not_exist,1,bitselect,0.00,30,"['276', '277', '278']"
+2_36,and_ln29_2,0,29,and_ln29_2_fu_335_p3,not_exist,not_exist,7,bitconcatenate,0.00,31,"['279', '280', '281']"
+2_37,lshr_ln29_2,0,29,lshr_ln29_2_fu_279_p4,not_exist,not_exist,10,partselect,0.00,14,"['283', '284', '285', '286']"
+2_38,zext_ln29,0,29,zext_ln29_fu_289_p1,not_exist,not_exist,64,zext,0.00,15,['287']
+2_39,edges_0_addr,0,29,not_exist,not_exist,not_exist,10,getelementptr,0.00,16,"['288', '289', '290']"
+2_40,edges_0_load,0,29,not_exist,ram,RAM,128,load,2.26,17,['291']
+2_41,zext_ln29_1,0,29,zext_ln29_1_fu_343_p1,not_exist,not_exist,128,zext,0.00,32,['292']
+2_42,lshr_ln29,0,29,lshr_ln29_fu_347_p2,lshr,Shifter,128,lshr,2.37,33,"['293', '294']"
+2_43,trunc_ln29,0,29,trunc_ln29_fu_353_p1,not_exist,not_exist,64,trunc,0.00,34,['295']
+2_44,edges_1_addr,0,29,not_exist,not_exist,not_exist,10,getelementptr,0.00,18,"['296', '297', '298']"
+2_45,edges_1_load,0,29,not_exist,ram,RAM,128,load,2.26,19,['299']
+2_46,zext_ln29_2,0,29,zext_ln29_2_fu_360_p1,not_exist,not_exist,128,zext,0.00,36,['300']
+2_47,lshr_ln29_1,0,29,lshr_ln29_1_fu_363_p2,lshr,Shifter,128,lshr,2.37,37,"['301', '302']"
+2_48,trunc_ln29_1,0,29,tmp_dst_1_fu_372_p2,not_exist,not_exist,64,trunc,0.00,38,['303']
+2_49,tmp_dst_1,0,29,mux_21_64_1_1_U17,mux,Multiplexer,64,mux,0.84,39,"['304', '305', '306', '307']"
+2_50,trunc_ln30,0,30,trunc_ln30_fu_381_p1,not_exist,not_exist,7,trunc,0.00,40,['308']
+2_51,lshr_ln30_2,0,30,lshr_ln30_2_reg_657,not_exist,not_exist,57,partselect,0.00,41,"['309', '310', '311', '312']"
+2_52,zext_ln30,0,30,zext_ln30_fu_395_p1,not_exist,not_exist,64,zext,0.00,42,['313']
+2_53,level_0_addr,0,30,not_exist,not_exist,not_exist,7,getelementptr,0.00,43,"['314', '315', '316']"
+2_54,level_0_load,0,30,not_exist,ram,RAM,8,load,2.26,44,['317']
+2_55,level_1_addr,0,30,not_exist,not_exist,not_exist,7,getelementptr,0.00,45,"['318', '319', '320']"
+2_56,level_1_load,0,30,not_exist,ram,RAM,8,load,2.26,46,['321']
+2_57,tmp_level_1,0,30,mux_257_8_1_1_U18,mux,Multiplexer,8,mux,0.84,49,"['322', '323', '324', '325']"
+2_58,icmp_ln32,0,32,icmp_ln32_fu_416_p2,icmp,Cmp,1,icmp,0.86,50,"['326', '327']"
+2_59,br_ln32,0,32,not_exist,not_exist,not_exist,0,br,0.84,51,"['328', '329', '330']"
+2_61,tmp_2,0,33,tmp_2_fu_422_p3,not_exist,not_exist,1,bitselect,0.00,52,"['337', '338', '339']"
+2_62,br_ln33,0,33,not_exist,not_exist,not_exist,0,br,0.00,53,"['340', '341', '342']"
+2_64,level_0_addr_write_ln33,0,33,not_exist,ram,RAM,0,store,2.26,54,"['334', '335', '482']"
+2_65,br_ln33,0,33,not_exist,not_exist,not_exist,0,br,0.00,55,['336']
+2_67,level_1_addr_write_ln33,0,33,not_exist,ram,RAM,0,store,2.26,56,"['343', '344', '481']"
+2_68,br_ln33,0,33,not_exist,not_exist,not_exist,0,br,0.00,57,['345']
+2_70,add_ln34,0,34,add_ln34_fu_429_p2,add,Adder,64,add,1.81,58,"['331', '332']"
+2_71,br_ln35,0,35,not_exist,not_exist,not_exist,0,br,0.84,59,['333']
+2_73,cnt_8_0,0,34,not_exist,not_exist,not_exist,64,phi,0.00,68,"['251', '252', '253', '254']"
+2_74,add_ln28,0,28,add_ln28_fu_295_p2,add,Adder,64,add,1.81,20,"['255', '257']"
+2_75,add_ln28_1,0,28,add_ln28_1_fu_301_p2,add,Adder,12,add,1.33,21,"['258', '260']"
+2_76,add_ln28_2,0,28,add_ln28_2_fu_435_p2,add,Adder,2,add,0.85,60,"['261', '263']"
+2_77,xor_ln28,0,28,tmp_dst_1_1_fu_497_p3,xor,LogicGate,1,xor,0.48,69,"['264', '266']"
+2_78,icmp_ln28_1,0,28,icmp_ln28_1_fu_307_p2,icmp,Cmp,1,icmp,1.40,22,"['267', '268']"
+2_79,br_ln28,0,28,not_exist,not_exist,not_exist,0,br,0.00,23,"['269', '270', '271']"
+2_81,tmp_3,0,29,tmp_3_fu_441_p3,not_exist,not_exist,1,bitselect,0.00,61,"['185', '186', '187']"
+2_82,and_ln29_3,0,29,and_ln29_3_fu_449_p3,not_exist,not_exist,7,bitconcatenate,0.00,62,"['189', '190', '192']"
+2_83,lshr_ln29_3,0,29,lshr_ln29_3_fu_312_p4,not_exist,not_exist,10,partselect,0.00,24,"['194', '195', '197', '199']"
+2_84,zext_ln29_3,0,29,zext_ln29_3_fu_322_p1,not_exist,not_exist,64,zext,0.00,25,['200']
+2_85,edges_0_addr_1,0,29,not_exist,not_exist,not_exist,10,getelementptr,0.00,26,"['201', '203', '204']"
+2_86,edges_0_load_1,0,29,not_exist,ram,RAM,128,load,2.26,27,['205']
+2_87,zext_ln29_4,0,29,zext_ln29_4_fu_457_p1,not_exist,not_exist,128,zext,0.00,63,['206']
+2_88,lshr_ln29_4,0,29,lshr_ln29_4_fu_461_p2,lshr,Shifter,128,lshr,2.37,64,"['207', '208']"
+2_89,trunc_ln29_2,0,29,trunc_ln29_2_fu_466_p1,not_exist,not_exist,64,trunc,0.00,65,['209']
+2_90,edges_1_addr_1,0,29,not_exist,not_exist,not_exist,10,getelementptr,0.00,28,"['210', '211', '212']"
+2_91,edges_1_load_1,0,29,not_exist,ram,RAM,128,load,2.26,29,['213']
+2_92,zext_ln29_5,0,29,zext_ln29_5_fu_485_p1,not_exist,not_exist,128,zext,0.00,70,['214']
+2_93,lshr_ln29_5,0,29,lshr_ln29_5_fu_488_p2,lshr,Shifter,128,lshr,2.37,71,"['215', '216']"
+2_94,trunc_ln29_3,0,29,tmp_dst_1_1_fu_497_p2,not_exist,not_exist,64,trunc,0.00,72,['217']
+2_95,tmp_dst_1_1,0,29,mux_21_64_1_1_U19,mux,Multiplexer,64,mux,0.84,73,"['219', '220', '221', '222']"
+2_96,trunc_ln30_1,0,30,trunc_ln30_1_fu_506_p1,not_exist,not_exist,7,trunc,0.00,74,['223']
+2_97,lshr_ln30_3,0,30,lshr_ln30_3_reg_705,not_exist,not_exist,57,partselect,0.00,75,"['225', '226', '228', '230']"
+2_98,zext_ln30_1,0,30,zext_ln30_1_fu_520_p1,not_exist,not_exist,64,zext,0.00,76,['231']
+2_99,level_0_addr_1,0,30,not_exist,not_exist,not_exist,7,getelementptr,0.00,77,"['232', '233', '234']"
+2_100,level_0_load_1,0,30,not_exist,ram,RAM,8,load,2.26,78,"['235', '485']"
+2_101,level_1_addr_1,0,30,not_exist,not_exist,not_exist,7,getelementptr,0.00,79,"['236', '237', '238']"
+2_102,level_1_load_1,0,30,not_exist,ram,RAM,8,load,2.26,80,"['239', '487']"
+2_103,tmp_level_1_1,0,30,mux_257_8_1_1_U20,mux,Multiplexer,8,mux,0.84,81,"['241', '242', '243', '244']"
+2_104,icmp_ln32_1,0,32,icmp_ln32_1_fu_535_p2,icmp,Cmp,1,icmp,0.86,82,"['245', '247']"
+2_105,br_ln32,0,32,not_exist,not_exist,not_exist,0,br,0.84,83,"['248', '249', '250']"
+2_107,tmp_4,0,33,tmp_4_fu_541_p3,not_exist,not_exist,1,bitselect,0.00,84,"['352', '353', '354']"
+2_108,br_ln33,0,33,not_exist,not_exist,not_exist,0,br,0.00,85,"['355', '356', '357']"
+2_110,level_0_addr_1_write_ln33,0,33,not_exist,ram,RAM,0,store,2.26,86,"['349', '350', '484', '486', '490', '2147483647']"
+2_111,br_ln33,0,33,not_exist,not_exist,not_exist,0,br,0.00,87,['351']
+2_113,level_1_addr_1_write_ln33,0,33,not_exist,ram,RAM,0,store,2.26,88,"['358', '359', '483', '488', '489']"
+2_114,br_ln33,0,33,not_exist,not_exist,not_exist,0,br,0.00,89,['360']
+2_116,add_ln34_1,0,34,add_ln34_1_fu_548_p2,add,Adder,64,add,1.81,90,"['346', '347']"
+2_117,br_ln35,0,35,not_exist,not_exist,not_exist,0,br,0.84,91,['348']
+2_119,cnt_8_1,0,34,not_exist,not_exist,not_exist,64,phi,0.00,92,"['172', '173', '174', '175']"
+2_120,add_ln28_3,0,28,add_ln28_3_fu_470_p2,add,Adder,64,add,1.81,66,"['176', '178']"
+2_121,cnt_5_0_write_ln28,0,28,not_exist,not_exist,not_exist,0,store,0.84,93,"['179', '180', '493', '496']"
+2_122,e_4_0_write_ln28,0,28,not_exist,not_exist,not_exist,0,store,0.84,67,"['181', '182', '494', '495']"
+2_123,br_ln28,0,28,not_exist,not_exist,not_exist,0,br,0.00,94,['183']
+2_125,cnt_5_0_out_write_ln34,0,34,not_exist,not_exist,not_exist,0,write,0.00,95,"['158', '159', '160']"
+2_126,cnt_8_0_out_write_ln34,0,34,not_exist,not_exist,not_exist,0,write,0.00,96,"['161', '162', '163']"
+2_127,br_ln0,0,0,not_exist,not_exist,not_exist,0,br,0.84,97,['164']
+2_129,cnt_5_0_out_write_ln34,0,34,not_exist,not_exist,not_exist,0,write,0.00,100,"['154', '155', '156']"
+2_130,br_ln0,0,0,not_exist,not_exist,not_exist,0,br,0.84,101,['157']
+2_132,UnifiedRetVal,0,0,not_exist,not_exist,not_exist,1,phi,0.00,98,"['361', '362', '364', '365']"
+2_133,_ln0,0,0,not_exist,not_exist,not_exist,0,ret,0.00,99,['366']

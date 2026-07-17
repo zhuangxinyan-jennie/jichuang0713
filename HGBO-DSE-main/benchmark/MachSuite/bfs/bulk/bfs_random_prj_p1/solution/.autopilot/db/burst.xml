@@ -1,0 +1,5 @@
+<VitisHLS:BurstInfo>
+    <burst group="BURST_VERBOSE_MISSED" fe_name="CouldNotAnalyzeBoundsPatternMissed" src_info="bfs.c:21:18" msg_id="214-252" msg_severity="INFO" msg_body="Could not analyze the loop bounds" resolution="214-252" LoopLoc="bfs.c:21:18" LoopName="loop_horizons" ParentFunc="bfs"/>
+    <burst group="BURST_VERBOSE_MISSED" fe_name="InsufficientAlignmentMissed" src_info="bfs.c:26:43" msg_id="214-228" msg_severity="INFO" msg_body="Alignment is insufficient, current alignment is 8 byte(s) but 16 is required" resolution="214-228" ID="loop_neighbors.load.1" VarName="nodes" ParentFunc="bfs"/>
+</VitisHLS:BurstInfo>
+

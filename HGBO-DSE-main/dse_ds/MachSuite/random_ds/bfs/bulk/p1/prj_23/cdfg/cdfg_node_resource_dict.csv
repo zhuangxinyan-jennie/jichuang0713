@@ -1,0 +1,217 @@
+node_id,node_name,node_type,line_num,rtl_name,op_type,core_name,bitwidth,opcode,m_delay,topo_index,oprand_edges,latency,lut,ff,dsp,bram,uram
+0_9,horizon,0,0,not_exist,not_exist,not_exist,64,alloca,0.00,1,['154'],"['0', '0']",0,0,0,0,0
+0_10,starting_node_read,0,0,not_exist,not_exist,not_exist,64,read,0.00,2,"['156', '157']","['0', '0']",0,0,0,0,0
+0_11,cnt_2_0_loc,0,0,not_exist,not_exist,not_exist,64,alloca,0.00,3,['159'],"['0', '0']",0,0,0,0,0
+0_12,cnt_1_0_loc,0,0,not_exist,not_exist,not_exist,64,alloca,0.00,4,['160'],"['0', '0']",0,0,0,0,0
+0_30,trunc_ln18,0,18,trunc_ln18_fu_294_p1,not_exist,not_exist,1,trunc,0.00,12,['161'],"['1', '0']",0,0,0,0,0
+0_31,shl_ln,0,18,shl_ln_fu_297_p3,not_exist,not_exist,4,bitconcatenate,0.00,13,"['163', '164', '166']","['1', '0']",0,0,0,0,0
+0_32,lshr_ln,0,18,lshr_ln_fu_274_p4,not_exist,not_exist,7,partselect,0.00,5,"['168', '169', '170', '172']","['0', '0']",0,0,0,0,0
+0_33,zext_ln18,0,18,zext_ln18_fu_284_p1,not_exist,not_exist,64,zext,0.00,6,['173'],"['0', '0']",0,0,0,0,0
+0_34,level_addr,0,18,not_exist,not_exist,not_exist,7,getelementptr,0.00,7,"['174', '176', '177']","['0', '0']",0,0,0,0,0
+0_35,level_load,0,18,not_exist,ram,RAM,16,load,2.26,8,['178'],"['0', '1']",0,0,0,0,0
+0_36,zext_ln18_1,0,18,zext_ln18_1_fu_305_p1,not_exist,not_exist,16,zext,0.00,14,['179'],"['1', '0']",0,0,0,0,0
+0_37,shl_ln18,0,18,shl_ln18_fu_309_p2,shl,Shifter,16,shl,0.00,15,"['181', '182']","['1', '0']",35,0,0,0,0
+0_38,xor_ln18,0,18,xor_ln18_fu_315_p2,xor,LogicGate,16,xor,0.00,16,"['183', '185']","['1', '0']",16,0,0,0,0
+0_39,and_ln18,0,18,and_ln18_fu_321_p2,and,LogicGate,16,and,1.67,17,"['186', '187']","['1', '0']",16,0,0,0,0
+0_40,level_addr_write_ln18,0,18,not_exist,ram,RAM,0,store,2.26,18,"['188', '189', '634']","['1', '0']",0,0,0,0,0
+0_41,level_counts_0_addr,0,19,not_exist,not_exist,not_exist,2,getelementptr,0.00,9,"['190', '191', '192']","['0', '0']",0,0,0,0,0
+0_42,level_counts_0_load,0,19,not_exist,ram,RAM,128,load,1.20,10,['193'],"['0', '1']",0,0,0,0,0
+0_43,tmp_s,0,19,tmp_s_fu_328_p5,not_exist,not_exist,128,partset,0.00,19,"['195', '196', '197', '199', '201']","['1', '0']",0,0,0,0,0
+0_44,level_counts_0_addr_write_ln19,0,19,not_exist,ram,RAM,0,store,1.20,20,"['202', '203', '633']","['1', '0']",0,0,0,0,0
+0_45,horizon_write_ln21,0,21,not_exist,not_exist,not_exist,0,store,0.84,11,"['204', '205']","['0', '0']",0,0,0,0,0
+0_46,br_ln21,0,21,not_exist,not_exist,not_exist,0,br,0.00,21,['206'],"['1', '0']",0,0,0,0,0
+0_48,horizon_1,0,39,not_exist,not_exist,not_exist,64,load,0.00,22,"['207', '640']","['2', '0']",0,0,0,0,0
+0_50,trunc_ln21,0,21,trunc_ln21_fu_344_p1,not_exist,not_exist,8,trunc,0.00,23,['208'],"['2', '0']",0,0,0,0,0
+0_51,add_ln21,0,21,add_ln21_fu_348_p2,add,Adder,64,add,1.81,24,"['209', '210']","['2', '0']",71,0,0,0,0
+0_52,empty,0,21,empty_fu_354_p2,add,Adder,8,add,1.35,25,"['211', '213']","['2', '0']",15,0,0,0,0
+0_53,br_ln24,0,24,not_exist,not_exist,not_exist,0,br,0.84,26,['214'],"['2', '0']",0,0,0,0,0
+0_55,cnt,0,0,not_exist,not_exist,not_exist,64,phi,0.00,27,"['215', '216', '217', '218']","['3', '0']",0,0,0,0,0
+0_56,n,0,0,not_exist,not_exist,not_exist,9,phi,0.00,28,"['220', '221', '222', '223']","['3', '0']",0,0,0,0,0
+0_57,icmp_ln24,0,24,icmp_ln24_fu_360_p2,icmp,Cmp,1,icmp,0.90,29,"['224', '226']","['3', '0']",11,0,0,0,0
+0_59,n_1,0,24,n_1_fu_366_p2,add,Adder,9,add,1.35,30,"['227', '229']","['3', '0']",16,0,0,0,0
+0_60,br_ln24,0,24,not_exist,not_exist,not_exist,0,br,0.00,31,"['230', '231', '232']","['3', '0']",0,0,0,0,0
+0_63,trunc_ln25,0,25,trunc_ln25_fu_412_p1,not_exist,not_exist,1,trunc,0.00,40,['233'],"['4', '0']",0,0,0,0,0
+0_64,shl_ln2,0,25,shl_ln2_fu_416_p3,not_exist,not_exist,4,bitconcatenate,0.00,41,"['234', '235', '236']","['4', '0']",0,0,0,0,0
+0_65,lshr_ln1,0,25,lshr_ln1_fu_372_p4,not_exist,not_exist,7,partselect,0.00,32,"['238', '239', '240', '241']","['3', '0']",0,0,0,0,0
+0_66,trunc_ln2,0,25,trunc_ln2_fu_424_p4,not_exist,not_exist,6,partselect,0.00,42,"['243', '244', '245', '247']","['4', '0']",0,0,0,0,0
+0_67,zext_ln25,0,25,zext_ln25_fu_382_p1,not_exist,not_exist,64,zext,0.00,33,['248'],"['3', '0']",0,0,0,0,0
+0_68,level_addr_1,0,25,not_exist,not_exist,not_exist,7,getelementptr,0.00,34,"['249', '250', '251']","['3', '0']",0,0,0,0,0
+0_69,level_load_1,0,25,not_exist,ram,RAM,16,load,2.26,35,['252'],"['3', '1']",0,0,0,0,0
+0_70,zext_ln25_1,0,25,zext_ln25_1_fu_434_p1,not_exist,not_exist,16,zext,0.00,43,['253'],"['4', '0']",0,0,0,0,0
+0_71,lshr_ln25,0,25,lshr_ln25_fu_438_p2,lshr,Shifter,16,lshr,0.00,44,"['254', '255']","['4', '0']",35,0,0,0,0
+0_72,trunc_ln25_1,0,25,trunc_ln25_1_fu_444_p1,not_exist,not_exist,8,trunc,0.00,45,['256'],"['4', '0']",0,0,0,0,0
+0_73,sext_ln25,0,25,sext_ln25_fu_448_p1,not_exist,not_exist,32,sext,0.00,46,['257'],"['4', '0']",0,0,0,0,0
+0_74,zext_ln25_2,0,25,zext_ln25_2_fu_452_p1,not_exist,not_exist,64,zext,0.00,47,['258'],"['4', '0']",0,0,0,0,0
+0_75,icmp_ln25,0,25,icmp_ln25_fu_456_p2,icmp,Cmp,1,icmp,2.00,48,"['259', '260']","['4', '0']",29,0,0,0,0
+0_76,br_ln25,0,25,not_exist,not_exist,not_exist,0,br,0.84,49,"['261', '262', '263']","['4', '0']",0,0,0,0,0
+0_78,tmp_4,0,26,tmp_4_reg_783,not_exist,not_exist,1,bitselect,0.00,50,"['265', '266', '267']","['4', '0']",0,1,0,0,0
+0_79,shl_ln3,0,26,shl_ln3_fu_475_p3,not_exist,not_exist,8,bitconcatenate,0.00,56,"['269', '270', '272']","['5', '0']",0,0,0,0,0
+0_80,zext_ln26,0,26,zext_ln26_fu_469_p1,not_exist,not_exist,64,zext,0.00,51,['273'],"['4', '0']",0,0,0,0,0
+0_81,nodes_0_addr,0,26,not_exist,not_exist,not_exist,6,getelementptr,0.00,52,"['274', '275', '276']","['4', '0']",0,0,0,0,0
+0_82,nodes_0_load,0,26,not_exist,ram,RAM,256,load,2.26,53,['277'],"['4', '1']",0,0,0,0,0
+0_83,zext_ln26_1,0,26,zext_ln26_1_fu_482_p1,not_exist,not_exist,256,zext,0.00,57,['278'],"['5', '0']",0,0,0,0,0
+0_84,lshr_ln26,0,26,lshr_ln26_fu_486_p2,lshr,Shifter,256,lshr,2.38,58,"['279', '280']","['5', '0']",950,0,0,0,0
+0_85,trunc_ln26,0,26,tmp_begin_fu_510_p1,not_exist,not_exist,64,trunc,0.00,59,['281'],"['5', '0']",0,0,0,0,0
+0_86,nodes_1_addr,0,26,not_exist,not_exist,not_exist,6,getelementptr,0.00,54,"['282', '283', '284']","['4', '0']",0,0,0,0,0
+0_87,nodes_1_load,0,26,not_exist,ram,RAM,256,load,2.26,55,['285'],"['4', '1']",0,0,0,0,0
+0_88,zext_ln26_2,0,26,zext_ln26_2_fu_496_p1,not_exist,not_exist,256,zext,0.00,60,['286'],"['5', '0']",0,0,0,0,0
+0_89,lshr_ln26_1,0,26,lshr_ln26_1_fu_500_p2,lshr,Shifter,256,lshr,2.38,61,"['287', '288']","['5', '0']",950,0,0,0,0
+0_90,trunc_ln26_1,0,26,tmp_begin_fu_510_p2,not_exist,not_exist,64,trunc,0.00,62,['289'],"['5', '0']",0,0,0,0,0
+0_91,tmp_begin,0,26,mux_21_64_1_1_U15,mux,Multiplexer,64,mux,0.84,63,"['291', '292', '293', '294']","['5', '0']",9,0,0,0,0
+0_92,trunc_ln4,0,27,tmp_end_fu_539_p1,not_exist,not_exist,64,partselect,0.00,64,"['296', '297', '299', '301']","['5', '0']",0,0,0,0,0
+0_93,trunc_ln27_1,0,27,tmp_end_fu_539_p2,not_exist,not_exist,64,partselect,0.00,65,"['302', '303', '304', '305']","['5', '0']",0,0,0,0,0
+0_94,tmp_end,0,27,mux_21_64_1_1_U16,mux,Multiplexer,64,mux,0.84,66,"['306', '307', '308', '309']","['5', '0']",9,0,0,0,0
+0_95,icmp_ln28,0,28,icmp_ln28_fu_548_p2,icmp,Cmp,1,icmp,1.40,67,"['310', '311']","['6', '0']",29,0,0,0,0
+0_96,br_ln28,0,28,not_exist,not_exist,not_exist,0,br,0.84,68,"['312', '313', '314']","['6', '0']",0,0,0,0,0
+0_98,targetBlock,0,28,grp_bfs_Pipeline_loop_neighbors_fu_257,not_exist,not_exist,1,call,0.84,69,"['316', '317', '318', '319', '320', '321', '322', '323', '324', '325', '637']","['6', '1']",2544,483,0,0,0
+0_99,cnt_1_0_loc_load,0,0,not_exist,not_exist,not_exist,64,load,0.00,70,"['326', '638']","['8', '0']",0,0,0,0,0
+0_100,cnt_2_0_loc_load,0,0,not_exist,not_exist,not_exist,64,load,0.00,71,"['327', '639']","['8', '0']",0,0,0,0,0
+0_101,select_ln28,0,28,select_ln28_fu_558_p3,select,Sel,64,select,0.62,72,"['328', '329', '330']","['8', '0']",64,0,0,0,0
+0_102,br_ln0,0,0,not_exist,not_exist,not_exist,0,br,0.84,73,['331'],"['8', '0']",0,0,0,0,0
+0_104,cnt_1,0,0,not_exist,not_exist,not_exist,64,phi,0.00,74,"['332', '333', '334', '335', '336', '337']","['9', '0']",0,0,0,0,0
+0_105,br_ln24,0,24,not_exist,not_exist,not_exist,0,br,0.00,75,['338'],"['9', '0']",0,0,0,0,0
+0_107,trunc_ln39_2,0,39,trunc_ln39_2_fu_387_p4,not_exist,not_exist,63,partselect,0.00,36,"['340', '341', '342', '343']","['3', '0']",0,0,0,0,0
+0_108,zext_ln39,0,39,grp_fu_400_p00,not_exist,not_exist,123,zext,0.00,37,['344'],"['3', '0']",0,0,0,0,0
+0_109,mul_ln39,0,39,mul_63ns_65ns_123_2_1_U13,mul,Multiplier,123,mul,7.13,38,"['345', '347']","['3', '1']",179,361,9,0,0
+0_110,tmp,0,39,tmp_reg_824,not_exist,not_exist,1,bitselect,0.00,76,"['349', '350', '352']","['10', '0']",0,1,0,0,0
+0_111,tmp_1,0,39,tmp_1_reg_829,not_exist,not_exist,1,bitselect,0.00,77,"['353', '354', '355']","['10', '0']",0,1,0,0,0
+0_112,urem_ln39,0,39,urem_63ns_3ns_63_67_seq_1_U14,urem,DivnS_SEQ,63,urem,2.54,39,"['356', '358']","['3', '66']",461,767,0,0,0
+0_113,zext_ln39_1,0,39,zext_ln39_1_fu_584_p1,not_exist,not_exist,64,zext,0.00,79,['359'],"['75', '0']",0,0,0,0,0
+0_114,trunc_ln39,0,39,trunc_ln39_fu_581_p1,not_exist,not_exist,1,trunc,0.00,78,['360'],"['10', '0']",0,0,0,0,0
+0_115,br_ln39,0,39,not_exist,not_exist,not_exist,0,br,0.00,80,"['361', '362', '363']","['75', '0']",0,0,0,0,0
+0_117,level_counts_1_addr,0,39,not_exist,not_exist,not_exist,2,getelementptr,0.00,81,"['390', '391', '392']","['75', '0']",0,0,0,0,0
+0_118,level_counts_1_load,0,39,not_exist,ram,RAM,128,load,1.20,82,['393'],"['75', '1']",0,0,0,0,0
+0_119,tmp_3,0,39,tmp_3_fu_590_p3,not_exist,not_exist,7,bitconcatenate,0.00,85,"['394', '395', '396']","['76', '0']",0,0,0,0,0
+0_120,zext_ln39_4,0,39,zext_ln39_4_fu_597_p1,not_exist,not_exist,128,zext,0.00,86,['397'],"['76', '0']",0,0,0,0,0
+0_121,shl_ln39_2,0,39,shl_ln39_2_fu_601_p2,shl,Shifter,128,shl,0.00,87,"['398', '399']","['76', '0']",423,0,0,0,0
+0_122,xor_ln39_1,0,39,xor_ln39_1_fu_607_p2,xor,LogicGate,128,xor,0.00,88,"['400', '401']","['76', '0']",128,0,0,0,0
+0_123,and_ln39_2,0,39,and_ln39_2_fu_613_p2,and,LogicGate,128,and,0.00,89,"['402', '403']","['76', '0']",128,0,0,0,0
+0_124,zext_ln39_5,0,39,zext_ln39_5_fu_619_p1,not_exist,not_exist,128,zext,0.00,90,['404'],"['76', '0']",0,0,0,0,0
+0_125,shl_ln39_3,0,39,shl_ln39_3_fu_623_p2,shl,Shifter,128,shl,0.00,91,"['405', '406']","['76', '0']",423,0,0,0,0
+0_126,or_ln39_1,0,39,level_counts_1_d0,or,LogicGate,128,or,2.35,92,"['407', '408']","['76', '0']",128,0,0,0,0
+0_127,level_counts_1_addr_write_ln39,0,39,not_exist,ram,RAM,0,store,1.20,93,"['409', '410', '635']","['76', '0']",0,0,0,0,0
+0_128,br_ln39,0,39,not_exist,not_exist,not_exist,0,br,0.00,94,['411'],"['76', '0']",0,0,0,0,0
+0_130,level_counts_0_addr_1,0,39,not_exist,not_exist,not_exist,2,getelementptr,0.00,83,"['364', '365', '366']","['75', '0']",0,0,0,0,0
+0_131,level_counts_0_load_1,0,39,not_exist,ram,RAM,128,load,1.20,84,['367'],"['75', '1']",0,0,0,0,0
+0_132,tmp_2,0,39,tmp_2_fu_636_p3,not_exist,not_exist,7,bitconcatenate,0.00,95,"['369', '370', '372']","['76', '0']",0,0,0,0,0
+0_133,zext_ln39_2,0,39,zext_ln39_2_fu_643_p1,not_exist,not_exist,128,zext,0.00,96,['373'],"['76', '0']",0,0,0,0,0
+0_134,shl_ln39,0,39,shl_ln39_fu_647_p2,shl,Shifter,128,shl,0.00,97,"['375', '376']","['76', '0']",423,0,0,0,0
+0_135,xor_ln39,0,39,xor_ln39_fu_653_p2,xor,LogicGate,128,xor,0.00,98,"['377', '379']","['76', '0']",128,0,0,0,0
+0_136,and_ln39_1,0,39,and_ln39_1_fu_659_p2,and,LogicGate,128,and,0.00,99,"['380', '381']","['76', '0']",128,0,0,0,0
+0_137,zext_ln39_3,0,39,zext_ln39_3_fu_665_p1,not_exist,not_exist,128,zext,0.00,100,['382'],"['76', '0']",0,0,0,0,0
+0_138,shl_ln39_1,0,39,shl_ln39_1_fu_669_p2,shl,Shifter,128,shl,0.00,101,"['383', '384']","['76', '0']",423,0,0,0,0
+0_139,or_ln39,0,39,or_ln39_fu_675_p2,or,LogicGate,128,or,2.35,102,"['385', '386']","['76', '0']",128,0,0,0,0
+0_140,level_counts_0_addr_1_write_ln39,0,39,not_exist,ram,RAM,0,store,1.20,103,"['387', '388', '636']","['76', '0']",0,0,0,0,0
+0_141,br_ln39,0,39,not_exist,not_exist,not_exist,0,br,0.00,104,['389'],"['76', '0']",0,0,0,0,0
+0_143,icmp_ln39,0,39,icmp_ln39_fu_682_p2,icmp,Cmp,1,icmp,1.40,105,"['412', '413']","['76', '0']",29,0,0,0,0
+0_144,icmp_ln21,0,21,icmp_ln21_fu_688_p2,icmp,Cmp,1,icmp,1.40,106,"['414', '416']","['76', '0']",29,0,0,0,0
+0_145,and_ln39,0,39,and_ln39_fu_693_p2,and,LogicGate,1,and,0.48,107,"['417', '418']","['76', '0']",2,0,0,0,0
+0_146,br_ln39,0,39,not_exist,not_exist,not_exist,0,br,0.00,108,"['419', '420', '421']","['76', '0']",0,0,0,0,0
+0_148,horizon_write_ln39,0,39,not_exist,not_exist,not_exist,0,store,0.84,109,"['422', '423', '641', '642']","['76', '0']",0,0,0,0,0
+0_149,br_ln39,0,39,not_exist,not_exist,not_exist,0,br,0.00,110,['424'],"['76', '0']",0,0,0,0,0
+0_151,_ln42,0,42,not_exist,not_exist,not_exist,0,ret,0.00,111,[],"['76', '0']",0,0,0,0,0
+1_10,e_1_0,0,0,not_exist,not_exist,not_exist,64,alloca,0.00,1,['132'],"['0', '0']",0,0,0,0,0
+1_11,cnt_1_0,0,0,not_exist,not_exist,not_exist,64,alloca,0.00,2,['133'],"['0', '0']",0,0,0,0,0
+1_15,tmp,0,0,not_exist,not_exist,not_exist,8,read,0.00,3,"['135', '136']","['0', '0']",0,0,0,0,0
+1_16,tmp_end_read,0,0,not_exist,not_exist,not_exist,64,read,0.00,4,"['138', '139']","['0', '0']",0,0,0,0,0
+1_17,tmp_begin_read,0,0,not_exist,not_exist,not_exist,64,read,0.00,5,"['140', '141']","['0', '0']",0,0,0,0,0
+1_18,cnt_read,0,0,not_exist,not_exist,not_exist,64,read,0.00,6,"['142', '143']","['0', '0']",0,0,0,0,0
+1_19,cnt_1_0_write_ln0,0,0,not_exist,not_exist,not_exist,0,store,0.84,7,"['144', '145']","['0', '0']",0,0,0,0,0
+1_20,e_1_0_write_ln0,0,0,not_exist,not_exist,not_exist,0,store,0.84,8,"['146', '147']","['0', '0']",0,0,0,0,0
+1_21,br_ln0,0,0,not_exist,not_exist,not_exist,0,br,0.00,9,['148'],"['0', '0']",0,0,0,0,0
+1_23,e_1_0_load,0,28,not_exist,not_exist,not_exist,64,load,0.00,10,"['161', '458']","['1', '0']",0,0,0,0,0
+1_24,cnt_1_0_load,0,34,not_exist,not_exist,not_exist,64,load,0.00,57,"['162', '457']","['4', '0']",0,0,0,0,0
+1_25,icmp_ln28,0,28,icmp_ln28_fu_249_p2,icmp,Cmp,1,icmp,1.40,11,"['163', '164']","['1', '0']",29,0,0,0,0
+1_26,br_ln28,0,28,not_exist,not_exist,not_exist,0,br,0.00,12,"['165', '166', '167']","['1', '0']",0,0,0,0,0
+1_28,trunc_ln28,0,28,trunc_ln28_fu_254_p1,not_exist,not_exist,11,trunc,0.00,13,['266'],"['1', '0']",0,0,0,0,0
+1_29,trunc_ln28_1,0,28,trunc_ln28_1_fu_317_p1,not_exist,not_exist,1,trunc,0.00,31,['267'],"['2', '0']",0,0,0,0,0
+1_32,lshr_ln3,0,29,tmp_dst_fu_365_p3,not_exist,not_exist,53,partselect,0.00,32,"['268', '269', '270', '271']","['2', '0']",0,0,0,0,0
+1_33,shl_ln4,0,29,shl_ln4_fu_329_p3,not_exist,not_exist,7,bitconcatenate,0.00,33,"['272', '273', '274']","['2', '0']",0,0,0,0,0
+1_34,trunc_ln6,0,29,trunc_ln6_fu_258_p4,not_exist,not_exist,10,partselect,0.00,14,"['276', '277', '278', '279']","['1', '0']",0,0,0,0,0
+1_35,zext_ln29,0,29,zext_ln29_fu_268_p1,not_exist,not_exist,64,zext,0.00,15,['280'],"['1', '0']",0,0,0,0,0
+1_36,edges_0_addr,0,29,not_exist,not_exist,not_exist,10,getelementptr,0.00,16,"['281', '282', '283']","['1', '0']",0,0,0,0,0
+1_37,edges_0_load,0,29,not_exist,ram,RAM,128,load,2.26,17,['284'],"['1', '1']",0,0,0,0,0
+1_38,zext_ln29_1,0,29,zext_ln29_1_fu_337_p1,not_exist,not_exist,128,zext,0.00,34,['285'],"['2', '0']",0,0,0,0,0
+1_39,lshr_ln29,0,29,lshr_ln29_fu_341_p2,lshr,Shifter,128,lshr,2.37,35,"['286', '287']","['2', '0']",423,0,0,0,0
+1_40,trunc_ln29,0,29,tmp_dst_fu_365_p1,not_exist,not_exist,64,trunc,0.00,36,['288'],"['2', '0']",0,0,0,0,0
+1_41,edges_1_addr,0,29,not_exist,not_exist,not_exist,10,getelementptr,0.00,18,"['289', '290', '291']","['1', '0']",0,0,0,0,0
+1_42,edges_1_load,0,29,not_exist,ram,RAM,128,load,2.26,19,['292'],"['1', '1']",0,0,0,0,0
+1_43,zext_ln29_2,0,29,zext_ln29_2_fu_351_p1,not_exist,not_exist,128,zext,0.00,37,['293'],"['2', '0']",0,0,0,0,0
+1_44,lshr_ln29_1,0,29,lshr_ln29_1_fu_355_p2,lshr,Shifter,128,lshr,2.37,38,"['294', '295']","['2', '0']",423,0,0,0,0
+1_45,trunc_ln29_2,0,29,tmp_dst_fu_365_p2,not_exist,not_exist,64,trunc,0.00,39,['296'],"['2', '0']",0,0,0,0,0
+1_46,tmp_dst,0,29,mux_253_64_1_1_U1,mux,Multiplexer,64,mux,0.84,40,"['297', '298', '299', '300']","['2', '0']",9,0,0,0,0
+1_47,trunc_ln30,0,30,trunc_ln30_fu_375_p1,not_exist,not_exist,1,trunc,0.00,41,['301'],"['2', '0']",0,0,0,0,0
+1_48,shl_ln5,0,30,shl_ln5_fu_461_p3,not_exist,not_exist,4,bitconcatenate,0.00,58,"['302', '303', '304']","['4', '0']",0,0,0,0,0
+1_49,lshr_ln4,0,30,lshr_ln4_reg_694,not_exist,not_exist,7,partselect,0.00,42,"['305', '306', '307', '308']","['2', '0']",0,7,0,0,0
+1_50,zext_ln30,0,30,zext_ln30_fu_454_p1,not_exist,not_exist,64,zext,0.00,54,['309'],"['3', '0']",0,0,0,0,0
+1_51,level_addr,0,30,not_exist,not_exist,not_exist,7,getelementptr,0.00,55,"['310', '311', '312']","['3', '0']",0,0,0,0,0
+1_52,level_load,0,30,not_exist,ram,RAM,16,load,2.26,56,['313'],"['3', '1']",0,0,0,0,0
+1_53,zext_ln30_1,0,30,zext_ln30_1_fu_468_p1,not_exist,not_exist,16,zext,0.00,59,['314'],"['4', '0']",0,0,0,0,0
+1_54,lshr_ln30,0,30,lshr_ln30_fu_472_p2,lshr,Shifter,16,lshr,0.00,60,"['315', '316']","['4', '0']",35,0,0,0,0
+1_55,trunc_ln30_1,0,30,trunc_ln30_1_fu_478_p1,not_exist,not_exist,8,trunc,0.00,61,['317'],"['4', '0']",0,0,0,0,0
+1_56,icmp_ln32,0,32,icmp_ln32_fu_482_p2,icmp,Cmp,1,icmp,2.00,62,"['318', '319']","['4', '0']",11,0,0,0,0
+1_57,br_ln32,0,32,not_exist,not_exist,not_exist,0,br,0.84,63,"['320', '321', '322']","['4', '0']",0,0,0,0,0
+1_59,zext_ln33,0,33,zext_ln33_fu_488_p1,not_exist,not_exist,16,zext,0.00,64,['323'],"['4', '0']",0,0,0,0,0
+1_60,shl_ln33,0,33,shl_ln33_fu_492_p2,shl,Shifter,16,shl,0.00,65,"['325', '326']","['4', '0']",35,0,0,0,0
+1_61,xor_ln33,0,33,xor_ln33_fu_498_p2,xor,LogicGate,16,xor,0.00,66,"['327', '329']","['4', '0']",16,0,0,0,0
+1_62,and_ln33,0,33,and_ln33_fu_504_p2,and,LogicGate,16,and,0.00,67,"['330', '331']","['4', '0']",16,0,0,0,0
+1_63,zext_ln33_1,0,33,zext_ln33_1_fu_510_p1,not_exist,not_exist,16,zext,0.00,68,['332'],"['4', '0']",0,0,0,0,0
+1_64,shl_ln33_1,0,33,shl_ln33_1_fu_513_p2,shl,Shifter,16,shl,0.00,69,"['333', '334']","['4', '0']",35,0,0,0,0
+1_65,or_ln33,0,33,or_ln33_fu_519_p2,or,LogicGate,16,or,1.67,70,"['335', '336']","['4', '0']",16,0,0,0,0
+1_66,level_addr_write_ln33,0,33,not_exist,ram,RAM,0,store,2.26,71,"['337', '338', '452']","['4', '0']",0,0,0,0,0
+1_67,add_ln34,0,34,add_ln34_fu_526_p2,add,Adder,64,add,1.81,72,"['339', '340']","['4', '0']",71,0,0,0,0
+1_68,br_ln35,0,35,not_exist,not_exist,not_exist,0,br,0.84,73,['341'],"['4', '0']",0,0,0,0,0
+1_70,cnt_2_0,0,34,not_exist,not_exist,not_exist,64,phi,0.00,76,"['248', '249', '250', '251']","['5', '0']",0,0,0,0,0
+1_71,add_ln28,0,28,add_ln28_fu_274_p2,add,Adder,64,add,1.81,20,"['252', '254']","['1', '0']",71,0,0,0,0
+1_72,add_ln28_2,0,28,add_ln28_2_fu_280_p2,add,Adder,11,add,1.33,21,"['255', '257']","['1', '0']",18,0,0,0,0
+1_73,xor_ln28,0,28,xor_ln28_fu_389_p2,xor,LogicGate,1,xor,0.48,43,"['258', '260']","['2', '0']",2,0,0,0,0
+1_74,icmp_ln28_1,0,28,icmp_ln28_1_fu_286_p2,icmp,Cmp,1,icmp,1.40,22,"['261', '262']","['1', '0']",29,0,0,0,0
+1_75,br_ln28,0,28,not_exist,not_exist,not_exist,0,br,0.00,23,"['263', '264', '265']","['1', '0']",0,0,0,0,0
+1_77,lshr_ln29_2,0,29,lshr_ln29_2_reg_674,not_exist,not_exist,53,partselect,0.00,24,"['181', '182', '184', '186']","['1', '0']",0,53,0,0,0
+1_78,shl_ln29_1,0,29,shl_ln29_1_fu_395_p3,not_exist,not_exist,7,bitconcatenate,0.00,44,"['188', '189', '191']","['2', '0']",0,0,0,0,0
+1_79,trunc_ln29_1,0,29,trunc_ln29_1_fu_301_p4,not_exist,not_exist,10,partselect,0.00,25,"['193', '194', '195', '197']","['1', '0']",0,0,0,0,0
+1_80,zext_ln29_3,0,29,zext_ln29_3_fu_311_p1,not_exist,not_exist,64,zext,0.00,26,['198'],"['1', '0']",0,0,0,0,0
+1_81,edges_0_addr_1,0,29,not_exist,not_exist,not_exist,10,getelementptr,0.00,27,"['199', '201', '202']","['1', '0']",0,0,0,0,0
+1_82,edges_0_load_1,0,29,not_exist,ram,RAM,128,load,2.26,28,['203'],"['1', '1']",0,0,0,0,0
+1_83,zext_ln29_4,0,29,zext_ln29_4_fu_403_p1,not_exist,not_exist,128,zext,0.00,45,['204'],"['2', '0']",0,0,0,0,0
+1_84,lshr_ln29_3,0,29,lshr_ln29_3_fu_407_p2,lshr,Shifter,128,lshr,2.37,46,"['205', '206']","['2', '0']",423,0,0,0,0
+1_85,trunc_ln29_3,0,29,tmp_dst_1_fu_431_p1,not_exist,not_exist,64,trunc,0.00,47,['207'],"['2', '0']",0,0,0,0,0
+1_86,edges_1_addr_1,0,29,not_exist,not_exist,not_exist,10,getelementptr,0.00,29,"['208', '209', '210']","['1', '0']",0,0,0,0,0
+1_87,edges_1_load_1,0,29,not_exist,ram,RAM,128,load,2.26,30,['211'],"['1', '1']",0,0,0,0,0
+1_88,zext_ln29_5,0,29,zext_ln29_5_fu_417_p1,not_exist,not_exist,128,zext,0.00,48,['212'],"['2', '0']",0,0,0,0,0
+1_89,lshr_ln29_4,0,29,lshr_ln29_4_fu_421_p2,lshr,Shifter,128,lshr,2.37,49,"['213', '214']","['2', '0']",423,0,0,0,0
+1_90,trunc_ln29_4,0,29,tmp_dst_1_fu_431_p2,not_exist,not_exist,64,trunc,0.00,50,['215'],"['2', '0']",0,0,0,0,0
+1_91,tmp_dst_1,0,29,mux_253_64_1_1_U2,mux,Multiplexer,64,mux,0.84,51,"['217', '218', '219', '220']","['2', '0']",9,0,0,0,0
+1_92,trunc_ln30_2,0,30,trunc_ln30_2_fu_440_p1,not_exist,not_exist,1,trunc,0.00,52,['221'],"['2', '0']",0,0,0,0,0
+1_93,shl_ln30_1,0,30,shl_ln30_1_fu_546_p3,not_exist,not_exist,4,bitconcatenate,0.00,80,"['223', '224', '226']","['6', '0']",0,0,0,0,0
+1_94,lshr_ln30_1,0,30,lshr_ln30_1_reg_704,not_exist,not_exist,7,partselect,0.00,53,"['228', '229', '230', '232']","['2', '0']",0,7,0,0,0
+1_95,zext_ln30_2,0,30,zext_ln30_2_fu_542_p1,not_exist,not_exist,64,zext,0.00,77,['233'],"['5', '0']",0,0,0,0,0
+1_96,level_addr_1,0,30,not_exist,not_exist,not_exist,7,getelementptr,0.00,78,"['234', '235', '236']","['5', '0']",0,0,0,0,0
+1_97,level_load_1,0,30,not_exist,ram,RAM,16,load,2.26,79,"['237', '454']","['5', '1']",0,0,0,0,0
+1_98,zext_ln30_3,0,30,zext_ln30_3_fu_553_p1,not_exist,not_exist,16,zext,0.00,81,['238'],"['6', '0']",0,0,0,0,0
+1_99,lshr_ln30_2,0,30,lshr_ln30_2_fu_557_p2,lshr,Shifter,16,lshr,0.00,82,"['239', '240']","['6', '0']",35,0,0,0,0
+1_100,trunc_ln30_3,0,30,trunc_ln30_3_fu_563_p1,not_exist,not_exist,8,trunc,0.00,83,['241'],"['6', '0']",0,0,0,0,0
+1_101,icmp_ln32_1,0,32,icmp_ln32_1_fu_567_p2,icmp,Cmp,1,icmp,2.00,84,"['242', '244']","['6', '0']",11,0,0,0,0
+1_102,br_ln32,0,32,not_exist,not_exist,not_exist,0,br,0.84,85,"['245', '246', '247']","['6', '0']",0,0,0,0,0
+1_104,zext_ln33_2,0,33,zext_ln33_2_fu_573_p1,not_exist,not_exist,16,zext,0.00,86,['342'],"['6', '0']",0,0,0,0,0
+1_105,shl_ln33_2,0,33,shl_ln33_2_fu_577_p2,shl,Shifter,16,shl,0.00,87,"['343', '344']","['6', '0']",35,0,0,0,0
+1_106,xor_ln33_1,0,33,xor_ln33_1_fu_583_p2,xor,LogicGate,16,xor,0.00,88,"['345', '346']","['6', '0']",16,0,0,0,0
+1_107,and_ln33_1,0,33,and_ln33_1_fu_589_p2,and,LogicGate,16,and,0.00,89,"['347', '348']","['6', '0']",16,0,0,0,0
+1_108,zext_ln33_3,0,33,zext_ln33_3_fu_595_p1,not_exist,not_exist,16,zext,0.00,90,['349'],"['6', '0']",0,0,0,0,0
+1_109,shl_ln33_3,0,33,shl_ln33_3_fu_598_p2,shl,Shifter,16,shl,0.00,91,"['350', '351']","['6', '0']",35,0,0,0,0
+1_110,or_ln33_1,0,33,or_ln33_1_fu_604_p2,or,LogicGate,16,or,1.67,92,"['352', '353']","['6', '0']",16,0,0,0,0
+1_111,level_addr_1_write_ln33,0,33,not_exist,ram,RAM,0,store,2.26,93,"['354', '355', '453', '455', '456', '2147483647']","['6', '0']",0,0,0,0,0
+1_112,add_ln34_1,0,34,add_ln34_1_fu_611_p2,add,Adder,64,add,1.81,94,"['356', '357']","['6', '0']",71,0,0,0,0
+1_113,br_ln35,0,35,not_exist,not_exist,not_exist,0,br,0.84,95,['358'],"['6', '0']",0,0,0,0,0
+1_115,cnt_2_1,0,34,not_exist,not_exist,not_exist,64,phi,0.00,96,"['168', '169', '170', '171']","['6', '0']",0,0,0,0,0
+1_116,add_ln28_1,0,28,add_ln28_1_fu_532_p2,add,Adder,64,add,1.81,74,"['172', '174']","['4', '0']",71,0,0,0,0
+1_117,cnt_1_0_write_ln28,0,28,not_exist,not_exist,not_exist,0,store,0.84,97,"['175', '176', '459', '462']","['6', '0']",0,0,0,0,0
+1_118,e_1_0_write_ln28,0,28,not_exist,not_exist,not_exist,0,store,0.84,75,"['177', '178', '460', '461']","['4', '0']",0,0,0,0,0
+1_119,br_ln28,0,28,not_exist,not_exist,not_exist,0,br,0.00,98,['179'],"['6', '0']",0,0,0,0,0
+1_121,cnt_1_0_out_write_ln34,0,34,not_exist,not_exist,not_exist,0,write,0.00,99,"['154', '155', '156']","['7', '0']",0,0,0,0,0
+1_122,cnt_2_0_out_write_ln34,0,34,not_exist,not_exist,not_exist,0,write,0.00,100,"['157', '158', '159']","['7', '0']",0,0,0,0,0
+1_123,br_ln0,0,0,not_exist,not_exist,not_exist,0,br,0.84,101,['160'],"['7', '0']",0,0,0,0,0
+1_125,cnt_1_0_out_write_ln34,0,34,not_exist,not_exist,not_exist,0,write,0.00,104,"['150', '151', '152']","['8', '0']",0,0,0,0,0
+1_126,br_ln0,0,0,not_exist,not_exist,not_exist,0,br,0.84,105,['153'],"['8', '0']",0,0,0,0,0
+1_128,UnifiedRetVal,0,0,not_exist,not_exist,not_exist,1,phi,0.00,102,"['359', '360', '362', '363']","['7', '0']",0,0,0,0,0
+1_129,_ln0,0,0,not_exist,not_exist,not_exist,0,ret,0.00,103,['364'],"['7', '0']",0,0,0,0,0
