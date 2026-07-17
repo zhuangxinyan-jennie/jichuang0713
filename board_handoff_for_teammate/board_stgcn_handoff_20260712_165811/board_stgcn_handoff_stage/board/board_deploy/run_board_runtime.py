@@ -62,7 +62,7 @@ DEFAULT_FACE_DET_OM = MODELS_DIR / "face_det.om"
 DEFAULT_EMOTION_OM = MODELS_DIR / "emotion.om"
 DEFAULT_ACTION_OM = MODELS_DIR / "action_mlp.om"
 DEFAULT_ACTION_STGCN_OM = MODELS_DIR / "action_stgcn.om"
-DEFAULT_POSE_OM = MODELS_DIR / "yolo11n_pose_640.om"
+DEFAULT_POSE_OM = MODELS_DIR / "yolo11n_pose_640_aipp_dfl_small_channel_pc.om"
 DEFAULT_HAND_LANDMARK_OM = MODELS_DIR / "hand_landmark_sparse.om"
 GESTURE_LABEL_MAP = ROOT / "gesture_recognition" / "artifacts" / "label_map.json"
 MOTION_ROOT = ROOT / "motion"
@@ -1414,7 +1414,7 @@ class BoardEmotionRuntime:
 
 
 def yolo_pose_nms(prediction: np.ndarray, conf_thres: float, iou_thres: float, max_det: int = 5) -> np.ndarray:
-    pred = np.asarray(prediction, dtype=np.float32)
+    pred = np.asarray(prediction)
     if pred.ndim == 3:
         pred = pred[0]
     if pred.shape[0] == 56:
@@ -1422,13 +1422,15 @@ def yolo_pose_nms(prediction: np.ndarray, conf_thres: float, iou_thres: float, m
     if pred.size == 0 or pred.shape[1] < 56:
         return np.zeros((0, 56), dtype=np.float32)
 
-    scores = pred[:, 4]
+    # The FP16 OM returns 0.94 MiB instead of 1.79 MiB. Preserve that buffer
+    # and promote only scores plus selected detections, not all 470400 values.
+    scores = np.asarray(pred[:, 4], dtype=np.float32)
     candidates = np.where(scores > conf_thres)[0]
     if candidates.size == 0:
         return np.zeros((0, 56), dtype=np.float32)
 
     if max_det == 1:
-        best = pred[int(candidates[np.argmax(scores[candidates])])]
+        best = np.asarray(pred[int(candidates[np.argmax(scores[candidates])])], dtype=np.float32)
         cx, cy, width, height = best[:4]
         out = np.empty((1, pred.shape[1] + 1), dtype=np.float32)
         out[0, :4] = (
@@ -1442,7 +1444,7 @@ def yolo_pose_nms(prediction: np.ndarray, conf_thres: float, iou_thres: float, m
         out[0, 6:] = best[5:]
         return out
 
-    x = pred[candidates].copy()
+    x = np.asarray(pred[candidates], dtype=np.float32)
     boxes = xywh2xyxy(x[:, :4])
     order = np.argsort(-x[:, 4])
     selected: list[int] = []
@@ -1532,7 +1534,7 @@ class BoardPoseRuntime:
                 self._input_buffer = img
             profile_accum("pose.preprocess", time.perf_counter() - t0)
         t0 = time.perf_counter()
-        pred = np.asarray(self.session.infer([img])[0], dtype=np.float32)
+        pred = self.session.infer([img])[0]
         profile_accum("pose.npu", time.perf_counter() - t0)
         t0 = time.perf_counter()
         dets = yolo_pose_nms(pred, conf_thres=conf_thres, iou_thres=ACTION_POSE_IOU_THRES, max_det=1)

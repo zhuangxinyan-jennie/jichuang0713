@@ -1,0 +1,68 @@
+{
+  "golden": "profiling_results/pose640_aipp_golden.npz",
+  "warmup": 10,
+  "loops": 100,
+  "aipp": {
+    "model": "models_om/yolo11n_pose_640_aipp_dfl_rewrite_pc.om",
+    "model_size_bytes": 7451198,
+    "host_input_shape": [
+      640,
+      640,
+      3
+    ],
+    "host_input_dtype": "uint8",
+    "host_input_bytes": 1228800,
+    "inputs": [
+      {
+        "name": "images",
+        "shape": [
+          1,
+          640,
+          640,
+          3
+        ],
+        "datatype": "dtype.uint8",
+        "size": 1228800,
+        "realsize": 1228800
+      }
+    ],
+    "outputs": [
+      {
+        "name": "/model.23/Concat_5:0:output0",
+        "shape": [
+          1,
+          56,
+          8400
+        ],
+        "datatype": "dtype.float32",
+        "size": 1881600,
+        "realsize": 1881600
+      }
+    ],
+    "comparison_to_onnx": {
+      "shape": [
+        1,
+        56,
+        8400
+      ],
+      "mae": 0.07430173597437945,
+      "rmse": 0.15576265027874112,
+      "max_abs": 5.0166015625,
+      "cosine_similarity": 0.9999998621299304,
+      "reference_best_index": 8002,
+      "candidate_best_index": 6442,
+      "reference_best_score": 0.00013136863708496094,
+      "candidate_score_at_reference_best": 0.0001304149627685547,
+      "candidate_best_score": 0.00013136863708496094,
+      "top10_index_overlap": 10
+    },
+    "inference": {
+      "loops": 100,
+      "mean_ms": 12.798761329995614,
+      "p50_ms": 12.696137499915494,
+      "p95_ms": 13.321517299982588,
+      "min_ms": 12.417466999977478,
+      "max_ms": 13.56158900034643
+    }
+  }
+}
