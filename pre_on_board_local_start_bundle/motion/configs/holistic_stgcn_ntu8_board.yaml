@@ -1,7 +1,8 @@
 model_type: holistic_lite_stgcn
+landmark_set: upper_body_hands
 target_frames: 48
 input_channels: 10
-num_nodes: 75
+num_nodes: 65
 infer_stride: 6
 confidence_threshold: 0.55
 class_names:
