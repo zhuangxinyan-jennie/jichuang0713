@@ -21,3 +21,5 @@
 ## 与 HGBO-OpTune 的关系
 
 `HGBO/` 是本仓库面向 Ascend 310B 的算子调优移植版，方法论对应关系见 `HGBO/README.md`。
+
+**队友须知：** 本目录上传清单见同仓库根 `README.md` 中「HGBO / HGBO-DSE 上传清单」；HGBO 侧见 `HGBO/UPLOAD_NOTES.md`。

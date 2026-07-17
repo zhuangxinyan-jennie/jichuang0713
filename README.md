@@ -43,6 +43,22 @@ git lfs pull
 
 `board_handoff_for_teammate/` 为历史交接快照，**日常开发请忽略**。
 
+### HGBO / HGBO-DSE 上传清单（给队友）
+
+两个框架的「哪些在 GitHub、哪些要本地自备」已单独写清，**clone 后请先读**：
+
+| 文件夹 | 上传说明文档 |
+|--------|----------------|
+| `HGBO/` | [HGBO/UPLOAD_NOTES.md](HGBO/UPLOAD_NOTES.md) |
+| `HGBO-DSE-main/` | [HGBO-DSE-main/UPLOAD_NOTES.md](HGBO-DSE-main/UPLOAD_NOTES.md) |
+
+**一句话对照：**
+
+| 文件夹 | ✅ 已在 GitHub | ❌ 未上传（需本地） |
+|--------|----------------|---------------------|
+| `HGBO/` | 源码、脚本、wheel、配置 | `packages/*.run`（~5GB CANN 安装包）、DSE 实验输出、编译产物、板子密钥 |
+| `HGBO-DSE-main/` | 源码、`hgp/model/`、`dse_ds/`、文档 | `dataset/std/`、`dataset/rdc/`（~1.9GB 图 pt，用 `gen_dataset_std.py` 生成） |
+
 ---
 
 ## 一分钟上手（PC）
