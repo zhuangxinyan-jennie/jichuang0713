@@ -1,0 +1,88 @@
+{
+  "golden": "profiling_results/pose640_aipp_golden.npz",
+  "warmup": 10,
+  "loops": 100,
+  "aipp": {
+    "model": "models_om/yolo11n_pose_640_aipp_dfl_rewrite_pc.om",
+    "model_size_bytes": 7451198,
+    "host_input_shape": [
+      640,
+      640,
+      3
+    ],
+    "host_input_dtype": "uint8",
+    "host_input_bytes": 1228800,
+    "inputs": [
+      {
+        "name": "images",
+        "shape": [
+          1,
+          640,
+          640,
+          3
+        ],
+        "datatype": "dtype.uint8",
+        "size": 1228800,
+        "realsize": 1228800
+      }
+    ],
+    "outputs": [
+      {
+        "name": "/model.23/Concat_5:0:output0",
+        "shape": [
+          1,
+          56,
+          8400
+        ],
+        "datatype": "dtype.float32",
+        "size": 1881600,
+        "realsize": 1881600
+      }
+    ],
+    "comparison_to_onnx": {
+      "shape": [
+        1,
+        56,
+        8400
+      ],
+      "mae": 0.07430173597437945,
+      "rmse": 0.15576265027874112,
+      "max_abs": 5.0166015625,
+      "cosine_similarity": 0.9999998621299304,
+      "reference_best_index": 8002,
+      "candidate_best_index": 6442,
+      "reference_best_score": 0.00013136863708496094,
+      "candidate_score_at_reference_best": 0.0001304149627685547,
+      "candidate_best_score": 0.00013136863708496094,
+      "top10_index_overlap": 10
+    },
+    "inference": {
+      "loops": 100,
+      "mean_ms": 13.088919639994856,
+      "p50_ms": 12.773514499713201,
+      "p95_ms": 13.696223599754374,
+      "min_ms": 12.363820999780728,
+      "max_ms": 24.523367000256258
+    },
+    "postprocess": {
+      "model_output_dtype": "float32",
+      "model_output_bytes": 1881600,
+      "legacy_full_cast": {
+        "loops": 1000,
+        "mean_ms": 0.330761591015289,
+        "p50_ms": 0.3285779998805083,
+        "p95_ms": 0.3861014497033466,
+        "min_ms": 0.2746500003922847,
+        "max_ms": 0.6361559999277233
+      },
+      "deferred_selected_cast": {
+        "loops": 1000,
+        "mean_ms": 0.3256252960118218,
+        "p50_ms": 0.3259115001128521,
+        "p95_ms": 0.3708022499722574,
+        "min_ms": 0.2736509995884262,
+        "max_ms": 0.5190289994061459
+      }
+    }
+  }
+}

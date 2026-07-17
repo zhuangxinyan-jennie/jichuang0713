@@ -1,0 +1,17 @@
+Device_id,Model Name,OP Type,Core Type,Count,Total Time(us),Min Time(us),Avg Time(us),Max Time(us),Ratio(%)
+0,yolo11n_pose_640_aipp_pc_baseline,Conv2D,AI_CORE,97,8305.34,5.958,85.622,653.659,71.206
+0,yolo11n_pose_640_aipp_pc_baseline,SoftmaxV2,AI_VECTOR_CORE,2,614.492,269.651,307.246,344.841,5.268
+0,yolo11n_pose_640_aipp_pc_baseline,AutomaticBufferFusionOp,AI_VECTOR_CORE,2,530.449,55.23,265.224,475.218,4.548
+0,yolo11n_pose_640_aipp_pc_baseline,TransData,AI_VECTOR_CORE,16,476.927,3.854,29.808,86.398,4.089
+0,yolo11n_pose_640_aipp_pc_baseline,SplitVD,AI_VECTOR_CORE,10,453.072,13.854,45.307,164.753,3.884
+0,yolo11n_pose_640_aipp_pc_baseline,Add,AI_VECTOR_CORE,12,298.881,7.042,24.907,94.502,2.562
+0,yolo11n_pose_640_aipp_pc_baseline,ConcatD,AI_VECTOR_CORE,3,238.838,72.127,79.613,91.877,2.048
+0,yolo11n_pose_640_aipp_pc_baseline,ResizeNearestNeighborV2,AI_CORE,2,180.587,60.46,90.294,120.127,1.548
+0,yolo11n_pose_640_aipp_pc_baseline,Transpose,AI_VECTOR_CORE,1,148.232,148.232,148.232,148.232,1.271
+0,yolo11n_pose_640_aipp_pc_baseline,BatchMatMulV2,AI_CORE,2,114.357,40.022,57.178,74.335,0.98
+0,yolo11n_pose_640_aipp_pc_baseline,Cast,AI_VECTOR_CORE,1,99.377,99.377,99.377,99.377,0.852
+0,yolo11n_pose_640_aipp_pc_baseline,StridedSliceD,AI_VECTOR_CORE,4,93.731,4.625,23.433,54.876,0.804
+0,yolo11n_pose_640_aipp_pc_baseline,MaxPoolV3,AI_VECTOR_CORE,3,58.751,13.959,19.584,30.396,0.504
+0,yolo11n_pose_640_aipp_pc_baseline,Sigmoid,AI_VECTOR_CORE,2,35.813,5.813,17.907,30.001,0.307
+0,yolo11n_pose_640_aipp_pc_baseline,Mul,AI_VECTOR_CORE,1,8.542,8.542,8.542,8.542,0.073
+0,yolo11n_pose_640_aipp_pc_baseline,Sub,AI_VECTOR_CORE,1,6.417,6.417,6.417,6.417,0.055

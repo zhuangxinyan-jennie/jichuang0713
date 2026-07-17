@@ -48,6 +48,41 @@ def benchmark(session: InferSession, model_input: np.ndarray, warmup: int, loops
     }
 
 
+def benchmark_postprocess(model_output: np.ndarray, loops: int) -> dict[str, Any]:
+    from run_board_runtime import yolo_pose_nms
+
+    def measure(full_cast: bool) -> tuple[np.ndarray, dict[str, float]]:
+        for _ in range(20):
+            source = np.asarray(model_output, dtype=np.float32) if full_cast else model_output
+            yolo_pose_nms(source, conf_thres=0.0, iou_thres=0.45, max_det=1)
+        samples: list[float] = []
+        result = np.zeros((0, 56), dtype=np.float32)
+        for _ in range(loops):
+            start = time.perf_counter()
+            source = np.asarray(model_output, dtype=np.float32) if full_cast else model_output
+            result = yolo_pose_nms(source, conf_thres=0.0, iou_thres=0.45, max_det=1)
+            samples.append((time.perf_counter() - start) * 1000.0)
+        return result, {
+            "loops": loops,
+            "mean_ms": float(np.mean(samples)),
+            "p50_ms": percentile(samples, 50),
+            "p95_ms": percentile(samples, 95),
+            "min_ms": float(np.min(samples)),
+            "max_ms": float(np.max(samples)),
+        }
+
+    legacy_output, legacy_timing = measure(full_cast=True)
+    deferred_output, deferred_timing = measure(full_cast=False)
+    if not np.array_equal(legacy_output, deferred_output):
+        raise RuntimeError("deferred FP32 pose postprocess differs from the legacy full-cast path")
+    return {
+        "model_output_dtype": str(model_output.dtype),
+        "model_output_bytes": int(model_output.nbytes),
+        "legacy_full_cast": legacy_timing,
+        "deferred_selected_cast": deferred_timing,
+    }
+
+
 def compare_outputs(reference: np.ndarray, candidate: np.ndarray) -> dict[str, Any]:
     reference = np.asarray(reference, dtype=np.float32)
     candidate = np.asarray(candidate, dtype=np.float32)
@@ -83,11 +118,19 @@ def compare_outputs(reference: np.ndarray, candidate: np.ndarray) -> dict[str, A
     }
 
 
-def run_model(model_path: Path, model_input: np.ndarray, baseline_output: np.ndarray, warmup: int, loops: int) -> dict[str, Any]:
+def run_model(
+    model_path: Path,
+    model_input: np.ndarray,
+    baseline_output: np.ndarray,
+    warmup: int,
+    loops: int,
+    post_loops: int,
+) -> dict[str, Any]:
     session = InferSession(0, str(model_path))
     inputs = [describe_tensor(item) for item in session.get_inputs()]
     outputs = [describe_tensor(item) for item in session.get_outputs()]
-    output = np.asarray(session.infer([model_input])[0], dtype=np.float32)
+    raw_output = np.asarray(session.infer([model_input])[0])
+    output = np.asarray(raw_output, dtype=np.float32)
     return {
         "model": str(model_path),
         "model_size_bytes": model_path.stat().st_size,
@@ -98,6 +141,7 @@ def run_model(model_path: Path, model_input: np.ndarray, baseline_output: np.nda
         "outputs": outputs,
         "comparison_to_onnx": compare_outputs(baseline_output, output),
         "inference": benchmark(session, model_input, warmup, loops),
+        "postprocess": benchmark_postprocess(raw_output, post_loops),
     }
 
 
@@ -109,6 +153,7 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--warmup", type=int, default=5)
     parser.add_argument("--loops", type=int, default=50)
+    parser.add_argument("--post-loops", type=int, default=1000)
     args = parser.parse_args()
 
     if args.reference_model is None and args.aipp_model is None:
@@ -124,11 +169,23 @@ def main() -> None:
     if args.reference_model is not None:
         reference_input = np.ascontiguousarray(golden["baseline_nchw"], dtype=np.float32)
         report["reference"] = run_model(
-            args.reference_model, reference_input, baseline_output, args.warmup, args.loops
+            args.reference_model,
+            reference_input,
+            baseline_output,
+            args.warmup,
+            args.loops,
+            args.post_loops,
         )
     if args.aipp_model is not None:
         aipp_input = np.ascontiguousarray(golden["letterbox_bgr"], dtype=np.uint8)
-        report["aipp"] = run_model(args.aipp_model, aipp_input, baseline_output, args.warmup, args.loops)
+        report["aipp"] = run_model(
+            args.aipp_model,
+            aipp_input,
+            baseline_output,
+            args.warmup,
+            args.loops,
+            args.post_loops,
+        )
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2), encoding="utf-8")
