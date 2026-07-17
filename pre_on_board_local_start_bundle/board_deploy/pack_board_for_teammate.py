@@ -42,7 +42,7 @@ cp -a {BOARD_PRE}/motion/. "$STAGE/board/motion/"
 rm -rf "$STAGE/board/motion/__pycache__" "$STAGE/board/motion"/*/__pycache__ 2>/dev/null || true
 
 # 动作链路相关 OM（不含 ASR/情绪等大文件）
-for om in action_stgcn.om yolo11n_pose_640.om hand_landmark_sparse.om yolo_face_hand_person.om gesture_mlp.om; do
+for om in action_stgcn.om action_stgcn_upperbody.om yolo11n_pose_640.om hand_landmark_sparse.om yolo_face_hand_person.om gesture_mlp.om; do
   if [ -f "{BOARD_PRE}/models_om/$om" ]; then
     cp -a "{BOARD_PRE}/models_om/$om" "$STAGE/board/models_om/"
   fi
@@ -157,8 +157,8 @@ PC IP（打包时）：{guess_pc_ip(args.host)}
 ## 包里有什么
 
 ### `board_stgcn_handoff_stage/board/`
-- `motion/`：板端 ST-GCN 推理代码、`action_stgcn.onnx`、`action_stgcn.om`、配置
-- `models_om/`：动作识别依赖的 NPU 模型（pose / hand / action_stgcn）
+- `motion/`：板端 ST-GCN 推理代码、ONNX、配置
+- `models_om/`：动作识别依赖的 NPU 模型（pose / hand / `action_stgcn_upperbody`）
 - `board_deploy/run_board_runtime.py`：板端多模态运行时（含 stgcn 后端）
 
 ### `board_stgcn_handoff_stage/jichuang/`

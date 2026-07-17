@@ -80,6 +80,8 @@ class BoardStgcnActionRuntime:
         cfg = yaml.safe_load(config_path.read_text(encoding="utf-8"))
         self.window = int(cfg.get("target_frames", 48))
         self.input_channels = int(cfg.get("input_channels", 10))
+        self.landmark_set = str(cfg.get("landmark_set", "pose_hands"))
+        self.num_nodes = int(cfg.get("num_nodes", 75))
         self.stride = max(1, int(cfg.get("infer_stride", 6)))
         self.confidence_threshold = float(cfg.get("confidence_threshold", 0.55))
         self.class_names = [str(x) for x in cfg.get("class_names", NTU8_CLASS_NAMES)]
@@ -147,7 +149,12 @@ class BoardStgcnActionRuntime:
             return self.last_action_label, self.last_action_conf, self.last_pose_points
 
         t0 = time.perf_counter()
-        model_input = make_stgcn_input(window, self.window)
+        model_input = make_stgcn_input(window, self.window, landmark_set=self.landmark_set)
+        if model_input.shape != (1, self.input_channels, self.window, self.num_nodes):
+            raise RuntimeError(
+                f"ST-GCN feature shape mismatch: got {model_input.shape}, "
+                f"expected (1,{self.input_channels},{self.window},{self.num_nodes})"
+            )
         logits = np.asarray(
             self.action_session.infer([model_input])[0],
             dtype=np.float32,
