@@ -1,0 +1,18 @@
+{
+  "latency_ms": 1.6877999951248057,
+  "throughput_fps": 592.487263235271,
+  "jitter_ms": 0.2693281420102726,
+  "cpu_usage": 0.0,
+  "memory_usage": 1008,
+  "correct": true,
+  "compile_status": "device_success",
+  "operator": "keypoint_post_process",
+  "config": {
+    "split_axis": "by_person",
+    "tile_person": 4,
+    "blockDim": 1,
+    "buffer_num": 1,
+    "pipeline_mode": "normal",
+    "align_policy": "relaxed"
+  }
+}

@@ -1,0 +1,13 @@
+blockDim: [1]
+
+split_axis: [by_person, flat]
+
+tile_person: [1, 2, 4, 8]
+tile_keypoint: [1, 3, 7, 21]
+tile_len: [64, 128, 256, 512]
+
+buffer_num: [1, 2]
+
+pipeline_mode: [normal, double_buffer]
+
+align_policy: [strict, relaxed]

@@ -1,0 +1,18 @@
+{
+  "latency_ms": 534.3918499929714,
+  "throughput_fps": 1.8712860235670745,
+  "jitter_ms": 16.08286244915111,
+  "cpu_usage": 0.0,
+  "memory_usage": 61440,
+  "correct": true,
+  "compile_status": "device_success",
+  "operator": "video_pre_fuse",
+  "config": {
+    "split_axis": "H",
+    "tile_h": 8,
+    "blockDim": 1,
+    "buffer_num": 1,
+    "pipeline_mode": "normal",
+    "align_policy": "relaxed"
+  }
+}

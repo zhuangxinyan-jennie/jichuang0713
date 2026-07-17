@@ -1,0 +1,14 @@
+{
+    "operator": "VideoPreFuse",
+    "op_type": "vector",
+    "search_axes": [
+        "H",
+        "W",
+        "flat"
+    ],
+    "tile_params": [
+        "tile_h",
+        "tile_w",
+        "tile_len"
+    ]
+}

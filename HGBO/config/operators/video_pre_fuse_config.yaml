@@ -1,0 +1,28 @@
+operator: VideoPreFuse
+op_type: vector
+description: "视频预处理融合: resize + crop + normalize + layout transform"
+
+input_shape: [720, 1280, 3]
+output_shape: [640, 640, 3]
+dtype: fp16
+
+# 算子资源估算系数 (用于 ACP UB 估算)
+op_profile:
+  total_elements: 2764800
+  # 每个 tile 额外临时 buffer 系数 (归一化/转置中间结果)
+  temp_buffer_ratio: 0.5
+  # resize 输出 tile 相对输入 tile 的缩放比 (640/720, 640/1280)
+  output_scale_h: 0.8889
+  output_scale_w: 0.5
+  estimated_ops_per_element: 12
+  min_work_per_core: 256
+
+# 层次化搜索空间 (TSM tree root)
+search_tree:
+  split_axis:
+    H:
+      tile_param: tile_h
+    W:
+      tile_param: tile_w
+    flat:
+      tile_param: tile_len

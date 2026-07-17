@@ -1,0 +1,53 @@
+{
+  "generated": "2026-07-06",
+  "board": "Ascend310B4 @ 192.168.137.100",
+  "mode_note": "device_npu=Ascend C 自定义算子 VideoPreFuseCustom 在 310B4 NPU 真机；device_cpu_baseline=板子 ARM CPU Python reference（NPU 未通时的回退）。",
+  "video_pre_fuse": {
+    "mock_tpe_ms": 0.778,
+    "mock_random_ms": 0.778,
+    "device_cpu_baseline_tpe_ms": 4397.28,
+    "device_cpu_baseline_random_ms": 4403.91,
+    "device_npu_tpe_ms": 0.026571,
+    "device_npu_tpe_best": {
+      "split_axis": "flat",
+      "tile_h": 4,
+      "tile_w": 64,
+      "tile_len": 512,
+      "blockDim": 1,
+      "buffer_num": 1,
+      "pipeline_mode": "double_buffer",
+      "align_policy": "strict"
+    },
+    "device_cpu_baseline_tpe_best": {
+      "split_axis": "H",
+      "tile_h": 4,
+      "blockDim": 1,
+      "buffer_num": 1,
+      "pipeline_mode": "normal",
+      "align_policy": "strict"
+    },
+    "speedup_vs_cpu_baseline": 165492,
+    "finding": "CANN 8.0 + kernels-310b 8.0.0 后 NPU 通路跑通。50 trials TPE 真机 DSE 最优 0.027ms（trial 40, flat+tile_len=512+double_buffer），相对 CPU reference ~4397ms 约 16.5 万倍加速。最优切分从 H 变为 flat。"
+  },
+  "keypoint_post_process": {
+    "mock_tpe_ms": 0.070,
+    "mock_random_ms": 0.070,
+    "device_tpe_ms": 14.66,
+    "device_random_ms": 14.65,
+    "device_tpe_best": {
+      "split_axis": "flat",
+      "tile_len": 128,
+      "buffer_num": 2,
+      "pipeline_mode": "normal",
+      "align_policy": "relaxed"
+    },
+    "device_random_best": {
+      "split_axis": "flat",
+      "tile_len": 256,
+      "buffer_num": 2,
+      "pipeline_mode": "normal",
+      "align_policy": "relaxed"
+    },
+    "finding": "TPE/random 真机最优接近；flat + double buffer 更优。"
+  }
+}

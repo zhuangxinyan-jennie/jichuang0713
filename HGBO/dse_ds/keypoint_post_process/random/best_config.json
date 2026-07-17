@@ -1,0 +1,13 @@
+{
+    "latency_ms": 0.070337365,
+    "config": {
+        "split_axis": "flat",
+        "tile_len": 512,
+        "tile_person": 1,
+        "tile_keypoint": 7,
+        "blockDim": 1,
+        "buffer_num": 2,
+        "pipeline_mode": "normal",
+        "align_policy": "strict"
+    }
+}

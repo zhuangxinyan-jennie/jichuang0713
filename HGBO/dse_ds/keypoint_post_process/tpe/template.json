@@ -1,0 +1,13 @@
+{
+    "operator": "KeypointPostProcess",
+    "op_type": "vector",
+    "search_axes": [
+        "by_person",
+        "flat"
+    ],
+    "tile_params": [
+        "tile_len",
+        "tile_person",
+        "tile_keypoint"
+    ]
+}

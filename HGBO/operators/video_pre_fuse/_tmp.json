@@ -1,0 +1,1 @@
+{"split_axis": "H", "tile_h": 8, "blockDim": 1, "buffer_num": 1, "pipeline_mode": "normal", "align_policy": "relaxed"}

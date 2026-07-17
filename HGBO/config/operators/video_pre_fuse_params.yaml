@@ -1,0 +1,15 @@
+# 310B 单核: blockDim 仅允许 1
+blockDim: [1]
+
+split_axis: [H, W, flat]
+
+# H 切分按整行载入 GM，720p(1280 宽) 下 tile_h>=16 通常 UB 溢出，仅保留小 tile
+tile_h: [4, 8]
+tile_w: [16, 32, 64, 128]
+tile_len: [256, 512, 1024, 2048, 4096]
+
+buffer_num: [1, 2]
+
+pipeline_mode: [normal, double_buffer]
+
+align_policy: [strict, relaxed]

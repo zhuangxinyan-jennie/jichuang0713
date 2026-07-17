@@ -1,0 +1,45 @@
+{
+  "vpf_npu": {
+    "backend": "ascendc_npu",
+    "latency_ms": 0.026683,
+    "compile_status": "aclnn_npu",
+    "correct": true
+  },
+  "clean0606_cpu": {
+    "input_shape": [
+      720,
+      1280,
+      3
+    ],
+    "output_shape": [
+      640,
+      640,
+      3
+    ],
+    "platform": "Ascend310B4 board ARM CPU (OpenCV)",
+    "letterbox_only": {
+      "median_ms": 4.45474900334375,
+      "mean_ms": 4.9711109333050745,
+      "min_ms": 4.1565599967725575,
+      "max_ms": 11.83481801126618
+    },
+    "letterbox_bgr2rgb_chw_norm": {
+      "median_ms": 30.783348498516716,
+      "mean_ms": 31.005503599590156,
+      "min_ms": 29.895506988395937,
+      "max_ms": 36.07004300283734
+    },
+    "emotion_preprocess_64x64": {
+      "median_ms": 0.5659840026055463,
+      "mean_ms": 0.574135233667524,
+      "min_ms": 0.5602349992841482,
+      "max_ms": 0.637172008282505
+    }
+  },
+  "comparison": {
+    "clean0606_letterbox_norm_median_ms": 30.783348498516716,
+    "hgbo_vpf_npu_ms": 0.026683,
+    "npu_speedup_vs_letterbox_norm": 1153.7,
+    "note": "算法不完全相同：clean0606=letterbox+padding；HGBO=nearest resize+norm"
+  }
+}

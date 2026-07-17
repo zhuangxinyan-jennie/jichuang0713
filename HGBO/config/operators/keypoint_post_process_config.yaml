@@ -1,0 +1,22 @@
+operator: KeypointPostProcess
+op_type: vector
+description: "关键点后处理: 置信度过滤 + 坐标归一化 + 事件编码"
+
+input_shape: [32, 21, 3]
+output_shape: [32, 8]
+dtype: fp32
+
+op_profile:
+  total_elements: 2016
+  temp_buffer_ratio: 0.25
+  output_scale_h: 1.0
+  output_scale_w: 1.0
+  estimated_ops_per_element: 8
+  min_work_per_core: 64
+
+search_tree:
+  split_axis:
+    by_person:
+      tile_param: tile_person
+    flat:
+      tile_param: tile_len

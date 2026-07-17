@@ -1,0 +1,81 @@
+# Ascend 310B 硬件 Profile — 集创赛赛方指定：NeuEye-AIB 8T / NeuEye8 开发者套件
+# 参考来源:
+#   - 赛方推荐硬件规格表 (NeuEye-AIB 8T)
+#   - Atlas 200I A2 8TOPS 4GB 档位 (昇腾社区官方，与赛方参数一致)
+#   - CANN Ascend C 硬件约束 (UB/L1 32B 对齐)
+#
+# 芯片档位: 310B4 (npu-smi 通常显示 310B4)
+#   INT8  8 TOPS  |  FP16 4 TFLOPS  |  AI Core 主频 500 MHz
+
+target: Ascend310B
+product: NeuEye-AIB-8T
+chip: DaVinciV300
+chip_variant: 310B4
+npu_arch: "200x"
+
+# 并行度: 赛方规格 — 1× DaVinci V300 AI Core
+ai_core_num: 1
+block_dim_max: 1
+ai_core_freq_mhz: 500
+
+# CPU (赛方规格，算子调优参考)
+cpu_cores: 4
+cpu_model: TAISHANV200M
+cpu_freq_mhz: 1000
+
+# 算力峰值 (赛方规格)
+int8_peak_tops: 8
+vector_peak_tflops_fp16: 4.0
+
+# 片外内存 (赛方规格: LPDDR4X 4GB 64bit 3200Mbps ECC)
+gm_capacity_gb: 4
+gm_type: LPDDR4X
+gm_bus_width_bit: 64
+gm_rate_mbps: 3200
+gm_bandwidth_gbps: 25.6
+gm_ecc: true
+
+# Unified Buffer (UB)
+# 赛方规格表未给出 UB 字节数；310 系列开源/CANN 常见 252 KiB。
+# 建议在板子上用 GetCoreMemSize(CoreMemType::UB) 实测后覆盖。
+ub_size_bytes: 258048
+ub_usable_ratio: 0.85
+
+# 数据对齐 (CANN 200x 官方)
+align_bytes: 32
+vector_lanes: 128
+cube_size: 16
+l0a_align_bytes: 512
+l0b_align_bytes: 512
+l0c_align_bytes: 64
+
+# 每核最小 workload
+min_elements_per_core: 128
+
+dtype_bytes:
+  uint8: 1
+  int8: 1
+  fp16: 2
+  bf16: 2
+  fp32: 4
+  int32: 4
+
+memory_scope:
+  - GM
+  - UB
+  - L1
+  - L0A
+  - L0B
+  - L0C
+
+compute_units:
+  - Vector
+  - Cube
+
+# 赛方规格 — 硬件编解码能力 (VideoPreFuse 场景参考)
+media:
+  h265_decode_1080p30_channels: 20
+  h265_decode_4k75_channels: 2
+  h265_encode_1080p30_channels: 12
+  jpeg_decode_1080p_fps: 512
+  jpeg_max_resolution: [16384, 16384]

@@ -1,0 +1,93 @@
+{
+  "video_pre_fuse/tpe/device": {
+    "exit_code": 0,
+    "elapsed_sec": 1022.5,
+    "best_config": {
+      "latency_ms": 4397.282632000497,
+      "config": {
+        "split_axis": "H",
+        "tile_h": 4,
+        "tile_w": 32,
+        "tile_len": 256,
+        "blockDim": 1,
+        "buffer_num": 1,
+        "pipeline_mode": "normal",
+        "align_policy": "strict"
+      }
+    }
+  },
+  "video_pre_fuse/random/device": {
+    "exit_code": 0,
+    "elapsed_sec": 1327.9,
+    "best_config": {
+      "latency_ms": 4403.908068999954,
+      "config": {
+        "split_axis": "H",
+        "tile_h": 8,
+        "tile_w": 32,
+        "tile_len": 2048,
+        "blockDim": 1,
+        "buffer_num": 1,
+        "pipeline_mode": "normal",
+        "align_policy": "strict"
+      }
+    }
+  },
+  "keypoint_post_process/tpe/device": {
+    "exit_code": 0,
+    "elapsed_sec": 23.8,
+    "best_config": {
+      "latency_ms": 14.664104999610572,
+      "config": {
+        "split_axis": "flat",
+        "tile_len": 128,
+        "tile_person": 2,
+        "tile_keypoint": 3,
+        "blockDim": 1,
+        "buffer_num": 2,
+        "pipeline_mode": "normal",
+        "align_policy": "relaxed"
+      }
+    }
+  },
+  "keypoint_post_process/random/device": {
+    "exit_code": 0,
+    "elapsed_sec": 19.9,
+    "best_config": {
+      "latency_ms": 14.650646499831055,
+      "config": {
+        "split_axis": "flat",
+        "tile_len": 256,
+        "tile_person": 1,
+        "tile_keypoint": 1,
+        "blockDim": 1,
+        "buffer_num": 2,
+        "pipeline_mode": "normal",
+        "align_policy": "relaxed"
+      }
+    }
+  },
+  "video_pre_fuse/tpe/device_npu": {
+    "operator": "video_pre_fuse",
+    "alg": "tpe",
+    "mode": "device",
+    "num_trials": 50,
+    "exit_code": 0,
+    "elapsed_sec": 1663.4,
+    "best_config": {
+      "latency_ms": 0.026571,
+      "config": {
+        "split_axis": "flat",
+        "tile_h": 4,
+        "tile_w": 64,
+        "tile_len": 512,
+        "blockDim": 1,
+        "buffer_num": 1,
+        "pipeline_mode": "double_buffer",
+        "align_policy": "strict"
+      }
+    },
+    "benchmark_npu_count": "0",
+    "benchmark_total_count": "42"
+  }
+}
