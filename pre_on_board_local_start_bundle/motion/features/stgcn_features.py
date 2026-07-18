@@ -3,7 +3,11 @@ from __future__ import annotations
 import numpy as np
 
 from motion.common import get_norm_center_scale
-from motion.temporal_models.holistic_stgcn import NUM_NODES, bone_parent_indices
+from motion.temporal_models.holistic_stgcn import (
+    NUM_NODES,
+    bone_parent_indices,
+    node_indices_for_landmark_set,
+)
 
 FEATURE_DIM = NUM_NODES * 4  # 300
 
@@ -48,10 +52,15 @@ def pack_pose_hands_frame(
     return points.reshape(-1).astype(np.float32)
 
 
-def make_stgcn_input(features: np.ndarray, target_frames: int) -> np.ndarray:
+def make_stgcn_input(
+    features: np.ndarray,
+    target_frames: int,
+    landmark_set: str = "pose_hands",
+) -> np.ndarray:
     """
-    Sliding window [T,300] -> ST-GCN tensor [1,10,T,75] for OM inference.
-    Uniformly resamples to target_frames when buffer length differs.
+    Sliding window [T,300] -> ST-GCN tensor [1,10,T,V] for OM inference.
+    The raw buffer always contains 75 pose+hand landmarks. landmark_set selects
+    the graph nodes consumed by the deployed ST-GCN checkpoint.
     """
     total = int(features.shape[0])
     if total <= 0:
@@ -59,11 +68,13 @@ def make_stgcn_input(features: np.ndarray, target_frames: int) -> np.ndarray:
     if total != target_frames:
         idx = np.linspace(0, total - 1, target_frames).round().astype(np.int64)
         features = features[idx]
-    seq = features.reshape(target_frames, NUM_NODES, 4).astype(np.float32)
+    full_seq = features.reshape(target_frames, NUM_NODES, 4).astype(np.float32)
+    node_indices = np.asarray(node_indices_for_landmark_set(landmark_set), dtype=np.int64)
+    seq = full_seq[:, node_indices, :]
     coords = seq[..., :3]
     motion = np.zeros_like(coords, dtype=np.float32)
     motion[1:] = coords[1:] - coords[:-1]
-    parent = bone_parent_indices(NUM_NODES)
+    parent = bone_parent_indices(landmark_set)
     bone = np.zeros_like(coords, dtype=np.float32)
     valid = parent >= 0
     bone[:, valid, :] = coords[:, valid, :] - coords[:, parent[valid], :]

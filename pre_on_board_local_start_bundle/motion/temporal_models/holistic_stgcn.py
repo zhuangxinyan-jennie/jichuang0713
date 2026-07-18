@@ -2,7 +2,7 @@
 Lightweight ST-GCN for pose+hands landmarks.
 
 Board inference uses NPU pose + hand landmark OMs; training may use MediaPipe offline.
-Input: [B, C, T, V] with C=10, T=48, V=75.
+Input: [B, C, T, V] with C=10, T=48, V=75 (full) or V=65 (upper_body_hands).
 """
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ import torch
 import torch.nn as nn
 
 NUM_NODES = 75
+UPPER_BODY_HAND_NUM_NODES = 65
 LEFT_HAND_OFFSET = 33
 RIGHT_HAND_OFFSET = 54
 
@@ -31,6 +32,12 @@ HAND_EDGES_BASE: List[Tuple[int, int]] = [
     (13, 17),
 ]
 
+LANDMARK_SET_NODE_INDICES = {
+    "pose_hands": tuple(range(NUM_NODES)),
+    # Pose indices 23-32 are hips, knees, ankles, heels, and feet.
+    "upper_body_hands": tuple(range(23)) + tuple(range(LEFT_HAND_OFFSET, NUM_NODES)),
+}
+
 
 def _offset_edges(edges: Iterable[Tuple[int, int]], offset: int) -> List[Tuple[int, int]]:
     return [(a + offset, b + offset) for a, b in edges]
@@ -44,10 +51,29 @@ GRAPH_EDGES: List[Tuple[int, int]] = (
 )
 
 
-def bone_parent_indices(num_nodes: int = NUM_NODES) -> np.ndarray:
+def node_indices_for_landmark_set(landmark_set: str = "pose_hands") -> Tuple[int, ...]:
+    try:
+        return LANDMARK_SET_NODE_INDICES[landmark_set]
+    except KeyError as exc:
+        supported = ", ".join(sorted(LANDMARK_SET_NODE_INDICES))
+        raise ValueError(f"unsupported landmark_set={landmark_set!r}; expected one of: {supported}") from exc
+
+
+def graph_edges_for_landmark_set(landmark_set: str = "pose_hands") -> List[Tuple[int, int]]:
+    original_nodes = node_indices_for_landmark_set(landmark_set)
+    compact_index = {original: compact for compact, original in enumerate(original_nodes)}
+    return [
+        (compact_index[src], compact_index[dst])
+        for src, dst in GRAPH_EDGES
+        if src in compact_index and dst in compact_index
+    ]
+
+
+def bone_parent_indices(landmark_set: str = "pose_hands") -> np.ndarray:
+    num_nodes = len(node_indices_for_landmark_set(landmark_set))
     parent = np.full((num_nodes,), -1, dtype=np.int64)
-    for src, dst in GRAPH_EDGES:
-        if 0 <= dst < num_nodes and parent[dst] < 0:
+    for src, dst in graph_edges_for_landmark_set(landmark_set):
+        if parent[dst] < 0:
             parent[dst] = src
     return parent
 
@@ -58,14 +84,14 @@ def _normalize_adjacency(a: np.ndarray) -> np.ndarray:
     return a / degree
 
 
-def build_adjacency(num_nodes: int = NUM_NODES) -> np.ndarray:
+def build_adjacency(landmark_set: str = "pose_hands") -> np.ndarray:
+    num_nodes = len(node_indices_for_landmark_set(landmark_set))
     self_link = np.eye(num_nodes, dtype=np.float32)
     toward_child = np.zeros((num_nodes, num_nodes), dtype=np.float32)
     toward_parent = np.zeros((num_nodes, num_nodes), dtype=np.float32)
-    for src, dst in GRAPH_EDGES:
-        if 0 <= src < num_nodes and 0 <= dst < num_nodes:
-            toward_child[src, dst] = 1.0
-            toward_parent[dst, src] = 1.0
+    for src, dst in graph_edges_for_landmark_set(landmark_set):
+        toward_child[src, dst] = 1.0
+        toward_parent[dst, src] = 1.0
     return np.stack(
         [
             self_link,
@@ -140,14 +166,22 @@ class HolisticLiteSTGCN(nn.Module):
         num_classes: int = 8,
         channels: Sequence[int] = (32, 64, 64, 128),
         num_nodes: int = NUM_NODES,
+        landmark_set: str = "pose_hands",
         temporal_kernel: int = 9,
         dropout: float = 0.2,
     ):
         super().__init__()
-        adjacency = build_adjacency(num_nodes)
+        expected_nodes = len(node_indices_for_landmark_set(landmark_set))
+        if int(num_nodes) != expected_nodes:
+            raise ValueError(
+                f"num_nodes={num_nodes} does not match landmark_set={landmark_set!r} "
+                f"(expected {expected_nodes})"
+            )
+        adjacency = build_adjacency(landmark_set)
         self.in_channels = in_channels
         self.num_classes = num_classes
         self.num_nodes = num_nodes
+        self.landmark_set = landmark_set
         self.channels = tuple(int(c) for c in channels)
         self.data_bn = nn.BatchNorm1d(in_channels * num_nodes)
 

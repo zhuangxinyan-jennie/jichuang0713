@@ -76,10 +76,12 @@ python pre_on_board_local_start_bundle\board_deploy\finish_ctc_om_deploy.py
 |------|------|
 | `yolo11n_pose_640.om` | 全身关键点（float32 输入，默认） |
 | `yolo11n_pose_640_aipp.om` | 全身关键点（静态 AIPP，uint8 BGR，更快） |
+| `yolo11n_pose_640_aipp_dfl_small_channel_pc.om` | 可选：DFL 重写 + 小通道 AIPP（PR #2，更快） |
 | `yolo11n_pose_640_source_ref.om` | AIPP 对照用 float32 参考 OM |
 | `hand_landmark_sparse.om` | 手部关键点 |
 | `yolo_face_hand_person.om` | 检测（hybrid 模式） |
-| `action_stgcn.om` | ST-GCN 8 类动作 |
+| `action_stgcn_upperbody.om` | **默认** ST-GCN 8 类动作（上半身 65 点，PR #3） |
+| `action_stgcn.om` | 旧版全身 75 点，可回退 |
 | `gesture_mlp.om`、`face_det.om`、`emotion.om` | 手势/脸/表情 |
 
 ### 4.2 仓库没有、板端必补
@@ -169,17 +171,29 @@ bash /home/HwHiAiUser/jichuang/stop_board.sh
 
 ---
 
-## 7. 动作识别（ST-GCN）
+## 7. 动作识别（ST-GCN · 上半身）
 
-默认：`ACTION_BACKEND=stgcn`，`DETECTOR_BACKEND=hybrid`。
+默认：`ACTION_BACKEND=stgcn`，`DETECTOR_BACKEND=hybrid`，默认 OM 为 **`action_stgcn_upperbody.om`**（PR #3）。
 
 ```text
 视频帧 → yolo11n_pose_640.om + hand_landmark_sparse.om
-      → CPU 特征 [1,10,48,75]
-      → action_stgcn.om → 8 类动作
+      → CPU 特征缓冲 [T,300]（75 点）
+      → 取 upper_body_hands 子图 [1,10,48,65]
+      → action_stgcn_upperbody.om → 8 类动作
 ```
 
-训练/导出 ONNX → ATC 流程见仓库 `pre_on_board_local_start_bundle/motion/export/export_stgcn_onnx.py` 与 `board_deploy/deploy_action_stgcn.py`。
+部署：
+
+```powershell
+python pre_on_board_local_start_bundle\board_deploy\deploy_action_stgcn.py `
+  --om pre_on_board_local_start_bundle\pre_on_board\models_om\action_stgcn_upperbody.om
+```
+
+缺 ONNX/OM 时先运行：`python scripts/download_teammate_models.py`，或在 WSL 用 `board_deploy/compile_action_stgcn_in_wsl.sh` 编译。
+
+回退旧版全身模型：板端 `--action-stgcn-om models_om/action_stgcn.om`，并把 `holistic_stgcn_ntu8_board.yaml` 的 `landmark_set` 改回 `pose_hands`、`num_nodes: 75`。
+
+训练/导出 ONNX → ATC 流程见 `motion/export/export_stgcn_onnx.py` 与 `board_deploy/deploy_action_stgcn.py`。
 
 **已知问题**：在 PC 用 MediaPipe 训练的权重，若板端手部关键点缺失，可能偏向单一动作；需用板端 landmarks 重新微调后再导出 OM。
 

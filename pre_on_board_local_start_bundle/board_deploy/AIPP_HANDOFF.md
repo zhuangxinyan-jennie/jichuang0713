@@ -43,6 +43,24 @@ python3 board_deploy/run_board_runtime.py \
 
 回退：`--pose-input-mode float32` + `yolo11n_pose_640.om`。
 
+## 可选：DFL 重写 + 小通道 AIPP（PR #2，进一步加速）
+
+工具链（正式路径 `board_deploy/`）：
+
+1. `rewrite_pose_dfl_onnx.py` — 把 DFL 链改成 Softmax+Mul+ReduceSum
+2. `compile_pose_aipp_in_wsl.sh` — WSL x86 CANN 编译（需 DFL 重写后的 ONNX）
+3. 产物 OM：`models_om/yolo11n_pose_640_aipp_dfl_small_channel_pc.om`
+
+启用：
+
+```bash
+export POSE_INPUT_MODE=aipp
+export POSE_OM=/home/HwHiAiUser/pre_on_board/models_om/yolo11n_pose_640_aipp_dfl_small_channel_pc.om
+bash /home/HwHiAiUser/jichuang/run_on_board.sh
+```
+
+本地缺 OM 时：`python scripts/download_teammate_models.py`（需能访问 GitHub）。
+
 ## 板端重编译
 
 在 `/home/HwHiAiUser/pre_on_board`：
