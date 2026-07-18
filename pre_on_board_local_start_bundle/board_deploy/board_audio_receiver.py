@@ -31,6 +31,9 @@ if str(ASR_SRC) not in sys.path:
 
 from audio_capture import stream_microphone_chunks
 
+from board_playback_gate import LocalPlaybackGateMonitor, gate_enabled, get_board_playback_gate
+from board_playback_gate_http import start_board_playback_gate_http
+
 try:
     import sherpa_onnx  # type: ignore
 except Exception:
@@ -215,6 +218,38 @@ def connect_result_sender(host: str, port: int, retry_seconds: float = 10.0) -> 
         except OSError:
             time.sleep(0.2)
     return None
+
+
+def emit_asr_cleared(
+    sock: socket.socket | None,
+    result_host: str,
+    result_port: int,
+    *,
+    summary: dict | None = None,
+) -> socket.socket | None:
+    """熊大播放闸门 busy 时：向 PC 推送空 ASR，与 board_bridge poll_loop 清空一致。"""
+    if sock is None:
+        sock = connect_result_sender(result_host, result_port, retry_seconds=1.0)
+        if sock is None:
+            return None
+    try:
+        send_json(sock, {"type": "asr_partial", "text": "", "timestamp": time.time()})
+        send_json(
+            sock,
+            {
+                "type": "state_packet",
+                "timestamp": time.time(),
+                "partial_text": "",
+                "summary": summary or {},
+            },
+        )
+        return sock
+    except OSError:
+        try:
+            sock.close()
+        except Exception:
+            pass
+        return None
 
 
 def emit_partial(
@@ -515,6 +550,7 @@ def run_asr_stream(
     backend: str,
     offline_final: bool,
     model_device: str,
+    respect_playback_gate: bool = True,
 ) -> None:
     silence_rms_threshold = float(runtime_cfg.get("silence_rms_threshold", 0.01))
     min_voice_rms = float(runtime_cfg.get("min_voice_rms", 0.02))
@@ -560,10 +596,50 @@ def run_asr_stream(
     pre_roll_chunks: deque[np.ndarray] = deque(maxlen=max(1, pre_roll_ms // max(block_ms, 1)))
     segment_summary_samples: list[dict] = []
     result = None
+    gate_monitor = (
+        LocalPlaybackGateMonitor(get_board_playback_gate())
+        if respect_playback_gate and gate_enabled()
+        else None
+    )
+
+    def discard_utterance(*, emit_clear: bool = True) -> None:
+        nonlocal result_sock, sentence_text, longest_sentence_text, last_partial
+        nonlocal silent_ms, inactive_ms, stable_text_ms, pending_audio, utterance_audio
+        nonlocal speech_started, voiced_run_ms, utterance_peak_rms, utterance_voice_ms
+        nonlocal utterance_rms_sum, utterance_rms_count, segment_summary_samples
+        nonlocal post_final_cooldown_ms, pre_roll_chunks, result
+        reset_asr_engine(asr, backend)
+        sentence_text = ""
+        longest_sentence_text = ""
+        last_partial = ""
+        silent_ms = 0
+        inactive_ms = 0
+        stable_text_ms = 0
+        pending_audio = np.zeros((0,), dtype=np.float32)
+        utterance_audio = np.zeros((0,), dtype=np.float32)
+        speech_started = False
+        voiced_run_ms = 0
+        utterance_peak_rms = 0.0
+        utterance_voice_ms = 0
+        utterance_rms_sum = 0.0
+        utterance_rms_count = 0
+        segment_summary_samples = []
+        post_final_cooldown_ms = 0
+        pre_roll_chunks.clear()
+        result = None
+        if emit_clear:
+            result_sock = emit_asr_cleared(result_sock, result_host, result_port)
 
     try:
         result_sock = connect_result_sender(result_host, result_port)
         for chunk in chunk_iter:
+            if gate_monitor is not None:
+                decision = gate_monitor.evaluate()
+                if decision.suppress_asr:
+                    if decision.reset_utterance:
+                        discard_utterance(emit_clear=True)
+                    continue
+
             now_ts = time.time()
             current_summary = load_runtime_summary()
             if speech_started and current_summary:
@@ -1315,6 +1391,8 @@ def main() -> None:
             f"result_host={result_host}:{args.result_port}",
             flush=True,
         )
+        if gate_enabled():
+            start_board_playback_gate_http()
         chunk_iter = stream_microphone_chunks(
             sample_rate=sample_rate,
             block_duration_ms=block_ms,

@@ -233,12 +233,29 @@ class MapGuide:
                 self._poi_registry = {}
         return self._poi_registry
 
+    # 设施类：不走路网，只在 2D 地图上高亮全部同类型点
+    FACILITY_ALIASES = {
+        "toilet": ["厕所", "卫生间", "洗手间", "公厕", "WC", "wc"],
+    }
+
     def answer(self, speech_text):
         """返回地图问路JSON。"""
+        facility = self.match_facility(speech_text)
+        if facility == "toilet":
+            return self._response(
+                "想上厕所呀！园区里有好几处卫生间，俺已经在 2D 地图上用闪烁标记帮你标出来了，"
+                "找离你近的黄色厕所图标就行。",
+                ["左转指左"],
+                "smile",
+                found=True,
+                highlight_category="toilet",
+            )
+
         destination = self.match_place(speech_text)
         if not destination:
             return self._response(
-                "这个地方俺还没找着，你可以问问海螺湾、飞越极限、熊出没历险记这些地方。",
+                "这个地方俺还没找着，你可以问问海螺湾、飞越极限、熊出没历险记，"
+                "或者说「厕所」让俺在地图上标出卫生间。",
                 ["挠头歪身"],
                 "confused",
                 found=False,
@@ -273,6 +290,21 @@ class MapGuide:
             path=path,
             found=True,
         )
+
+    def match_facility(self, speech_text):
+        """匹配厕所等设施（优先于普通景点）。"""
+        text = (speech_text or "").strip()
+        if not text:
+            return None
+        candidates = []
+        for facility_id, aliases in self.FACILITY_ALIASES.items():
+            for alias in aliases:
+                candidates.append((alias, facility_id))
+        candidates.sort(key=lambda item: len(item[0]), reverse=True)
+        for alias, facility_id in candidates:
+            if alias in text:
+                return facility_id
+        return None
 
     def match_place(self, speech_text):
         """用关键词和别名匹配地点。"""
@@ -401,6 +433,8 @@ class MapGuide:
         destination=None,
         path=None,
         found=None,
+        highlight_category=None,
+        highlight_names=None,
     ):
         payload = {
             "interaction_type": "map_query",
@@ -416,6 +450,10 @@ class MapGuide:
             payload["path"] = path
         if found is not None:
             payload["found"] = found
+        if highlight_category:
+            payload["highlight_category"] = highlight_category
+        if highlight_names:
+            payload["highlight_names"] = list(highlight_names)
         if path and found:
             registry = self._get_poi_registry()
             if registry:

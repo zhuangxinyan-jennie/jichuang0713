@@ -1,4 +1,4 @@
-import { markMapUnityFullyReady, setMapUnityInstance } from "../services/unityMapBridge";
+import { markMapUnityFullyReady } from "../services/unityMapBridge";
 import { setGlobalUnityInstance, type UnityWebGLHandle } from "../services/unitySendClip";
 
 /** 2019+ 现代模板：createUnityInstance + 四个资源 URL */

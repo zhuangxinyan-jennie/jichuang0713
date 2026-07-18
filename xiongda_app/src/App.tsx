@@ -2,22 +2,18 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } fr
 import { motion } from "framer-motion";
 import { TopMenu } from "./components/TopMenu";
 import { UnityEmbed } from "./components/UnityEmbed";
-import { ActionPanel } from "./components/ActionPanel";
 import { BottomCommandBar } from "./components/BottomCommandBar";
+import { InteractionHud } from "./components/InteractionHud";
 import { MapUnityEmbed } from "./components/MapUnityEmbed";
 import { GestureCursorOverlay } from "./gesture/GestureCursorOverlay";
 import { useGestureCursor } from "./gesture/useGestureCursor";
 import type { TopNavId } from "./types";
-import type { SmplhActionItem } from "./data/smplhActions";
 import { makeAgentContext } from "./services/agentContext";
 import { handleAgentJson, handleMapQuery, handleRecommendation } from "./services/agentApi";
 import { prepareBearAudioPlayback } from "./services/xiongdaTts";
-import { sendSmplStreamingRelativePath } from "./services/unitySendClip";
 import { useUnityReady } from "./hooks/useUnityReady";
 import { agentPipelineDebugUi } from "./bear_pipeline/agentPipelineUi";
-import { BearPipelineTestCard } from "./bear_pipeline/BearPipelineTestCard";
 import { useTerminalKeyboardIsolation } from "./hooks/useTerminalKeyboardIsolation";
-import { SmartParkTheaterPanel } from "./components/SmartParkTheaterPanel";
 import {
   fetchBoardAutoLast,
   postMapQueryWithOptions,
@@ -57,11 +53,12 @@ export default function App() {
   const [bearPersonDetected, setBearPersonDetected] = useState(true);
   const [agentLoading, setAgentLoading] = useState(false);
   const [agentErr, setAgentErr] = useState("");
-  const [lastAgentJson, setLastAgentJson] = useState("");
-  const [boardAutoFollow, setBoardAutoFollow] = useState(boardAutoPollDefault);
+  const boardAutoFollow = boardAutoPollDefault();
   const [boardPollErr, setBoardPollErr] = useState("");
   const [boardBridgePerception, setBoardBridgePerception] = useState<PerceptionPayload | null>(null);
   const [boardLiveAsr, setBoardLiveAsr] = useState<BoardAsrLiveFields | null>(null);
+  /** 本轮实际送进 Agent 的多模态（右下角展示） */
+  const [lastSentPerception, setLastSentPerception] = useState<PerceptionPayload | null>(null);
   const lastBoardDriveSeqRef = useRef(0);
   const didAutoStartRef = useRef(false);
   /** 焦点在右侧/底部表单内：隔离键盘并暂时禁止点击 Unity，避免「只能输入一次」 */
@@ -99,15 +96,6 @@ export default function App() {
     [setSubtitle, setGuestInput]
   );
 
-  const onSelectSmpl = useCallback(
-    (item: SmplhActionItem) => {
-      sendSmplStreamingRelativePath(item.streamingRelativePath);
-      setCurrentSmplPath(item.streamingRelativePath);
-      setSubtitle(item.label);
-    },
-    [setCurrentSmplPath, setSubtitle]
-  );
-
   const enterStoryTabFromAgent = useCallback(() => {
     setTopNav("story");
   }, []);
@@ -139,7 +127,7 @@ export default function App() {
         setSubtitle(
           boardAutoFollow
             ? "益智小剧场：若熊大还没念开场，请对着麦克风说「剧情互动」。进入后请用语音回答选项（如 A/B、先听听规则、往左）。"
-            : "益智小剧场：右侧小卡片选题，其余区域为页面背景。"
+            : "益智小剧场：用底部输入说「剧情互动」进入，再按提示选题。"
         );
         return;
       }
@@ -243,12 +231,13 @@ export default function App() {
       setAgentErr("");
       setAgentLoading(true);
       try {
-        const out = await postMapQueryWithOptions(buildPerceptionForManualSend(t), { probe });
+        const perception = buildPerceptionForManualSend(t);
+        setLastSentPerception(perception);
+        const out = await postMapQueryWithOptions(perception, { probe });
         probe?.mark("agent_json_ready", {
           interaction_type: out.interaction_type || "",
           speechLength: (out.speech || "").length,
         });
-        setLastAgentJson(JSON.stringify(out, null, 2));
         handleBearAgentPayload(out, ctx, bearPayloadNavOptions);
         probe?.finish("ok", {
           source,
@@ -261,7 +250,6 @@ export default function App() {
         probe?.finish("error", { source, reason: msg });
         clearTtsLatencyContext(probe?.id);
         setAgentErr(msg);
-        setLastAgentJson("");
         ctx.setSubtitle(
           `地图向导请求失败：${msg}。请在本机启动 bear_agent：python integration_test/server.py（默认 8765），并确认已包含路由 POST /api/map-query。`
         );
@@ -278,13 +266,14 @@ export default function App() {
       setAgentErr("");
       setAgentLoading(true);
       try {
-        const out = await postProcessFullWithOptions(buildPerceptionForManualSend(speechForAgent), { probe });
+        const perception = buildPerceptionForManualSend(speechForAgent);
+        setLastSentPerception(perception);
+        const out = await postProcessFullWithOptions(perception, { probe });
         probe?.mark("agent_json_ready", {
           interaction_type: out?.interaction_type || "",
           target_mode: out?.target_mode || "",
           speechLength: (out?.speech || "").length,
         });
-        setLastAgentJson(out === null ? "null" : JSON.stringify(out, null, 2));
         handleBearAgentPayload(out, ctx, bearPayloadNavOptions);
         probe?.finish("ok", {
           source,
@@ -298,7 +287,6 @@ export default function App() {
         probe?.finish("error", { source, reason: msg });
         clearTtsLatencyContext(probe?.id);
         setAgentErr(msg);
-        setLastAgentJson("");
         ctx.setSubtitle(
           `Bear Agent 请求失败：${msg}。请确认已运行 python integration_test/server.py（默认 8765）。`
         );
@@ -308,29 +296,6 @@ export default function App() {
     },
     [ctx, buildPerceptionForManualSend, bearPayloadNavOptions]
   );
-
-  const onResetAgent = useCallback(async () => {
-    prepareBearAudioPlayback();
-    setAgentErr("");
-    setAgentLoading(true);
-    try {
-      await postReset();
-      lastBoardDriveSeqRef.current = 0;
-      setSubtitle("");
-      setGuestInput("");
-      setBoardBridgePerception(null);
-      setBoardLiveAsr(null);
-      setLastAgentJson("（已 reset）");
-      const out = await postProcessFullWithOptions(mapPerception(""));
-      setLastAgentJson(out === null ? "null" : JSON.stringify(out, null, 2));
-      handleBearAgentPayload(out, ctx, bearPayloadNavOptions);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      setAgentErr(msg);
-    } finally {
-      setAgentLoading(false);
-    }
-  }, [ctx, bearPayloadNavOptions, mapPerception]);
 
   const onSend = useCallback(() => {
     const text = guestInput.trim();
@@ -384,11 +349,11 @@ export default function App() {
         setSubtitle("");
         setBoardBridgePerception(null);
         setBoardLiveAsr(null);
-        setLastAgentJson("（已自动 reset）");
+        setLastSentPerception(null);
 
-        const out = await postProcessFullWithOptions(mapPerception(""));
+        const bootPerception = mapPerception("");
+        const out = await postProcessFullWithOptions(bootPerception);
         if (cancelled) return;
-        setLastAgentJson(out === null ? "null" : JSON.stringify(out, null, 2));
         handleBearAgentPayload(out, ctx, bearPayloadNavOptions);
       } catch (e) {
         if (!cancelled) {
@@ -431,6 +396,9 @@ export default function App() {
         }
         if (r.seq > lastBoardDriveSeqRef.current) {
           lastBoardDriveSeqRef.current = r.seq;
+          if (r.perception) {
+            setLastSentPerception(r.perception);
+          }
           if (r.output !== null && r.output !== undefined) {
             handleBearAgentPayload(r.output, ctx, {
               ...bearPayloadNavOptions,
@@ -438,7 +406,6 @@ export default function App() {
                 void postMultimodalPlaybackDone();
               },
             });
-            setLastAgentJson(JSON.stringify(r.output, null, 2));
           }
         }
       } catch (e) {
@@ -483,20 +450,14 @@ export default function App() {
       />
       <div className="relative z-10 flex min-h-0 flex-1 flex-col">
         <TopMenu active={topNav} onSelect={onTopNav} />
-        <div className="min-h-0 flex-1 px-2 py-2 md:px-4 md:py-3">
-          <div className="mx-auto flex h-full min-h-0 min-w-0 max-w-[min(100%,1400px)] flex-1 flex-col gap-2 md:flex-row">
+        <div className="min-h-0 flex-1 px-1 py-1 md:px-2 md:py-2">
+          <div className="mx-auto flex h-full min-h-0 min-w-0 w-full max-w-[100%] flex-1 flex-col">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex min-h-0 min-w-0 flex-1 flex-col"
+              className="relative flex min-h-0 min-w-0 flex-1 flex-col"
             >
-              <div className="mb-1 flex items-center justify-between text-[11px] text-slate-500 md:text-xs">
-                <span>智慧乐园 · 终端</span>
-                <span className="font-mono text-forest/80">
-                  模式: <strong>{topNav}</strong>
-                </span>
-              </div>
-              <div className="relative flex min-h-0 flex-1 flex-col">
+              <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-forest/10 bg-black/5 shadow-inner">
                 <div
                   className={topNav === "map" ? "hidden" : "flex min-h-0 flex-1 flex-col"}
                   aria-hidden={topNav === "map"}
@@ -509,86 +470,18 @@ export default function App() {
                     onSelect2DPlace={onSelect2DPlace}
                   />
                 </div>
-              </div>
-            </motion.div>
-            {topNav === "story" ? (
-              <aside className="flex max-h-[min(52vh,460px)] min-h-0 w-full shrink-0 flex-col border-t border-forest/10 bg-transparent md:max-h-none md:w-[292px] md:border-l md:border-t-0 md:bg-gradient-to-l md:from-white/55 md:to-transparent md:pl-2 md:backdrop-blur-[6px] lg:w-[308px]">
-                <div className="flex flex-col items-stretch justify-start gap-2 overflow-y-auto overflow-x-hidden p-2 md:max-h-full md:p-2 md:pt-3">
-                  <SmartParkTheaterPanel ctx={ctx} variant="sidebar" boardAutoSync={boardAutoFollow} />
-                  <div
-                    data-terminal-input-island
-                    className="min-h-0 shrink-0 border-t border-dashed border-forest/15 pt-2"
-                    onFocusCapture={onTerminalIslandFocusCapture}
-                    onBlurCapture={onTerminalIslandBlurCapture}
-                  >
-                    <BearPipelineTestCard
-                      emotion={bearEmotion}
-                      gesture={bearGesture}
-                      handGesture={bearHandGesture}
-                      personDetected={bearPersonDetected}
-                      onEmotionChange={setBearEmotion}
-                      onGestureChange={setBearGesture}
-                      onHandGestureChange={setBearHandGesture}
-                      onPersonDetectedChange={setBearPersonDetected}
-                      agentLoading={agentLoading}
-                      agentErr={agentErr}
-                      lastAgentJson={lastAgentJson}
-                      onResetAgent={onResetAgent}
-                      boardAutoFollow={boardAutoFollow}
-                      onBoardAutoFollowChange={(v) => {
-                        setBoardAutoFollow(v);
-                        if (v) prepareBearAudioPlayback();
-                      }}
-                      boardPollErr={boardPollErr}
-                      liveBoardPerception={boardBridgePerception}
-                      liveBoardAsr={boardLiveAsr}
-                      theaterAgentByVoice={boardAutoFollow}
-                    />
-                  </div>
-                </div>
-              </aside>
-            ) : (
-              <div
-                data-terminal-input-island
-                className="flex max-h-full min-h-0 w-full min-w-0 shrink-0 flex-col gap-2 overflow-y-auto md:w-56 lg:w-64"
-                onFocusCapture={onTerminalIslandFocusCapture}
-                onBlurCapture={onTerminalIslandBlurCapture}
-              >
-                <BearPipelineTestCard
-                  emotion={bearEmotion}
-                  gesture={bearGesture}
-                  handGesture={bearHandGesture}
-                  personDetected={bearPersonDetected}
-                  onEmotionChange={setBearEmotion}
-                  onGestureChange={setBearGesture}
-                  onHandGestureChange={setBearHandGesture}
-                  onPersonDetectedChange={setBearPersonDetected}
+                <InteractionHud
+                  liveAsr={boardLiveAsr}
+                  lastSentPerception={lastSentPerception}
                   agentLoading={agentLoading}
-                  agentErr={agentErr}
-                  lastAgentJson={lastAgentJson}
-                  onResetAgent={onResetAgent}
-                  boardAutoFollow={boardAutoFollow}
-                  onBoardAutoFollowChange={setBoardAutoFollow}
-                  boardPollErr={boardPollErr}
-                  liveBoardPerception={boardBridgePerception}
-                  liveBoardAsr={boardLiveAsr}
                 />
-                {topNav === "map" ? (
-                  agentPipelineDebugUi ? (
-                    <p className="rounded-xl border border-dashed border-emerald-400/40 bg-emerald-50/50 px-3 py-2 text-[11px] leading-snug text-emerald-900">
-                      地图模式下已隐藏「动作试播」按钮。问路请用底部输入框或「语音(模拟)」，逻辑来自 bear_agent{" "}
-                      <code className="rounded bg-white/80 px-0.5">map_guide.MapGuide</code>。
-                    </p>
-                  ) : (
-                    <p className="rounded-xl border border-dashed border-emerald-400/30 bg-emerald-50/40 px-3 py-2 text-[11px] leading-snug text-emerald-900">
-                      地图模式下专注于问路，请用底部输入框或「语音(模拟)」。
-                    </p>
-                  )
-                ) : (
-                  <ActionPanel onSelectSmpl={onSelectSmpl} />
-                )}
               </div>
-            )}
+              {(agentErr || boardPollErr) && agentPipelineDebugUi ? (
+                <p className="mt-1 truncate px-1 text-[10px] text-rose-700" role="alert">
+                  {agentErr || boardPollErr}
+                </p>
+              ) : null}
+            </motion.div>
           </div>
         </div>
         <div
@@ -612,12 +505,8 @@ export default function App() {
             agentHintExtra={
               topNav === "story"
                 ? boardAutoFollow
-                  ? agentPipelineDebugUi
-                    ? "后端剧情：麦克风 ASR → board_bridge → speech_text。右侧卡片「本地演示」与 Bear Agent 无关。"
-                    : "对着麦克风说口令与选项即可；熊大播台词时也可继续说下一句（由后端识别）。"
-                  : agentPipelineDebugUi
-                    ? "未开板端同步时可用底部输入框模拟语音；开启后建议仅用麦克风。"
-                    : "未开板端同步时可用底部输入框说「剧情互动」并选择答案。"
+                  ? "对着麦克风说口令与选项即可；熊大播台词时也可继续说下一句。"
+                  : "未开板端同步时可用底部输入框说「剧情互动」并选择答案。"
                 : undefined
             }
           />

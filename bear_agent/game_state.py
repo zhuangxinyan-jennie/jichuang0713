@@ -81,6 +81,46 @@ class GameStateController:
         speech_text = speech_text_from_perception(perception_result)
         current_time = time.time()
 
+        # 距离/左右站位提示（由 board_bridge 在有互动意向时下发）
+        coach = str(perception_result.get("distance_coach") or "").strip().lower()
+        if coach == "too_close":
+            return self._mark_target_mode({
+                "interaction_type": "distance_coach",
+                "speech": "你站得太近啦，请远离一些。",
+                "voice_id": "distance_too_close",
+                "motion_type": "sequential",
+                "actions": ["左右张望"],
+                "emotion": "surprised",
+            }, "voice")
+        if coach == "too_far":
+            return self._mark_target_mode({
+                "interaction_type": "distance_coach",
+                "speech": "有点远哦，请靠近一些再跟俺玩。",
+                "voice_id": "distance_too_far",
+                "motion_type": "sequential",
+                "actions": ["挥手致意"],
+                "emotion": "smile",
+            }, "voice")
+        pos = str(perception_result.get("position_coach") or "").strip().lower()
+        if pos == "lean_left":
+            return self._mark_target_mode({
+                "interaction_type": "position_coach",
+                "speech": "你有点偏了，请往你的左边站一点。",
+                "voice_id": "position_lean_left",
+                "motion_type": "sequential",
+                "actions": ["左转指左"],
+                "emotion": "smile",
+            }, "voice")
+        if pos == "lean_right":
+            return self._mark_target_mode({
+                "interaction_type": "position_coach",
+                "speech": "你有点偏了，请往你的右边站一点。",
+                "voice_id": "position_lean_right",
+                "motion_type": "sequential",
+                "actions": ["左右张望"],
+                "emotion": "smile",
+            }, "voice")
+
         new_visitor = self._update_person_state(person_detected, current_time)
         if new_visitor:
             reset_random_memory()
@@ -142,6 +182,15 @@ class GameStateController:
                     "voice_id": "mode_ack_voice",
                     "story_waiting_hint": "也可以说「语音聊天」进入唠嗑模式（与随机互动相同）。",
                 }, "voice")
+            # 无语音但有明确手势：进入随机互动并用手势回应（支持纯手势回合）
+            hand = str(perception_result.get("hand_gesture") or "").strip().lower()
+            body = str(perception_result.get("gesture") or "").strip().lower()
+            if person_detected and (
+                (hand and hand not in ("none", "timeout", "unknown"))
+                or (body and body not in ("none", "unknown"))
+            ):
+                self.state = self.RANDOM_INTERACTION
+                return self._mark_target_mode(random_handler(perception_result), "random")
             return None
 
         if self.state == self.RANDOM_INTERACTION:

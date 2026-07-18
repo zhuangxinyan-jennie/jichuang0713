@@ -38,7 +38,14 @@ ASR_BACKEND="${ASR_BACKEND:-ctc_om}"
 ACTION_BACKEND="${ACTION_BACKEND:-stgcn}"
 DETECTOR_BACKEND="${DETECTOR_BACKEND:-hybrid}"
 ACTION_INFER_STRIDE="${ACTION_INFER_STRIDE:-6}"
-export ACTION_BACKEND DETECTOR_BACKEND ACTION_INFER_STRIDE
+# auto=按 OM 输入类型自动；aipp=使用静态 AIPP uint8 模型；float32=旧 float 输入
+POSE_INPUT_MODE="${POSE_INPUT_MODE:-auto}"
+# 可选：覆盖默认 pose OM。启用 AIPP 时可设为 models_om/yolo11n_pose_640_aipp.om
+POSE_OM="${POSE_OM:-}"
+if [[ "${POSE_INPUT_MODE}" == "aipp" && -z "${POSE_OM}" ]]; then
+  POSE_OM="${BOARD_ROOT}/models_om/yolo11n_pose_640_aipp.om"
+fi
+export ACTION_BACKEND DETECTOR_BACKEND ACTION_INFER_STRIDE POSE_INPUT_MODE POSE_OM
 
 OM_DIR="${BOARD_ROOT}/asr_om"
 CTC_OM_FILE="ctc_stream_fp16_linux_aarch64.om"
@@ -61,13 +68,16 @@ if [[ "${ASR_BACKEND}" == "om" ]]; then
   done
 fi
 
-echo "[INFO] BOARD_LOCAL_MIC=${BOARD_LOCAL_MIC} BOARD_LOCAL_CAMERA=${BOARD_LOCAL_CAMERA} BOARD_LOCAL_DISPLAY=${BOARD_LOCAL_DISPLAY} ASR_BACKEND=${ASR_BACKEND} ACTION_BACKEND=${ACTION_BACKEND} → ${BOARD_RESULT_HOST}:18082/18083"
+echo "[INFO] BOARD_LOCAL_MIC=${BOARD_LOCAL_MIC} BOARD_LOCAL_CAMERA=${BOARD_LOCAL_CAMERA} BOARD_LOCAL_DISPLAY=${BOARD_LOCAL_DISPLAY} ASR_BACKEND=${ASR_BACKEND} ACTION_BACKEND=${ACTION_BACKEND} POSE_INPUT_MODE=${POSE_INPUT_MODE} → ${BOARD_RESULT_HOST}:18082/18083"
 
 pkill -f "[r]un_board_runtime.py" >/dev/null 2>&1 || true
 pkill -f "[b]oard_audio_receiver.py" >/dev/null 2>&1 || true
 sleep 1
 
-VIDEO_ARGS=(--action-backend "${ACTION_BACKEND}" --detector-backend "${DETECTOR_BACKEND}")
+VIDEO_ARGS=(--action-backend "${ACTION_BACKEND}" --detector-backend "${DETECTOR_BACKEND}" --pose-input-mode "${POSE_INPUT_MODE}")
+if [[ -n "${POSE_OM}" ]]; then
+  VIDEO_ARGS+=(--pose-om "${POSE_OM}")
+fi
 if [[ "${BOARD_LOCAL_DISPLAY}" == "1" ]]; then
   if [[ -x "${SCRIPT_DIR}/ensure_hdmi_display.sh" ]]; then
     bash "${SCRIPT_DIR}/ensure_hdmi_display.sh" || true

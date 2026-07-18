@@ -26,8 +26,8 @@ export function TopMenu({ active, onSelect }: TopMenuProps) {
               onClick={() => onSelect(id)}
               className={`inline-flex min-w-0 shrink-0 items-center gap-1.5 border-b-4 px-3 text-sm font-extrabold transition md:px-4 md:text-base ${
                 isOn
-                  ? "border-forest bg-forest/5 text-forest-deep"
-                  : "border-transparent text-slate-500 hover:bg-white/60 hover:text-forest"
+                  ? "border-forest bg-forest/5 text-black"
+                  : "border-transparent text-black hover:bg-white/60 hover:text-black"
               }`}
             >
               <Icon className="h-4 w-4 shrink-0 md:h-5 md:w-5" strokeWidth={2.2} aria-hidden />

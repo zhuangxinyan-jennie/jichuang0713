@@ -35,6 +35,10 @@ export type BearAgentProcessTestResponse = {
   path_world?: { x: number; y?: number; z: number }[];
   destination_world?: { x: number; y?: number; z: number };
   found?: boolean;
+  /** 2D 地图高亮类别：toilet 等 */
+  highlight_category?: string;
+  /** 2D 地图高亮地点名 */
+  highlight_names?: string[];
 };
 
 /** board_bridge 高频同步的 ASR 原文（与 latest_asr.json 一致） */

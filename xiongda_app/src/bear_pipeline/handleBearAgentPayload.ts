@@ -11,6 +11,7 @@ import { chineseActionToSmplPath } from "./chineseActionToSmplPath";
 import { clipIdsToSmplPaths } from "./clipIdToSmplPath";
 import { cancelQueuedSequences, DEFAULT_SMPL_STEP_MS, playSmplPathSequence } from "./playSequences";
 import { triggerMapNavigationFromPayload } from "../services/unityMapBridge";
+import { setMap2DHighlight } from "../services/map2dHighlightStore";
 
 export type BearAgentDispatchOptions = {
   smplStepMs?: number;
@@ -282,12 +283,30 @@ export function handleBearAgentPayload(
     } else if (hadSpeech) {
       announcePayloadSpeechWrapped(o);
     }
-    ctx.setCurrentSmplPath(
-      typeof o.destination === "string" && o.destination.trim()
-        ? `地图导航 → ${o.destination.trim()}`
-        : "—（地图模式：3D 地图页，见 MapUnityEmbed）"
-    );
-    triggerMapNavigationFromPayload(o);
+    const highlightCategory =
+      typeof o.highlight_category === "string" ? o.highlight_category.trim() : "";
+    const highlightNames = Array.isArray(o.highlight_names)
+      ? o.highlight_names.filter((x): x is string => typeof x === "string" && !!x.trim()).map((x) => x.trim())
+      : [];
+    if (highlightCategory || highlightNames.length > 0) {
+      setMap2DHighlight({
+        category: highlightCategory || undefined,
+        names: highlightNames.length ? highlightNames : undefined,
+        openModal: true,
+      });
+      ctx.setCurrentSmplPath(
+        highlightCategory === "toilet"
+          ? "地图高亮 → 卫生间"
+          : `地图高亮 → ${highlightNames.join("、") || highlightCategory}`
+      );
+    } else {
+      ctx.setCurrentSmplPath(
+        typeof o.destination === "string" && o.destination.trim()
+          ? `地图导航 → ${o.destination.trim()}`
+          : "—（地图模式：3D 地图页，见 MapUnityEmbed）"
+      );
+      triggerMapNavigationFromPayload(o);
+    }
     end();
     return;
   }

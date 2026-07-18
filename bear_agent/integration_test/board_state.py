@@ -46,7 +46,8 @@ def record_board_drive_if_bridge(
     bd["output"] = result
     bd["ts"] = time.time()
     if perception is not None:
-        bd["perception"] = perception if keep_speech else {**perception, "speech_text": ""}
+        # 完整保留本轮送入 Agent 的 perception（含 speech_text），供前端展示「本轮输入」
+        bd["perception"] = dict(perception)
     clear_board_asr_live_cache(app_state)
 
 

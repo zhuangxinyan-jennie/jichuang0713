@@ -135,8 +135,30 @@ export async function fetchBoardAutoLast(): Promise<BearAgentBoardAutoLast> {
   };
 }
 
+/** 板端本地播放闸门（HDMI kiosk 上 Firefox 访问 127.0.0.1，通知板载 ASR 熊大正在说话）。 */
+function boardPlaybackGateBaseUrl(): string {
+  const raw = (import.meta.env.VITE_BOARD_PLAYBACK_GATE_URL as string | undefined)?.trim();
+  return raw || "http://127.0.0.1:8788";
+}
+
+async function postBoardPlaybackGate(path: string): Promise<void> {
+  try {
+    const res = await fetch(`${boardPlaybackGateBaseUrl().replace(/\/$/, "")}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!res.ok) {
+      const t = await res.text().catch(() => "");
+      console.warn("[bearAgent] board playback gate HTTP", res.status, t);
+    }
+  } catch {
+    /* 板端闸门未启动时忽略（例如仅在 PC 浏览器调试） */
+  }
+}
+
 /** 通知 Agent：本轮熊大语音（SoVITS / 浏览器 / 预烘焙 WAV 队列）已全部播完，允许 board_bridge 下一次 POST。 */
 export async function postMultimodalPlaybackDone(): Promise<void> {
+  void postBoardPlaybackGate("/api/multimodal/playback-done");
   try {
     const res = await fetch(`${baseUrl().replace(/\/$/, "")}/api/multimodal/playback-done`, {
       method: "POST",
@@ -152,6 +174,7 @@ export async function postMultimodalPlaybackDone(): Promise<void> {
 }
 
 export async function postMultimodalPlaybackStart(): Promise<void> {
+  void postBoardPlaybackGate("/api/multimodal/playback-start");
   try {
     const res = await fetch(`${baseUrl().replace(/\/$/, "")}/api/multimodal/playback-start`, {
       method: "POST",

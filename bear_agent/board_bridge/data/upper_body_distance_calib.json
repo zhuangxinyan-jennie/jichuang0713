@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "note": "示例空标定：请用 python -m board_bridge.calibrate_upper_body_distance 采集后覆盖。地面不用贴东西，只用卷尺临时站位。",
+  "frame_width": null,
+  "samples": []
+}

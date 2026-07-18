@@ -51,15 +51,10 @@ export function UnityEmbed({ blockGamePointer = false }: UnityEmbedProps) {
         (document.activeElement as HTMLElement | null)?.blur?.();
       }}
     >
-      <div className="absolute left-3 right-3 top-3 z-20 flex items-center justify-between gap-2 rounded-lg bg-black/50 px-3 py-1.5 text-xs font-bold text-cyan-200/95 backdrop-blur">
+      <div className="pointer-events-none absolute left-3 top-3 z-20 rounded-lg bg-black/45 px-2.5 py-1 text-[10px] font-bold text-cyan-100/90 backdrop-blur md:text-xs">
         <span className="flex items-center gap-1.5">
           <Film className="h-3.5 w-3.5" aria-hidden />
-          Unity 熊大 · WebGL
-        </span>
-        <span
-          className={ready ? "rounded bg-emerald-500/20 px-2 text-emerald-200" : "text-amber-200/90"}
-        >
-          {ready ? "实例已连接" : "未加载 / 仍占位：检查 build-info.json 与 F12 控制台"}
+          {ready ? "熊大互动" : "熊大加载中…"}
         </span>
       </div>
 

@@ -125,6 +125,117 @@ python -m board_bridge.run_visitor_pipeline
 
 输出目录默认：`pre_on_board_local_start_bundle/pc_received_output/`（运行时生成，不入 Git）。
 
+### board_bridge 回合融合（语音 ↔ 手势）
+
+默认 `speech_novelty` 触发下，不再「整句一出立刻 POST」，而是按互动回合收束：
+
+| 情况 | 行为 |
+|------|------|
+| **先说话** | 说话期间 + **说完后 1 秒内**，取最高置信度手势（及躯干动作）写入本轮 perception，再 POST |
+| **先手势** | 手势中，或**放下后 1 秒内**开始说话 → 该手势与这段话同一轮；仍等话说完 + 1 秒收束后 POST |
+| **只举手势、保持约 2 秒** | **同一手势连续保持 ≥ 2 秒**（允许约 0.35s 识别闪断）→ 纯手势 POST（`speech_text` 为空）；同手势约 3 秒冷却；**POST 后必须先放下/人离开**，才能再触发同手势（防止陈旧 vision 里残留的点赞被当成新一轮反复送） |
+| **手势一闪就放下（<2s）且不说话** | 不送 Agent |
+| **人不在画面 / 视觉 JSON 停更约 2.5s** | 清空手势回合，不再用上一帧手势 POST |
+
+实现：`bear_agent/board_bridge/turn_fusion.py`（由 `poll_loop.py` 调用）。
+
+### 互动意向 + 距离舒适区（0.4～1.5 m）
+
+**默认关闭远近语音提示**（`BEAR_DISTANCE_COACH` 默认为关）。  
+
+### 半身镜头：姿态关键点可见性测距（推荐软件方案）
+
+互动距离往往只能拍到上半身。板端用 YOLO 姿态的 **头 / 上身 / 下身** 可见点判断档位（不要求看见脚）：
+
+| 档位 | 判定（简化） | 写入的代表距离 |
+|------|--------------|----------------|
+| 过近 `too_close` | 头出画只剩上身/髋，或脸特别大，或肩很少 | 0.28 m |
+| 舒适 `sweet` | 头 + 双肩在，髋膝基本没有 | 0.95 m |
+| 过远 `too_far` | **头仍在**且髋/膝出现，或脸特别小 | 2.0 m |
+
+注意：贴镜头时头常出画、髋仍可见——旧逻辑会误判「太远」；现已改为优先判「太近」。  
+字段：`distance_source=pose_visibility`、`distance_zone`、`pose_visibility={head_n,upper_n,lower_n,...}`。  
+连续约 5 帧同档才切换，减少抖动。实现：`board_deploy/pose_visibility_distance.py` + `bear_agent/board_bridge/pose_visibility_distance.py`。
+
+### 偏左 / 居中 / 偏右
+
+用双肩中点（否则脸框/人体框中心）算 `offset = cx/width - 0.5`：
+
+| `|offset|≤0.12` | 居中 `center` |
+| `offset<-0.18` | 画面偏左 `left` |
+| `offset>+0.18` | 画面偏右 `right` |
+
+`position_coach_hint` 按**游客自身左右**输出（默认镜像 `BOARD_LATERAL_MIRROR=1`）：`lean_left` / `lean_right`。  
+仅在距离舒适（非太近/太远）且有互动意向时提示。实现：`lateral_position.py`。
+
+确认 `perception_preview.json` 里 zone 合理后，再打开提示：
+
+```powershell
+$env:BEAR_DISTANCE_COACH = "1"    # 远近
+$env:BEAR_POSITION_COACH = "1"    # 左右
+# 然后重启 board_bridge
+```
+
+打开后的逻辑：旁观时**不**对远处路人喊「靠近一些」。只有「想互动」才管距离：
+
+| 意向怎么来 | 说明 |
+|------------|------|
+| 口令 / 称呼 | 「熊大」「随机互动」「剧情互动」「地图查询」等 |
+| 手势保持约 2 秒 | 与回合融合一致 |
+| 舒适区停留 ≥ 约 2 秒 | 记为「刚玩过」；再退远可提示靠近 |
+
+| 距离 | 有意向时 | 无意向（旁观） |
+|------|----------|----------------|
+| **&lt; 0.4 m** | 熊大说「请远离一些」 | 不提示 |
+| **0.4～1.5 m** | 正常互动 | — |
+| **&gt; 1.5 m** | 熊大说「请靠近一些」 | **安静** |
+
+实现：`bear_agent/board_bridge/engagement.py` + `config.distance_coach_enabled`；Agent 见 `distance_coach` 字段直接回固定话术。
+
+**单独测距离准不准（不依赖熊大说话）：**
+
+```powershell
+cd bear_agent
+.\.venv\Scripts\python.exe -m board_bridge.watch_distance
+```
+
+对着板端摄像头站近/站远，看终端里的 `board=…m` 和 `comfort=`。  
+`too_close` / `too_far` 才会对应「远离 / 靠近」；若数字一直停在 0.8～1.4，说明估距偏了或脸框被裁切，提示就不会出。
+
+### 只用主摄上半身测距（地面不用贴东西）
+
+推荐方案：**临时卷尺站位标定 + 人脸框查表**（不假定游客身高，不靠瞳孔）。
+
+1. 展台布置好后，用卷尺让人（可多人）站在 **0.5 / 1.0 / 1.5 m**，每次执行：
+
+```powershell
+cd bear_agent
+.\.venv\Scripts\python.exe -m board_bridge.calibrate_upper_body_distance --distance 0.5
+.\.venv\Scripts\python.exe -m board_bridge.calibrate_upper_body_distance --distance 1.0
+.\.venv\Scripts\python.exe -m board_bridge.calibrate_upper_body_distance --distance 1.5
+.\.venv\Scripts\python.exe -m board_bridge.calibrate_upper_body_distance --show
+```
+
+2. 生成文件：`bear_agent/board_bridge/data/upper_body_distance_calib.json`  
+3. `board_bridge` 估距会**优先用这张表**；卷尺用完拿走即可，地面保持干净。  
+4. 限制：脸被裁切、小孩/大人脸差别仍有误差；够「靠近/远离」分档，不是激光精度。
+
+实现：`upper_body_distance_calib.py`、`calibrate_upper_body_distance.py`。
+
+---
+
+## 4.1 前端互动界面（xiongda_app）
+
+主画面以 **熊大 WebGL 全宽** 为主，已去掉右侧「游客感知 / 动作试播」等调试栏。
+
+| 区域 | 内容 |
+|------|------|
+| 画面底部居中 | **语音识别字幕**（ASR partial / 定稿，像字幕） |
+| 画面右上角 | **本轮送入 Agent**：表情 / 手势 / 动作 / 语音（该轮 POST 的字段，非实时帧） |
+| 页面最底部栏 | **熊大回复** + 可选文字输入 / 模拟语音 |
+
+板端新一轮 POST（`board-auto/last` seq+1）或你点「发送」时，右上角会更新。底部字幕才是实时 ASR。
+
 ---
 
 ## 5. Unity
@@ -155,7 +266,11 @@ Unity Hub 打开 `XiongdaParkMapProject/`。
 
 ### 5.3 2D 平面图 + 板端手势光标（默认，非 MediaPipe）
 
-地图查询页 **右下角**「2D地图」缩略图；点击放大后用手势光标点星星。
+地图查询页 **右下角**「2D地图」缩略图；点击放大后用手势光标点星星。  
+底图：`xiongda_app/public/map/park-map.png`；地点/厕所坐标：`places_2d.json`（`category: "toilet"` 为卫生间）。
+
+**说「厕所 / 卫生间 / 洗手间」**：Agent 返回 `highlight_category: "toilet"` → 前端自动打开放大图，并用青色闪烁圈高亮所有卫生间。  
+若你有更高清原图，直接覆盖 `park-map.png` 后按新图微调 `places_2d.json` 里厕所的 `leftPct`/`topPct`。
 
 **默认数据源 = 板载摄像头 + NPU `hand_landmark_sparse.om`**（不 import MediaPipe、不用 PC 摄像头）：
 
@@ -174,6 +289,15 @@ npm run dev
 
 浏览器 → **地图查询** → **2D地图** → 对着**板子**摄像头举手/捏合。  
 仅缺 8770 时可跑 `gesture_cursor_project\启动板端手势光标.bat`。  
+
+**双摄像头并排看扩展屏（测试）：**
+
+```powershell
+python pre_on_board_local_start_bundle\board_deploy\show_dual_cameras_on_hdmi.py
+```
+
+左：主摄 `/dev/video1`，右：第二路 `/dev/video3`。会暂时停掉网页 kiosk 和板端 vision（占摄像头）。  
+恢复网页：`bash /home/HwHiAiUser/jichuang/start_hdmi_kiosk.sh`
 旧本机 MediaPipe 脚本仅供离线调试：`启动2D地图手势演示.bat`。  
 星星坐标：`xiongda_app/public/map/places_2d.json`。
 

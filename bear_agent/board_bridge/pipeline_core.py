@@ -77,7 +77,7 @@ def run_board_bridge_blocking(
                     kwargs={
                         "landmarks_path": landmarks_path,
                         "preview_path": out_dir / "vision" / "latest_preview.jpg",
-                        "host": "127.0.0.1",
+                        "host": "0.0.0.0",
                         "port": landmarks_http_port,
                         "stop_event": stop,
                         "log": log_print,

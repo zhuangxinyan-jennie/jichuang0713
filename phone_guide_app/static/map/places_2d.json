@@ -442,6 +442,54 @@
         "y": 0.22,
         "z": 18.158
       }
+    },
+    {
+      "name": "厕所·游客服务中心旁",
+      "category": "toilet",
+      "leftPct": 40.92,
+      "topPct": 74.64
+    },
+    {
+      "name": "厕所·售票处旁",
+      "category": "toilet",
+      "leftPct": 48.14,
+      "topPct": 82.36
+    },
+    {
+      "name": "厕所·方特城堡旁",
+      "category": "toilet",
+      "leftPct": 45.02,
+      "topPct": 59.77
+    },
+    {
+      "name": "厕所·海螺湾旁",
+      "category": "toilet",
+      "leftPct": 34.13,
+      "topPct": 49.93
+    },
+    {
+      "name": "厕所·唐古拉雪山旁",
+      "category": "toilet",
+      "leftPct": 34.28,
+      "topPct": 25.0
+    },
+    {
+      "name": "厕所·双层转马旁",
+      "category": "toilet",
+      "leftPct": 77.49,
+      "topPct": 33.24
+    },
+    {
+      "name": "厕所·火流星旁",
+      "category": "toilet",
+      "leftPct": 76.9,
+      "topPct": 43.51
+    },
+    {
+      "name": "厕所·童梦天地旁",
+      "category": "toilet",
+      "leftPct": 83.3,
+      "topPct": 26.31
     }
   ]
 }

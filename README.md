@@ -74,6 +74,14 @@ powershell -ExecutionPolicy Bypass -File .\setup-env.ps1
 
 浏览器：**http://127.0.0.1:5173**
 
+互动页：熊大画面尽量铺满；底部是语音识别字幕，右上角显示本轮送进 Agent 的「表情 / 手势 / 动作」。  
+**远近语音提示默认已关闭**（`BEAR_DISTANCE_COACH` 默认为关）。  
+现用 **姿态关键点可见性**（头/肩/髋）判断近·中·远：贴脸导致「头出画」会判 **太近**（不再误判「太远」）；真正退远且头还在、髋进来才判太远。左右用双肩/人脸中心。板端重启后看 `distance_zone` / `lateral_zone`。确认效果后：
+- `$env:BEAR_DISTANCE_COACH=1` 打开远近提示  
+- `$env:BEAR_POSITION_COACH=1` 打开左右提示  
+说明见 [docs/PC.md](docs/PC.md)。  
+**地图查询 · 厕所**：在「地图查询」页说「厕所 / 卫生间」，2D 地图会自动放大并用闪烁圈高亮各处卫生间（坐标见 `xiongda_app/public/map/places_2d.json`）。
+
 板端联调见 **[docs/BOARD.md](docs/BOARD.md)**，完整 PC 说明见 **[docs/PC.md](docs/PC.md)**。
 ---
 

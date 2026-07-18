@@ -84,6 +84,9 @@ ACTION_POSE_CONF_THRES = _read_float_env("ACTION_POSE_CONF_THRES", 0.25)
 ACTION_POSE_IOU_THRES = _read_float_env("ACTION_POSE_IOU_THRES", 0.45)
 RESULT_JPEG_QUALITY = _read_int_env("RESULT_JPEG_QUALITY", 45)
 POSE_INPUT_SIZE = _read_int_env("POSE_INPUT_SIZE", 0)
+POSE_INPUT_MODE = os.environ.get("POSE_INPUT_MODE", "auto").strip().lower() or "auto"
+if POSE_INPUT_MODE not in {"auto", "float32", "aipp"}:
+    POSE_INPUT_MODE = "auto"
 PIXEL_FORMAT_YUV_SEMIPLANAR_420 = 1
 ACL_MEMCPY_DEVICE_TO_HOST = 2
 CLASS_NAMES = ["face", "hand", "person"]
@@ -218,24 +221,49 @@ def letterbox(img, new_shape=(640, 640), color=(114, 114, 114)):
 
 @dataclass(frozen=True)
 class YoloPosePreprocess:
-    tensor: np.ndarray
+    letterboxed_bgr: np.ndarray
+    tensor: np.ndarray | None
     ratio: tuple[float, float]
     pad: tuple[float, float]
     input_shape: tuple[int, int]
     frame_shape: tuple[int, ...]
 
 
-def prepare_yolo_pose_preprocess(frame: np.ndarray, new_shape: tuple[int, int] | int = (640, 640)) -> YoloPosePreprocess:
+def normalize_bgr_to_rgb_chw(
+    image: np.ndarray,
+    output: np.ndarray | None = None,
+) -> np.ndarray:
+    output_shape = (3, image.shape[0], image.shape[1])
+    if (
+        output is None
+        or output.shape != output_shape
+        or output.dtype != np.float32
+        or not output.flags.c_contiguous
+    ):
+        output = np.empty(output_shape, dtype=np.float32)
+    source = image[:, :, ::-1].transpose(2, 0, 1)
+    np.divide(source, np.float32(255.0), out=output, casting="unsafe")
+    return output
+
+
+def prepare_yolo_pose_preprocess(
+    frame: np.ndarray,
+    new_shape: tuple[int, int] | int = (640, 640),
+    tensor_buffer: np.ndarray | None = None,
+    include_tensor: bool = True,
+) -> YoloPosePreprocess:
     if isinstance(new_shape, int):
         new_shape = (new_shape, new_shape)
     t0 = time.perf_counter()
     img, ratio, pad = letterbox(frame, new_shape=new_shape)
     profile_accum("shared.letterbox", time.perf_counter() - t0)
-    t0 = time.perf_counter()
-    tensor = img[:, :, ::-1].transpose(2, 0, 1)
-    tensor = np.ascontiguousarray(tensor, dtype=np.float32) / 255.0
-    profile_accum("shared.normalize", time.perf_counter() - t0)
+    tensor: np.ndarray | None = None
+    if include_tensor:
+        t0 = time.perf_counter()
+        tensor = normalize_bgr_to_rgb_chw(img, tensor_buffer)
+        profile_accum("shared.normalize", time.perf_counter() - t0)
     return YoloPosePreprocess(
+        letterboxed_bgr=img,
         tensor=tensor,
         ratio=ratio,
         pad=pad,
@@ -841,6 +869,7 @@ class PoseOmResult:
     pose: np.ndarray
     pose_points: list[tuple[int, int]]
     detections: list[dict]
+    coco_kpts: np.ndarray | None = None
 
 
 @dataclass
@@ -1130,6 +1159,7 @@ class BoardYoloRuntime:
         self.session = InferSession(0, str(model_path))
         self.input_shape = (640, 640)
         self._debug_dumped = False
+        self._input_buffer: np.ndarray | None = None
 
     def infer(
         self,
@@ -1140,18 +1170,23 @@ class BoardYoloRuntime:
     ) -> np.ndarray:
         frame_shape = frame.shape
         if preprocessed is not None and preprocessed.input_shape == self.input_shape:
-            img = preprocessed.tensor
             ratio = preprocessed.ratio
             pad = preprocessed.pad
             frame_shape = preprocessed.frame_shape
+            if preprocessed.tensor is not None:
+                img = preprocessed.tensor
+            else:
+                t0 = time.perf_counter()
+                img = normalize_bgr_to_rgb_chw(preprocessed.letterboxed_bgr, self._input_buffer)
+                self._input_buffer = img
+                profile_accum("yolo.preprocess", time.perf_counter() - t0)
         else:
             t0 = time.perf_counter()
             img, ratio, pad = letterbox(frame, new_shape=self.input_shape)
             profile_accum("yolo.letterbox", time.perf_counter() - t0)
             t0 = time.perf_counter()
-            img = img[:, :, ::-1].transpose(2, 0, 1)
-            img = np.ascontiguousarray(img, dtype=np.float32)
-            img /= 255.0
+            img = normalize_bgr_to_rgb_chw(img, self._input_buffer)
+            self._input_buffer = img
             profile_accum("yolo.preprocess", time.perf_counter() - t0)
         t0 = time.perf_counter()
         output = self.session.infer([img])[0]
@@ -1404,6 +1439,21 @@ def yolo_pose_nms(prediction: np.ndarray, conf_thres: float, iou_thres: float, m
     if candidates.size == 0:
         return np.zeros((0, 56), dtype=np.float32)
 
+    if max_det == 1:
+        best = pred[int(candidates[np.argmax(scores[candidates])])]
+        cx, cy, width, height = best[:4]
+        out = np.empty((1, pred.shape[1] + 1), dtype=np.float32)
+        out[0, :4] = (
+            cx - width * 0.5,
+            cy - height * 0.5,
+            cx + width * 0.5,
+            cy + height * 0.5,
+        )
+        out[0, 4] = best[4]
+        out[0, 5] = 0.0
+        out[0, 6:] = best[5:]
+        return out
+
     x = pred[candidates].copy()
     boxes = xywh2xyxy(x[:, :4])
     order = np.argsort(-x[:, 4])
@@ -1432,16 +1482,37 @@ def yolo_pose_nms(prediction: np.ndarray, conf_thres: float, iou_thres: float, m
 
 
 class BoardPoseRuntime:
-    def __init__(self, model_path: Path) -> None:
+    def __init__(self, model_path: Path, input_mode: str = "auto") -> None:
         if InferSession is None:
             raise RuntimeError("ais_bench is not available in current environment")
         if not model_path.exists():
             raise FileNotFoundError(f"pose OM not found: {model_path}")
         self.session = InferSession(0, str(model_path))
+        inputs = self.session.get_inputs()
+        if len(inputs) != 1:
+            raise RuntimeError(f"pose OM must have one input, got {len(inputs)}")
+        input_desc = inputs[0]
+        input_datatype = str(getattr(input_desc, "datatype", getattr(input_desc, "dtype", ""))).lower()
+        descriptor_uses_aipp = "uint8" in input_datatype
+        normalized_mode = str(input_mode).strip().lower() or "auto"
+        if normalized_mode not in {"auto", "float32", "aipp"}:
+            raise ValueError(f"unsupported pose input mode: {input_mode!r}")
+        if normalized_mode == "aipp" and not descriptor_uses_aipp:
+            raise RuntimeError(f"pose input mode aipp requires uint8 OM input, got {input_datatype!r}")
+        if normalized_mode == "float32" and descriptor_uses_aipp:
+            raise RuntimeError("pose input mode float32 cannot be used with a uint8 AIPP OM")
+        self.uses_aipp = descriptor_uses_aipp if normalized_mode == "auto" else normalized_mode == "aipp"
+        self.input_mode = "aipp" if self.uses_aipp else "float32"
         input_size = resolve_pose_input_size(model_path)
         self.input_shape = (input_size, input_size)
+        self._input_buffer: np.ndarray | None = None
         self._debug_calls = 0
-        print(f"[BOARD] pose input_shape={self.input_shape}", flush=True)
+        input_shape = tuple(getattr(input_desc, "shape", ()))
+        print(
+            f"[BOARD] pose input_shape={self.input_shape} input_mode={self.input_mode} "
+            f"model_input_shape={input_shape} model_input_dtype={input_datatype}",
+            flush=True,
+        )
 
     def infer_result(
         self,
@@ -1450,16 +1521,27 @@ class BoardPoseRuntime:
         preprocessed: YoloPosePreprocess | None = None,
     ) -> PoseOmResult:
         if preprocessed is not None and preprocessed.input_shape == self.input_shape:
-            img = preprocessed.tensor
             ratio = preprocessed.ratio
             pad = preprocessed.pad
+            t0 = time.perf_counter()
+            if self.uses_aipp:
+                img = np.ascontiguousarray(preprocessed.letterboxed_bgr, dtype=np.uint8)
+            elif preprocessed.tensor is not None:
+                img = preprocessed.tensor
+            else:
+                img = normalize_bgr_to_rgb_chw(preprocessed.letterboxed_bgr, self._input_buffer)
+                self._input_buffer = img
+            profile_accum("pose.preprocess", time.perf_counter() - t0)
         else:
             t0 = time.perf_counter()
             img, ratio, pad = letterbox(frame, new_shape=self.input_shape)
             profile_accum("pose.letterbox", time.perf_counter() - t0)
             t0 = time.perf_counter()
-            img = img[:, :, ::-1].transpose(2, 0, 1)
-            img = np.ascontiguousarray(img, dtype=np.float32) / 255.0
+            if self.uses_aipp:
+                img = np.ascontiguousarray(img, dtype=np.uint8)
+            else:
+                img = normalize_bgr_to_rgb_chw(img, self._input_buffer)
+                self._input_buffer = img
             profile_accum("pose.preprocess", time.perf_counter() - t0)
         t0 = time.perf_counter()
         pred = np.asarray(self.session.infer([img])[0], dtype=np.float32)
@@ -1468,7 +1550,7 @@ class BoardPoseRuntime:
         dets = yolo_pose_nms(pred, conf_thres=conf_thres, iou_thres=ACTION_POSE_IOU_THRES, max_det=1)
         if dets.size == 0:
             profile_accum("pose.post", time.perf_counter() - t0)
-            return PoseOmResult(np.zeros((33, 4), dtype=np.float32), [], [])
+            return PoseOmResult(np.zeros((33, 4), dtype=np.float32), [], [], None)
         best = dets[0]
         box = best[:4].copy()
         box[[0, 2]] = (box[[0, 2]] - pad[0]) / ratio[0]
@@ -1495,7 +1577,7 @@ class BoardPoseRuntime:
                 f"kpts={len(points)} pose_shape={pose.shape}",
                 flush=True,
             )
-        return PoseOmResult(pose, points, detections)
+        return PoseOmResult(pose, points, detections, kpts.copy())
 
     def infer(self, frame: np.ndarray, conf_thres: float = ACTION_POSE_CONF_THRES) -> tuple[np.ndarray, list[tuple[int, int]]]:
         result = self.infer_result(frame, conf_thres=conf_thres)
@@ -1558,7 +1640,13 @@ class BoardPoseRuntime:
 
 
 class BoardPoseOmActionRuntime:
-    def __init__(self, action_model_path: Path, config_path: Path, pose_model_path: Path) -> None:
+    def __init__(
+        self,
+        action_model_path: Path,
+        config_path: Path,
+        pose_model_path: Path,
+        pose_input_mode: str = "auto",
+    ) -> None:
         if InferSession is None:
             raise RuntimeError("ais_bench is not available in current environment")
         if not action_model_path.exists():
@@ -1573,7 +1661,7 @@ class BoardPoseOmActionRuntime:
         self.feature_dim = int(cfg.get("input_dim", 288))
         self.class_names = [str(x) for x in cfg.get("class_names", DEFAULT_ACTION_CLASS_NAMES)]
         self.stride = max(1, int(ACTION_INFER_STRIDE))
-        self.pose_runtime = BoardPoseRuntime(pose_model_path)
+        self.pose_runtime = BoardPoseRuntime(pose_model_path, input_mode=pose_input_mode)
         self.action_session = InferSession(0, str(action_model_path))
         self._get_norm_center_scale = get_norm_center_scale
         self.feature_history: deque[np.ndarray] = deque(maxlen=self.window)
@@ -2049,12 +2137,52 @@ def enrich_tracks_with_emotion(frame: np.ndarray, tracks: list[Track], emotion_r
         track.emotion_label, track.emotion_confidence = result
 
 
-@dataclass
+@dataclass(frozen=True)
+class FramePacket:
+    image: np.ndarray
+    timestamp: float
+    sequence: int
+
+
 class LatestFrame:
-    image: np.ndarray | None = None
-    timestamp: float = 0.0
-    client_ip: str = ""
-    summary_cache: dict = field(default_factory=dict)
+    def __init__(self) -> None:
+        self.client_ip = ""
+        self.summary_cache: dict = {}
+        self._condition = threading.Condition()
+        self._packet: FramePacket | None = None
+        self._sequence = 0
+        self._closed = False
+
+    def publish(self, image: np.ndarray, timestamp: float) -> bool:
+        """Atomically replace the single latest-frame slot and wake its consumer."""
+        with self._condition:
+            if self._closed:
+                return False
+            self._sequence += 1
+            self._packet = FramePacket(
+                image=image,
+                timestamp=float(timestamp),
+                sequence=self._sequence,
+            )
+            self._condition.notify()
+            return True
+
+    def wait_next(self, last_sequence: int, timeout: float | None = None) -> FramePacket | None:
+        """Wait for a newer packet, returning None on timeout or after close()."""
+        with self._condition:
+            ready = self._condition.wait_for(
+                lambda: self._closed
+                or (self._packet is not None and self._packet.sequence > last_sequence),
+                timeout=timeout,
+            )
+            if not ready or self._closed:
+                return None
+            return self._packet
+
+    def close(self) -> None:
+        with self._condition:
+            self._closed = True
+            self._condition.notify_all()
 
 
 def weighted_top_label(items: list[tuple[str, float]]) -> tuple[str, float]:
@@ -2142,8 +2270,7 @@ def local_camera_capture(
             if not ok or frame is None:
                 time.sleep(0.02)
                 continue
-            shared.image = frame
-            shared.timestamp = time.time()
+            shared.publish(frame, time.time())
     finally:
         cap.release()
 
@@ -2220,8 +2347,7 @@ def video_server(
                     if frame is None:
                         continue
                     profile_video_in(meta_dt, payload_dt, decode_dt, len(payload))
-                    shared.image = frame
-                    shared.timestamp = float(meta.get("timestamp", time.time()))
+                    shared.publish(frame, float(meta.get("timestamp", time.time())))
             except Exception as exc:
                 print(f"[BOARD] video connection dropped: {exc}", flush=True)
             finally:
@@ -2319,6 +2445,7 @@ def build_runtime_summary(
     action_label: str,
     action_confidence: float,
     frame_shape: tuple[int, int, int] | None = None,
+    coco_kpts=None,
 ) -> dict:
     now = time.monotonic()
     recent_window = 1.2
@@ -2345,7 +2472,14 @@ def build_runtime_summary(
 
     primary_face = max(face_tracks, key=lambda t: (t.bbox[2] - t.bbox[0]) * (t.bbox[3] - t.bbox[1]), default=None)
     face_bbox = [int(v) for v in primary_face.bbox] if primary_face is not None else None
+    primary_person = max(
+        person_tracks,
+        key=lambda t: (t.bbox[2] - t.bbox[0]) * (t.bbox[3] - t.bbox[1]),
+        default=None,
+    )
+    person_bbox = [int(v) for v in primary_person.bbox] if primary_person is not None else None
     frame_width = int(frame_shape[1]) if frame_shape is not None and len(frame_shape) >= 2 else None
+    frame_height = int(frame_shape[0]) if frame_shape is not None and len(frame_shape) >= 1 else None
 
     summary = {
         "face_count": len(face_tracks),
@@ -2388,10 +2522,21 @@ def build_runtime_summary(
     try:
         from distance_estimate import attach_distance_fields
 
-        attach_distance_fields(summary, face_bbox, frame_width)
+        # 先写入帧高，供姿态可见性用人体框高度比判断贴脸
+        if frame_height:
+            summary["frame_height"] = int(frame_height)
+        attach_distance_fields(
+            summary,
+            face_bbox,
+            frame_width,
+            coco_kpts=coco_kpts,
+            person_bbox=person_bbox,
+        )
     except Exception:
         if frame_width:
             summary["frame_width"] = frame_width
+        if frame_height:
+            summary["frame_height"] = int(frame_height)
         summary.setdefault("distance_band", "unknown")
         summary.setdefault("distance_confidence", 0.0)
     return summary
@@ -2410,9 +2555,29 @@ def merge_summary_with_cache(current: dict, cached: dict, hold_seconds: float = 
         merged["top_emotion"] = dict(cached.get("top_emotion", {})) if isinstance(cached.get("top_emotion", {}), dict) else {}
         if cached.get("face_bbox"):
             merged["face_bbox"] = list(cached.get("face_bbox"))
-        for key in ("distance_band", "distance_m_est", "distance_confidence", "frame_width"):
-            if key in cached:
-                merged[key] = cached[key]
+        # 贴脸时人脸常丢，但人体/姿态仍在：绝不能用旧的 distance_*（可能卡在太远）
+        person_alive = int(current.get("person_count", 0) or 0) > 0
+        has_fresh_pose_dist = str(current.get("distance_source") or "").startswith("pose_visibility") and str(
+            current.get("distance_zone") or ""
+        ).lower() in ("too_close", "sweet", "too_far")
+        if not (person_alive and has_fresh_pose_dist):
+            for key in (
+                "distance_band",
+                "distance_m_est",
+                "distance_confidence",
+                "frame_width",
+                "distance_source",
+                "distance_zone",
+                "pose_visibility",
+                "lateral_zone",
+                "lateral_offset",
+                "lateral_source",
+                "lateral_confidence",
+                "position_coach_hint",
+                "lateral",
+            ):
+                if key in cached:
+                    merged[key] = cached[key]
     if int(current.get("hand_count", 0) or 0) == 0 and int(cached.get("hand_count", 0) or 0) > 0:
         merged["hand_count"] = int(cached.get("hand_count", 0) or 0)
         merged["hands"] = list(cached.get("hands", [])) if isinstance(cached.get("hands", []), list) else []
@@ -2459,6 +2624,12 @@ def main() -> None:
     parser.add_argument("--action-stgcn-om", type=Path, default=DEFAULT_ACTION_STGCN_OM)
     parser.add_argument("--pose-om", type=Path, default=DEFAULT_POSE_OM)
     parser.add_argument(
+        "--pose-input-mode",
+        choices=["auto", "float32", "aipp"],
+        default=POSE_INPUT_MODE,
+        help="auto=inspect OM input dtype; aipp=uint8 BGR input; float32=RGB CHW normalized input",
+    )
+    parser.add_argument(
         "--action-backend",
         choices=["pose_om", "stgcn", "none"],
         default=ACTION_BACKEND,
@@ -2482,7 +2653,11 @@ def main() -> None:
             flush=True,
         )
     stop_event = threading.Event()
-    pose_runtime = BoardPoseRuntime(args.pose_om) if args.detector_backend in {"pose_om", "hybrid"} else None
+    pose_runtime = (
+        BoardPoseRuntime(args.pose_om, input_mode=args.pose_input_mode)
+        if args.detector_backend in {"pose_om", "hybrid"}
+        else None
+    )
     yolo = BoardYoloRuntime(args.yolo_om) if args.detector_backend in {"yolo", "hybrid"} else None
     dvpp_decoder: DvppJpegDecoder | None = None
     if BOARD_DVPP_JPEGD:
@@ -2531,7 +2706,7 @@ def main() -> None:
                     "(NPU body pose + hand landmark OM)."
                 )
             if pose_runtime is None:
-                pose_runtime = BoardPoseRuntime(args.pose_om)
+                pose_runtime = BoardPoseRuntime(args.pose_om, input_mode=args.pose_input_mode)
             action_runtime = BoardStgcnActionRuntime(
                 args.action_stgcn_om,
                 MOTION_STGCN_CONFIG,
@@ -2550,10 +2725,14 @@ def main() -> None:
     else:
         try:
             if pose_runtime is not None:
-                action_runtime = BoardPoseOmActionRuntime(args.action_om, MOTION_CONFIG, args.pose_om)
+                action_runtime = BoardPoseOmActionRuntime(
+                    args.action_om, MOTION_CONFIG, args.pose_om, args.pose_input_mode
+                )
                 action_runtime.pose_runtime = pose_runtime
             else:
-                action_runtime = BoardPoseOmActionRuntime(args.action_om, MOTION_CONFIG, args.pose_om)
+                action_runtime = BoardPoseOmActionRuntime(
+                    args.action_om, MOTION_CONFIG, args.pose_om, args.pose_input_mode
+                )
             print(
                 f"[BOARD] action runtime enabled backend={args.action_backend} "
                 f"stride={ACTION_INFER_STRIDE} window={action_runtime.window}",
@@ -2578,7 +2757,7 @@ def main() -> None:
         )
     profile_frames = 0
     profile_sums: dict[str, float] = {}
-    profile_window_start = time.perf_counter()
+    profile_window_start: float | None = None
     global PROFILE_SINK
     PROFILE_SINK = profile_sums
 
@@ -2591,6 +2770,8 @@ def main() -> None:
         nonlocal profile_frames, profile_sums, profile_window_start
         if not BOARD_PROFILE:
             return
+        if profile_window_start is None:
+            profile_window_start = loop_started
         profile_add("total", time.perf_counter() - loop_started)
         profile_frames += 1
         if profile_frames < 30:
@@ -2612,26 +2793,23 @@ def main() -> None:
         print(" ".join(parts), flush=True)
         profile_frames = 0
         profile_sums.clear()
-        profile_window_start = time.perf_counter()
+        profile_window_start = None
 
     try:
-        last_processed_timestamp = 0.0
+        last_processed_sequence = 0
         last_hybrid_yolo_at = 0.0
         last_full_detector_at = 0.0
         last_summary_write_at = 0.0
         last_no_display_log_at = 0.0
+        shared_preprocess_buffer: np.ndarray | None = None
         while True:
+            packet = shared.wait_next(last_processed_sequence)
+            if packet is None:
+                break
+            last_processed_sequence = packet.sequence
             loop_started = time.perf_counter()
-            frame = shared.image
-            if frame is None:
-                time.sleep(0.02)
-                profile_finish_frame(loop_started)
-                continue
-            frame_timestamp = shared.timestamp
-            if frame_timestamp <= last_processed_timestamp:
-                time.sleep(0.005)
-                continue
-            last_processed_timestamp = frame_timestamp
+            frame = packet.image
+            frame_timestamp = packet.timestamp
             show = frame.copy()
             pose_result: PoseOmResult | None = None
             t0 = time.perf_counter()
@@ -2673,7 +2851,14 @@ def main() -> None:
                     and pose_runtime.input_shape == yolo.input_shape
                 ):
                     shared_t0 = time.perf_counter()
-                    shared_preprocess = prepare_yolo_pose_preprocess(show, new_shape=pose_runtime.input_shape)
+                    shared_preprocess = prepare_yolo_pose_preprocess(
+                        show,
+                        new_shape=pose_runtime.input_shape,
+                        tensor_buffer=shared_preprocess_buffer,
+                        include_tensor=not pose_runtime.uses_aipp,
+                    )
+                    if shared_preprocess.tensor is not None:
+                        shared_preprocess_buffer = shared_preprocess.tensor
                     profile_add("shared.preprocess", time.perf_counter() - shared_t0)
                 if args.detector_backend in {"pose_om", "hybrid"}:
                     if pose_runtime is not None:
@@ -2737,7 +2922,7 @@ def main() -> None:
                     int(args.cursor_port),
                     cursor_landmarks,
                     cursor_meta,
-                    shared.timestamp,
+                    frame_timestamp,
                 )
             profile_add("cursor_fast", time.perf_counter() - t0)
             t0 = time.perf_counter()
@@ -2764,7 +2949,13 @@ def main() -> None:
             t0 = time.perf_counter()
             draw_action_overlay(show, action_label, action_confidence, pose_points)
             action_overlay = collect_action_overlay(action_label, action_confidence)
-            summary = build_runtime_summary(tracks, action_label, action_confidence, show.shape)
+            summary = build_runtime_summary(
+                tracks,
+                action_label,
+                action_confidence,
+                show.shape,
+                coco_kpts=(pose_result.coco_kpts if pose_result is not None else None),
+            )
             summary = merge_summary_with_cache(summary, shared.summary_cache)
             shared.summary_cache = dict(summary)
             try:
@@ -2794,7 +2985,7 @@ def main() -> None:
                             start_result_connector(target_result_host, args.result_port, result_state, result_state_lock)
             cv2.putText(
                 show,
-                f"BOARD RUNTIME ts={shared.timestamp:.3f} det={visible}",
+                f"BOARD RUNTIME ts={frame_timestamp:.3f} det={visible}",
                 (16, 36),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.8,
@@ -2810,7 +3001,7 @@ def main() -> None:
                     send_result_frame(
                         result_sock,
                         show,
-                        shared.timestamp,
+                        frame_timestamp,
                         jpeg_quality=RESULT_JPEG_QUALITY,
                         gesture_overlays=gesture_overlays,
                         action_overlay=action_overlay,
@@ -2831,9 +3022,8 @@ def main() -> None:
             if args.no_display:
                 now_for_log = time.monotonic()
                 if now_for_log - last_no_display_log_at >= 1.0:
-                    print(f"[BOARD] ts={shared.timestamp:.3f} det={visible}", flush=True)
+                    print(f"[BOARD] ts={frame_timestamp:.3f} det={visible}", flush=True)
                     last_no_display_log_at = now_for_log
-                time.sleep(0.01)
                 profile_finish_frame(loop_started)
                 continue
             if not getattr(args, "_display_window_ready", False):
@@ -2849,6 +3039,7 @@ def main() -> None:
             profile_finish_frame(loop_started)
     finally:
         stop_event.set()
+        shared.close()
         with result_state_lock:
             result_sock = result_state.get("result_sock")
             result_state["result_sock"] = None

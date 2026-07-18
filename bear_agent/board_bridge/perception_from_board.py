@@ -215,6 +215,30 @@ def summary_and_speech_to_perception(
             out["distance_confidence"] = min(1.0, max(0.0, float(summary.get("distance_confidence"))))
     except (TypeError, ValueError):
         pass
+    for key in (
+        "distance_source",
+        "distance_zone",
+        "lateral_zone",
+        "lateral_source",
+        "position_coach_hint",
+    ):
+        val = summary.get(key)
+        if isinstance(val, str) and val.strip():
+            out[key] = val.strip()
+    try:
+        if summary.get("lateral_offset") is not None:
+            out["lateral_offset"] = float(summary.get("lateral_offset"))
+    except (TypeError, ValueError):
+        pass
+    try:
+        if summary.get("lateral_confidence") is not None:
+            out["lateral_confidence"] = min(1.0, max(0.0, float(summary.get("lateral_confidence"))))
+    except (TypeError, ValueError):
+        pass
+    if isinstance(summary.get("pose_visibility"), dict):
+        out["pose_visibility"] = summary["pose_visibility"]
+    if isinstance(summary.get("lateral"), dict):
+        out["lateral"] = summary["lateral"]
     return out
 
 

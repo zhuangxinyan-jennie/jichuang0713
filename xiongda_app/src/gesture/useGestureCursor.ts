@@ -8,8 +8,9 @@ import {
   type GestureCursorState,
   type GestureLandmark,
 } from "./gestureCursorController";
+import { rewriteLoopbackServiceUrl } from "../services/lanServiceUrl";
 
-const LANDMARKS_URL = "/gesture-api/api/landmarks";
+const LANDMARKS_URL = `${rewriteLoopbackServiceUrl(undefined, "http://127.0.0.1:8770")}/api/landmarks`;
 const POLL_MS = 16;
 
 type LandmarksPayload = {

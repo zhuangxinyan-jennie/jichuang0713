@@ -51,6 +51,10 @@ class BridgeRuntimeConfig:
     agent_post_timeout_sec: float = 600.0
     latency_log_enabled: bool = False
     latency_log_file: str = ""
+    # 单目脸宽估距不准（贴脸易误报「有点远」）；默认关闭，有 ToF/真测距后再开
+    distance_coach_enabled: bool = False
+    # 偏左/偏右站位提示；默认关，确认 lateral_zone 正常后再开
+    position_coach_enabled: bool = False
 
     @property
     def use_fingerprint_trigger(self) -> bool:
@@ -76,4 +80,6 @@ def load_bridge_runtime_config() -> BridgeRuntimeConfig:
         agent_post_timeout_sec=env_float("BEAR_BRIDGE_AGENT_POST_TIMEOUT_SEC", 600.0),
         latency_log_enabled=env_bool("BEAR_LATENCY_LOG", False),
         latency_log_file=env_str("BEAR_LATENCY_LOG_FILE", ""),
+        distance_coach_enabled=env_bool("BEAR_DISTANCE_COACH", False),
+        position_coach_enabled=env_bool("BEAR_POSITION_COACH", False),
     )

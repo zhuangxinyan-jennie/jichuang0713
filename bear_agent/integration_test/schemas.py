@@ -25,6 +25,12 @@ class PerceptionIn(BaseModel):
     stable_event: str = ""
     stable_event_score: int = 0
     fpga_fusion_delay_ms: int = 0
+    distance_band: str = ""
+    distance_m_est: float | None = None
+    distance_confidence: float | None = None
+    # board_bridge 距离舒适区提示：too_close / too_far
+    distance_coach: str = ""
+    interaction_engaged: bool = False
 
     @model_validator(mode="before")
     @classmethod

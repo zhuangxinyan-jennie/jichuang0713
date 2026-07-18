@@ -65,5 +65,12 @@ export default defineConfig(({ mode }) => {
           }
         : { ...gestureProxy },
     },
+    // 发布版预览（4173）同样允许局域网访问，并代理摄像头预览
+    preview: {
+      host: true,
+      port: 4173,
+      strictPort: true,
+      proxy: { ...gestureProxy },
+    },
   };
 });
