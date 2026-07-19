@@ -1,0 +1,7 @@
+# All parameters are passed by host tiling data. buffer_num controls the
+# TPipe queue depth; output_rows_per_tile controls actual GM/UB tile sizes;
+# pipeline_mode selects serial or staged CopyIn/Compute/CopyOut ordering.
+# The staged mode is legal only when buffer_num=2.
+buffer_num: [1, 2]
+output_rows_per_tile: [1, 2, 4]
+pipeline_mode: [serial, staged]

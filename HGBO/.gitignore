@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# DSE 实验输出（可本地重跑生成）
+dse_ds/**/script/
+dse_ds/**/benchmark_*.json
+!dse_ds/experiment_report.json
+
+# Ascend / NPU 构建产物
+**/build_out/
+**/cmake-build-*/
+**/*.o
+**/*.so
+**/*.a
+**/*.run
+**/*.om
+**/*.bin
+packages/*.run
+packages/*.tar*
+packages/*.zip
+
+# 板端打包/拉取临时目录
+board_pack/
+board_pull/
+*.log
+
+# 本地密钥（勿提交）
+.env
+.env.*
+config/board_local.env
+**/secrets*
