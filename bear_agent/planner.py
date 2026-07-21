@@ -3,8 +3,8 @@
 规则库 + LLM双通道决策
 """
 import json
-from openai import OpenAI
 from config import ACTION_NAME_ALIASES, LLM_CONFIG, ACTION_LIST, EMOTION_LIST
+from llm_backend import build_llm_backend
 
 class Planner:
     def __init__(self, rules_path="rules.json"):
@@ -16,15 +16,19 @@ class Planner:
         with open(rules_path, 'r', encoding='utf-8') as f:
             self.rules = json.load(f)["rules"]
 
-        # 初始化OpenAI客户端（阿里云百炼 DashScope 兼容）
-        if not LLM_CONFIG["api_key"] or LLM_CONFIG["api_key"].startswith("your-"):
-            print("[Planner] 警告：未配置 DASHSCOPE_API_KEY，规则库未命中时 LLM 调用会失败")
-
-        self.llm_client = OpenAI(
-            base_url=LLM_CONFIG["base_url"],
-            api_key=LLM_CONFIG["api_key"]
-        )
-        self.debug_prompt = LLM_CONFIG.get("debug_prompt", False)
+        # 初始化 LLM 后端。默认仍兼容 DashScope，也可用环境变量切到板端本地服务。
+        try:
+            self.llm_settings, self.llm_backend = build_llm_backend(LLM_CONFIG)
+            print(
+                "[Planner] LLM后端: "
+                f"provider={self.llm_settings.provider} "
+                f"base_url={self.llm_settings.base_url} "
+                f"model={self.llm_settings.model}"
+            )
+        except Exception as e:
+            print(f"[Planner] LLM后端初始化失败，规则库未命中时使用默认响应: {e}")
+            self.llm_settings, self.llm_backend = build_llm_backend({"provider": "rules_only"})
+        self.debug_prompt = self.llm_settings.debug_prompt
 
         # 构建系统prompt
         self.system_prompt = self._build_system_prompt()
@@ -155,18 +159,7 @@ class Planner:
             print(user_prompt)
 
         try:
-            response = self.llm_client.chat.completions.create(
-                model=LLM_CONFIG["model"],
-                messages=[
-                    {"role": "system", "content": self.system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                temperature=LLM_CONFIG["temperature"],
-                max_tokens=LLM_CONFIG["max_tokens"],
-                extra_body={"enable_thinking": False}  # 禁用thinking模式，非流式调用必须关闭
-            )
-
-            llm_output = response.choices[0].message.content.strip()
+            llm_output = self.llm_backend.generate(self.system_prompt, user_prompt)
             print(f"[Planner] LLM输出:\n{llm_output}")
             return llm_output
 

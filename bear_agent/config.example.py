@@ -1,13 +1,22 @@
 # 配置文件模板 — 复制为 config.py 后填入自己的 API Key
 #   copy config.example.py config.py
 
-# LLM配置 - 阿里云百炼 DashScope（OpenAI兼容API）
+# LLM配置 - 默认阿里云百炼 DashScope（OpenAI兼容API）。
+# 也可以通过环境变量切到板端本地 OpenAI 兼容服务：
+#   BEAR_LLM_PROVIDER=board_http
+#   BEAR_LLM_BASE_URL=http://127.0.0.1:8000/v1
+#   BEAR_LLM_API_KEY=EMPTY
+#   BEAR_LLM_MODEL=<板端服务暴露的模型名>
 LLM_CONFIG = {
+    "provider": "dashscope",
     "api_key": "YOUR_DASHSCOPE_API_KEY",
     "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
     "model": "qwen3.5-27b",
     "temperature": 0.4,
     "max_tokens": 500,
+    "timeout_sec": 30.0,
+    "enable_thinking": False,
+    "debug_prompt": False,
 }
 
 # 记忆配置
