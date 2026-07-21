@@ -7,6 +7,8 @@ from __future__ import annotations
 import os
 import sys
 import time
+from pathlib import Path
+from typing import Any
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if ROOT not in sys.path:
@@ -29,6 +31,7 @@ from board_state import (
 )
 from schemas import BoardAsrLiveIn, PerceptionIn
 from settings import load_server_settings
+from safety_supervisor import SafetySupervisor
 
 
 class BearAgentForHttp(BearAgent):
@@ -81,11 +84,40 @@ def _record_board_drive_if_bridge(request: Request, result, perception: dict | N
     )
 
 
+def _safety(request: Request) -> SafetySupervisor:
+    supervisor = getattr(request.app.state, "safety_supervisor", None)
+    if supervisor is None:
+        raise HTTPException(status_code=503, detail="safety supervisor unavailable")
+    return supervisor
+
+
+def _raise_if_safety_locked(request: Request) -> None:
+    snap = _safety(request).tick()
+    if snap.locked:
+        raise HTTPException(
+            status_code=423,
+            detail={
+                "code": "SAFETY_LOCKED",
+                "state": snap.state.value,
+                "alert_id": snap.alert_id,
+            },
+        )
+
+
+def _safety_demo_enabled() -> bool:
+    raw = os.environ.get("SAFETY_DEMO_ENABLED", "0").strip().lower()
+    return raw in {"1", "true", "yes", "on"}
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.bear_agent = BearAgentForHttp()
     reset_board_state(app.state)
     app.state.multimodal_gate = MultimodalTurnGate()
+    state_path = os.environ.get("SAFETY_STATE_PATH", "").strip()
+    if not state_path:
+        state_path = str(Path(ROOT) / "outputs" / "safety_state.json")
+    app.state.safety_supervisor = SafetySupervisor(state_path=state_path)
     yield
 
 
@@ -126,10 +158,66 @@ def multimodal_gate_status(request: Request):
     busy=true 时不应发起新的 /api/process（否则请求体会卡在阻塞前的旧快照上）。
     """
     gate = getattr(request.app.state, "multimodal_gate", None)
+    safety = _safety(request).tick()
     if gate is None or not gate_enabled():
-        return {"enabled": False, "busy": False, "asr_clear_token": 0}
+        return {
+            "enabled": False,
+            "busy": False,
+            "asr_clear_token": 0,
+            "safety_locked": safety.locked,
+            "safety_state": safety.state.value,
+        }
     status = gate.status()
-    return {"enabled": True, **status}
+    return {
+        "enabled": True,
+        **status,
+        "safety_locked": safety.locked,
+        "safety_state": safety.state.value,
+    }
+
+
+@app.get("/api/safety/state")
+def safety_state(request: Request):
+    """Frontend safety poll; 400 ms polling is intentionally unconditional."""
+    return _safety(request).tick().to_dict()
+
+
+@app.post("/api/safety/update")
+def safety_update(body: dict[str, Any], request: Request):
+    """board_bridge forwards every new board crowd sample."""
+    caller = (request.headers.get("X-Agent-Caller") or "").strip().lower()
+    if caller != BOARD_BRIDGE_HEADER:
+        raise HTTPException(status_code=403, detail="X-Agent-Caller must be board-bridge")
+    supervisor = _safety(request)
+    snapshot = supervisor.update(body)
+    if snapshot.locked:
+        gate = getattr(request.app.state, "multimodal_gate", None)
+        if gate is not None:
+            gate.force_idle()
+    return snapshot.to_dict()
+
+
+@app.post("/api/safety/demo/trigger")
+def safety_demo_trigger(request: Request):
+    if not _safety_demo_enabled():
+        raise HTTPException(status_code=404, detail="safety demo disabled")
+    snapshot = _safety(request).trigger_demo()
+    gate = getattr(request.app.state, "multimodal_gate", None)
+    if gate is not None:
+        gate.force_idle()
+    return snapshot.to_dict()
+
+
+@app.post("/api/safety/demo/release")
+def safety_demo_release(request: Request):
+    if not _safety_demo_enabled():
+        raise HTTPException(status_code=404, detail="safety demo disabled")
+    return _safety(request).release_demo().to_dict()
+
+
+@app.post("/api/safety/recovery-done")
+def safety_recovery_done(request: Request):
+    return _safety(request).recovery_done().to_dict()
 
 
 @app.post("/api/multimodal/playback-done")
@@ -183,6 +271,7 @@ def board_auto_last(request: Request):
 @app.post("/api/process-test")
 def process_test(body: PerceptionIn, request: Request):
     """绕过玩法状态机，直接推理并返回随机互动 JSON（含 speech、actions、emotion）。"""
+    _raise_if_safety_locked(request)
     agent: BearAgent = request.app.state.bear_agent
     perception_dump = perception_dump_for_agent(body)
     result = agent._process_random_interaction(perception_dump)
@@ -196,6 +285,7 @@ def map_query(body: PerceptionIn, request: Request):
     纯地图问路：直接调用 map_guide.MapGuide（Dijkstra + 方位话术），
     不经过玩法状态机，适合前端「地图查询」页只展示平面图 + 字幕/语音。
     """
+    _raise_if_safety_locked(request)
     from map_guide import MapGuide
 
     text = (body.speech_text or "").strip()
@@ -226,6 +316,7 @@ def process_full(body: PerceptionIn, request: Request):
     board_bridge 请求（X-Agent-Caller: board-bridge）在启用闸门时串行：
     上一轮若需要前端配音，会阻塞直至 POST /api/multimodal/playback-done。
     """
+    _raise_if_safety_locked(request)
     agent: BearAgent = request.app.state.bear_agent
     perception_dump = perception_dump_for_agent(body)
     gate = getattr(request.app.state, "multimodal_gate", None)
@@ -234,6 +325,7 @@ def process_full(body: PerceptionIn, request: Request):
         gate.board_bridge_acquire()
         held = True
     try:
+        _raise_if_safety_locked(request)
         result = agent.process(perception_dump)
         _record_board_drive_if_bridge(request, result, perception_dump)
     except Exception:
@@ -241,7 +333,10 @@ def process_full(body: PerceptionIn, request: Request):
             gate.force_idle()
         raise
     if held and gate is not None:
-        gate.release_after_inference(result)
+        if _safety(request).tick().locked:
+            gate.force_idle()
+        else:
+            gate.release_after_inference(result)
     return result
 
 

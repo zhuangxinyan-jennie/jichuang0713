@@ -22,12 +22,31 @@ def upload(sftp: paramiko.SFTPClient, local: Path, remote: str) -> None:
     print(f"uploaded {local.name} -> {remote}")
 
 
+def upload_tree(sftp: paramiko.SFTPClient, local_root: Path, remote_root: str) -> None:
+    for path in sorted(local_root.rglob("*")):
+        if not path.is_file() or "__pycache__" in path.parts or path.suffix == ".pyc":
+            continue
+        rel = path.relative_to(local_root).as_posix()
+        remote = f"{remote_root}/{rel}"
+        remote_dir = "/".join(remote.split("/")[:-1])
+        parts = remote_dir.strip("/").split("/")
+        current = ""
+        for part in parts:
+            current += "/" + part
+            try:
+                sftp.stat(current)
+            except OSError:
+                sftp.mkdir(current)
+        upload(sftp, path, remote)
+
+
 def main() -> int:
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh.connect(HOST, username=USER, password=PWD, timeout=20)
     sftp = ssh.open_sftp()
     upload(sftp, DEPLOY / "run_board_runtime.py", "/home/HwHiAiUser/pre_on_board/board_deploy/run_board_runtime.py")
+    upload_tree(sftp, DEPLOY / "crowd_flow", "/home/HwHiAiUser/pre_on_board/board_deploy/crowd_flow")
     upload(sftp, DEPLOY / "test_hdmi_opencv.sh", "/tmp/test_hdmi_opencv.sh")
     upload(sftp, JICHUANG / "ensure_hdmi_display.sh", "/home/HwHiAiUser/jichuang/ensure_hdmi_display.sh")
     upload(sftp, JICHUANG / "run_on_board.sh", "/home/HwHiAiUser/jichuang/run_on_board.sh")

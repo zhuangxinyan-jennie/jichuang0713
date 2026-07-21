@@ -45,6 +45,14 @@ def clear_latest_asr_utterance(path: Path) -> None:
     atomic_write_json(path, doc)
 
 
+def crowd_snapshot_from_vision(vdoc: dict[str, Any]) -> dict[str, Any]:
+    summary = vdoc.get("summary")
+    if not isinstance(summary, dict):
+        return {}
+    crowd = summary.get("crowd_flow")
+    return dict(crowd) if isinstance(crowd, dict) else {}
+
+
 def poll_loop(
     output_dir: Path,
     agent_url: str,
@@ -69,6 +77,7 @@ def poll_loop(
     last_post_mono = 0.0
     last_posted_speech: str = ""
     last_asr_clear_token: int | None = None
+    last_safety_sample_seq: int | None = None
 
     while True:
         if stop_flag is not None and getattr(stop_flag, "is_set", lambda: False)():
@@ -89,8 +98,27 @@ def poll_loop(
         norm_txt = (adoc.get("normalized") or "").strip()
         now = time.monotonic()
         base = agent_http_base(url)
-        gate_status = agent_gate_status(base, log_print=log_print) if cfg.respect_agent_gate else {"enabled": False, "busy": False}
-        gate_busy = bool(gate_status.get("enabled")) and bool(gate_status.get("busy"))
+        safety_locked = False
+        crowd_snapshot = crowd_snapshot_from_vision(vdoc)
+        raw_safety_seq = crowd_snapshot.get("event_seq")
+        try:
+            safety_sample_seq = int(raw_safety_seq)
+        except (TypeError, ValueError):
+            safety_sample_seq = None
+        if crowd_snapshot and safety_sample_seq is not None and safety_sample_seq != last_safety_sample_seq:
+            try:
+                safety_out = post_json(
+                    base.rstrip("/") + "/api/safety/update",
+                    crowd_snapshot,
+                    timeout=2.0,
+                )
+                last_safety_sample_seq = safety_sample_seq
+                safety_locked = bool(safety_out.get("locked"))
+            except urllib.error.URLError as exc:
+                log_print(f"[board_bridge] safety update failed: {exc}")
+        gate_status = agent_gate_status(base, log_print=log_print)
+        gate_busy = cfg.respect_agent_gate and bool(gate_status.get("enabled")) and bool(gate_status.get("busy"))
+        safety_locked = safety_locked or bool(gate_status.get("safety_locked"))
         raw_token = gate_status.get("asr_clear_token", 0)
         try:
             asr_clear_token = int(raw_token)
@@ -110,7 +138,7 @@ def poll_loop(
             post_board_asr_live(url, partial="", final="", normalized="")
             continue
 
-        if gate_busy:
+        if safety_locked or gate_busy:
             if utterance_clear_event is not None:
                 utterance_clear_event.set()
             clear_latest_asr_utterance(asr_path)
@@ -212,4 +240,3 @@ def poll_loop(
                     post_board_asr_live(url, partial="", final="", normalized="")
             except urllib.error.URLError as e:
                 log_print(f"[board_bridge] POST failed: {e}")
-

@@ -3,11 +3,28 @@ from __future__ import annotations
 
 import argparse
 import socket
+from pathlib import Path
 
 import paramiko
 
 BOARD_PRE = "/home/HwHiAiUser/pre_on_board"
 BOARD_JICHUANG = "/home/HwHiAiUser/jichuang"
+
+
+def upload_tree(sftp: paramiko.SFTPClient, local_root: Path, remote_root: str) -> None:
+    for path in sorted(local_root.rglob("*")):
+        if not path.is_file() or "__pycache__" in path.parts or path.suffix == ".pyc":
+            continue
+        remote = f"{remote_root}/{path.relative_to(local_root).as_posix()}"
+        current = ""
+        for part in "/".join(remote.split("/")[:-1]).strip("/").split("/"):
+            current += "/" + part
+            try:
+                sftp.stat(current)
+            except OSError:
+                sftp.mkdir(current)
+        sftp.put(str(path), remote)
+        print(f"[upload] {path.name} -> {remote}")
 
 
 def guess_pc_ip(board_host: str) -> str:
@@ -28,8 +45,6 @@ def main() -> int:
     ap.add_argument("--bundle-root", default=r"F:\jichuang2026\clean_0606\pre_on_board_local_start_bundle")
     ap.add_argument("--jichuang-root", default=r"F:\jichuang2026\jichuang")
     args = ap.parse_args()
-
-    from pathlib import Path
 
     bundle = Path(args.bundle_root)
     jichuang = Path(args.jichuang_root)
@@ -53,6 +68,11 @@ def main() -> int:
     for local, remote in uploads:
         sftp.put(str(local), remote)
         print(f"[upload] {local.name} -> {remote}")
+    upload_tree(
+        sftp,
+        bundle / "board_deploy" / "crowd_flow",
+        f"{BOARD_PRE}/board_deploy/crowd_flow",
+    )
     sftp.close()
 
     remote_cmd = (

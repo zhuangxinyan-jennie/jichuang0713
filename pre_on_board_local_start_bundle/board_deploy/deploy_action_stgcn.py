@@ -129,6 +129,11 @@ def main() -> int:
         print("[skip] ATC")
 
     upload_tree(sftp, bundle / "motion", f"{BOARD_PRE}/motion")
+    upload_tree(
+        sftp,
+        bundle / "board_deploy" / "crowd_flow",
+        f"{BOARD_PRE}/board_deploy/crowd_flow",
+    )
     sftp.put(
         str(bundle / "board_deploy" / "run_board_runtime.py"),
         f"{BOARD_PRE}/board_deploy/run_board_runtime.py",

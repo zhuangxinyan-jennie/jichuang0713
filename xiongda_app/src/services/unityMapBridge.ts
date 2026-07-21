@@ -5,6 +5,7 @@ const MAP_BRIDGE_OBJECT = "ParkMapUnityBridge";
 let cachedMapInstance: UnityWebGLHandle | undefined;
 let mapUnityFullyReady = false;
 let pendingNavigation: (() => void) | null = null;
+let pendingNavigationTimer: number | null = null;
 
 export type PathWorldPoint = {
   x: number;
@@ -30,7 +31,10 @@ export function markMapUnityFullyReady(): void {
   if (pendingNavigation) {
     const run = pendingNavigation;
     pendingNavigation = null;
-    window.setTimeout(run, 300);
+    pendingNavigationTimer = window.setTimeout(() => {
+      pendingNavigationTimer = null;
+      run();
+    }, 300);
   }
 }
 
@@ -79,13 +83,21 @@ export function sendNavigateToPlace(placeName: string): void {
 }
 
 export function sendCancelMapNavigation(): void {
+  pendingNavigation = null;
+  if (pendingNavigationTimer !== null) {
+    window.clearTimeout(pendingNavigationTimer);
+    pendingNavigationTimer = null;
+  }
   sendMapMessage("CancelNavigation", "");
 }
 
 /** 地图 WebGL 加载完成后执行导航（最多等待 maxWaitMs）。 */
 export function scheduleMapNavigation(run: () => void, maxWaitMs = 90_000): void {
   if (isMapUnityFullyReady()) {
-    window.setTimeout(run, 300);
+    pendingNavigationTimer = window.setTimeout(() => {
+      pendingNavigationTimer = null;
+      run();
+    }, 300);
     return;
   }
 

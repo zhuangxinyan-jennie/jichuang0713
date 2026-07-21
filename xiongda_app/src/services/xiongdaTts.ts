@@ -51,6 +51,14 @@ function getSharedAudio(): HTMLAudioElement {
   return sharedAudio;
 }
 
+/** 安全 WARNING 使用：等待现有合成/朗读/WAV 完成，避免抢占或重叠。 */
+export function isBearSpeechBusy(): boolean {
+  if (typeof window === "undefined") return false;
+  const audioBusy = sharedAudio !== null && !sharedAudio.paused && !sharedAudio.ended;
+  const browserBusy = Boolean(window.speechSynthesis?.speaking || window.speechSynthesis?.pending);
+  return Boolean(currentTtsAbortController || currentPlaybackFinish || audioBusy || browserBusy);
+}
+
 function getSharedAudioContext(): AudioContext {
   const AudioContextCtor =
     window.AudioContext ||

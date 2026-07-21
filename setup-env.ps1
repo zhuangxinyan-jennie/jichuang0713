@@ -42,6 +42,7 @@ if (-not (Test-Path $envDev)) {
     @"
 VITE_BEAR_AGENT_URL=http://127.0.0.1:8765
 VITE_XIONGDA_TTS_URL=http://127.0.0.1:9890
+VITE_SAFETY_DEMO_ENABLED=1
 "@ | Set-Content $envDev -Encoding UTF8
 }
 

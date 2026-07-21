@@ -41,6 +41,8 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+if (-not $env:SAFETY_DEMO_ENABLED) { $env:SAFETY_DEMO_ENABLED = "1" }
+if (-not $env:VITE_SAFETY_DEMO_ENABLED) { $env:VITE_SAFETY_DEMO_ENABLED = "1" }
 
 function Resolve-RepoParent {
     param([string]$ScriptDir)

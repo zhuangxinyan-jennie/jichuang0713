@@ -11,7 +11,7 @@ import type { TopNavId } from "./types";
 import type { SmplhActionItem } from "./data/smplhActions";
 import { makeAgentContext } from "./services/agentContext";
 import { handleAgentJson, handleMapQuery, handleRecommendation } from "./services/agentApi";
-import { prepareBearAudioPlayback } from "./services/xiongdaTts";
+import { prepareBearAudioPlayback, stopBearSpeech } from "./services/xiongdaTts";
 import { sendSmplStreamingRelativePath } from "./services/unitySendClip";
 import { useUnityReady } from "./hooks/useUnityReady";
 import { agentPipelineDebugUi } from "./bear_pipeline/agentPipelineUi";
@@ -25,7 +25,11 @@ import {
   postProcessFullWithOptions,
   postReset,
 } from "./bear_pipeline/bearAgentClient";
-import { handleBearAgentPayload } from "./bear_pipeline/handleBearAgentPayload";
+import {
+  handleBearAgentPayload,
+  type BearAgentDispatchOptions,
+} from "./bear_pipeline/handleBearAgentPayload";
+import { cancelQueuedSequences } from "./bear_pipeline/playSequences";
 import type { BoardAsrLiveFields, PerceptionPayload } from "./bear_pipeline/bearAgentTypes";
 import { parseGuestNavIntent } from "./bear_pipeline/navIntentTriggers";
 import {
@@ -33,6 +37,10 @@ import {
   createLatencyProbe,
   setTtsLatencyContext,
 } from "./services/ttsLatencyProbe";
+import { SafetyOverlay } from "./safety/SafetyOverlay";
+import { useSafetyCoordinator } from "./safety/useSafetyCoordinator";
+import { sendUnityEmergencyStop } from "./safety/safetyUnity";
+import { sendCancelMapNavigation } from "./services/unityMapBridge";
 
 function boardAutoPollDefault(): boolean {
   const v = import.meta.env.VITE_BOARD_AUTO_POLL as string | undefined;
@@ -44,6 +52,7 @@ function boardAutoPollDefault(): boolean {
 type ManualInputSource = "typed" | "voice_mock" | "board_auto";
 type ManualInputRoute = "map_query" | "process";
 type LatencyProbe = ReturnType<typeof createLatencyProbe>;
+type ResumeStep = { payload: unknown; options?: BearAgentDispatchOptions };
 
 export default function App() {
   const [topNav, setTopNav] = useState<TopNavId>("voice");
@@ -64,6 +73,8 @@ export default function App() {
   const [boardLiveAsr, setBoardLiveAsr] = useState<BoardAsrLiveFields | null>(null);
   const lastBoardDriveSeqRef = useRef(0);
   const didAutoStartRef = useRef(false);
+  const lastBusinessStepRef = useRef<ResumeStep | null>(null);
+  const resumeStepRef = useRef<ResumeStep | null>(null);
   /** 焦点在右侧/底部表单内：隔离键盘并暂时禁止点击 Unity，避免「只能输入一次」 */
   const [terminalIslandFocused, setTerminalIslandFocused] = useState(false);
 
@@ -169,6 +180,82 @@ export default function App() {
     [bearEmotion, bearGesture, bearHandGesture, bearPersonDetected]
   );
 
+  const onSafetyEmergencyStop = useCallback(() => {
+    if (!resumeStepRef.current && lastBusinessStepRef.current) {
+      resumeStepRef.current = lastBusinessStepRef.current;
+    }
+    cancelQueuedSequences();
+    stopBearSpeech();
+    sendUnityEmergencyStop();
+    sendCancelMapNavigation();
+    setAgentLoading(false);
+  }, []);
+
+  const onSafetyRecoveryComplete = useCallback(
+    (resumeCacheExpired: boolean) => {
+      const cached = resumeStepRef.current;
+      resumeStepRef.current = null;
+      if (!resumeCacheExpired && cached) {
+        lastBusinessStepRef.current = cached;
+        handleBearAgentPayload(cached.payload, ctx, cached.options);
+        return;
+      }
+
+      lastBusinessStepRef.current = null;
+      setTopNav("voice");
+      setGuestInput("");
+      setSubtitle("");
+      setCurrentSmplPath("—");
+      setBoardBridgePerception(null);
+      setBoardLiveAsr(null);
+      lastBoardDriveSeqRef.current = 0;
+      void (async () => {
+        try {
+          await postReset();
+          const out = await postProcessFullWithOptions(mapPerception(""));
+          setLastAgentJson(out === null ? "null" : JSON.stringify(out, null, 2));
+          handleBearAgentPayload(out, ctx, bearPayloadNavOptions);
+        } catch (error) {
+          setAgentErr(error instanceof Error ? error.message : String(error));
+        }
+      })();
+    },
+    [bearPayloadNavOptions, ctx, mapPerception]
+  );
+
+  const {
+    safety,
+    safetyRef,
+    connectionError: safetyConnectionError,
+    demoBusy: safetyDemoBusy,
+    toggleDemo: toggleSafetyDemo,
+  } = useSafetyCoordinator({
+    onEmergencyStop: onSafetyEmergencyStop,
+    onRecoveryComplete: onSafetyRecoveryComplete,
+  });
+
+  const dispatchBearPayload = useCallback(
+    (payload: unknown, options?: BearAgentDispatchOptions) => {
+      if (payload === null || payload === undefined) {
+        if (!safetyRef.current.locked) handleBearAgentPayload(payload, ctx, options);
+        return;
+      }
+      const step = { payload, options };
+      if (safetyRef.current.locked) {
+        resumeStepRef.current = step;
+        return;
+      }
+      lastBusinessStepRef.current = step;
+      handleBearAgentPayload(payload, ctx, options);
+    },
+    [ctx, safetyRef]
+  );
+
+  const safetyDemoEnabled = useMemo(() => {
+    const raw = String(import.meta.env.VITE_SAFETY_DEMO_ENABLED || "").trim().toLowerCase();
+    return raw === "1" || raw === "true" || raw === "on";
+  }, []);
+
   /**
    * 底部输入 / 模拟语音 → Agent：在开启板端同步且已有 perception 时，
    * 用「最新板端多模态快照」做底，`speech_text` 一律用你键入的文字（覆盖 ASR 整句）。
@@ -238,6 +325,7 @@ export default function App() {
 
   const sendMapQuestion = useCallback(
     async (text: string, probe?: LatencyProbe, source: ManualInputSource = "typed") => {
+      if (safetyRef.current.locked) return;
       const t = text.trim();
       if (!t) return;
       setAgentErr("");
@@ -249,7 +337,7 @@ export default function App() {
           speechLength: (out.speech || "").length,
         });
         setLastAgentJson(JSON.stringify(out, null, 2));
-        handleBearAgentPayload(out, ctx, bearPayloadNavOptions);
+        dispatchBearPayload(out, bearPayloadNavOptions);
         probe?.finish("ok", {
           source,
           interaction_type: out.interaction_type || "",
@@ -269,12 +357,13 @@ export default function App() {
         setAgentLoading(false);
       }
     },
-    [ctx, buildPerceptionForManualSend, bearPayloadNavOptions]
+    [ctx, buildPerceptionForManualSend, bearPayloadNavOptions, dispatchBearPayload, safetyRef]
   );
 
   /** 统一走 Bear Agent 玩法状态机 POST /api/process */
   const dispatchBearFsm = useCallback(
     async (speechForAgent: string, probe?: LatencyProbe, source: ManualInputSource = "typed") => {
+      if (safetyRef.current.locked) return;
       setAgentErr("");
       setAgentLoading(true);
       try {
@@ -285,7 +374,7 @@ export default function App() {
           speechLength: (out?.speech || "").length,
         });
         setLastAgentJson(out === null ? "null" : JSON.stringify(out, null, 2));
-        handleBearAgentPayload(out, ctx, bearPayloadNavOptions);
+        dispatchBearPayload(out, bearPayloadNavOptions);
         probe?.finish("ok", {
           source,
           interaction_type: out?.interaction_type || "",
@@ -306,10 +395,11 @@ export default function App() {
         setAgentLoading(false);
       }
     },
-    [ctx, buildPerceptionForManualSend, bearPayloadNavOptions]
+    [ctx, buildPerceptionForManualSend, bearPayloadNavOptions, dispatchBearPayload, safetyRef]
   );
 
   const onResetAgent = useCallback(async () => {
+    if (safetyRef.current.locked) return;
     prepareBearAudioPlayback();
     setAgentErr("");
     setAgentLoading(true);
@@ -323,16 +413,17 @@ export default function App() {
       setLastAgentJson("（已 reset）");
       const out = await postProcessFullWithOptions(mapPerception(""));
       setLastAgentJson(out === null ? "null" : JSON.stringify(out, null, 2));
-      handleBearAgentPayload(out, ctx, bearPayloadNavOptions);
+      dispatchBearPayload(out, bearPayloadNavOptions);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setAgentErr(msg);
     } finally {
       setAgentLoading(false);
     }
-  }, [ctx, bearPayloadNavOptions, mapPerception]);
+  }, [bearPayloadNavOptions, dispatchBearPayload, mapPerception, safetyRef]);
 
   const onSend = useCallback(() => {
+    if (safetyRef.current.locked) return;
     const text = guestInput.trim();
     if (!text) return;
     prepareBearAudioPlayback();
@@ -348,9 +439,10 @@ export default function App() {
       return;
     }
     void dispatchBearFsm(text, probe, "typed");
-  }, [guestInput, topNav, sendMapQuestion, dispatchBearFsm, createManualInputProbe]);
+  }, [guestInput, topNav, sendMapQuestion, dispatchBearFsm, createManualInputProbe, safetyRef]);
 
   const onVoiceMock = useCallback(() => {
+    if (safetyRef.current.locked) return;
     prepareBearAudioPlayback();
     if (topNav === "map") {
       const simulated = "怎么去海螺湾";
@@ -363,7 +455,7 @@ export default function App() {
     setGuestInput(simulated);
     const probe = createManualInputProbe("voice_mock", "process", simulated);
     void dispatchBearFsm(simulated, probe, "voice_mock");
-  }, [topNav, sendMapQuestion, dispatchBearFsm, createManualInputProbe]);
+  }, [topNav, sendMapQuestion, dispatchBearFsm, createManualInputProbe, safetyRef]);
 
   useEffect(() => {
     const flag = (import.meta.env.VITE_AGENT_AUTO_START as string | undefined)?.trim().toLowerCase();
@@ -389,7 +481,7 @@ export default function App() {
         const out = await postProcessFullWithOptions(mapPerception(""));
         if (cancelled) return;
         setLastAgentJson(out === null ? "null" : JSON.stringify(out, null, 2));
-        handleBearAgentPayload(out, ctx, bearPayloadNavOptions);
+        dispatchBearPayload(out, bearPayloadNavOptions);
       } catch (e) {
         if (!cancelled) {
           const msg = e instanceof Error ? e.message : String(e);
@@ -401,7 +493,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [ctx, bearPayloadNavOptions, mapPerception]);
+  }, [bearPayloadNavOptions, dispatchBearPayload, mapPerception]);
 
   useEffect(() => {
     if (!boardAutoFollow) {
@@ -432,7 +524,7 @@ export default function App() {
         if (r.seq > lastBoardDriveSeqRef.current) {
           lastBoardDriveSeqRef.current = r.seq;
           if (r.output !== null && r.output !== undefined) {
-            handleBearAgentPayload(r.output, ctx, {
+            dispatchBearPayload(r.output, {
               ...bearPayloadNavOptions,
               onPlaybackChainFinished: () => {
                 void postMultimodalPlaybackDone();
@@ -454,7 +546,7 @@ export default function App() {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [boardAutoFollow, ctx, bearPayloadNavOptions, applyLiveBoardPerception, topNav]);
+  }, [boardAutoFollow, bearPayloadNavOptions, applyLiveBoardPerception, dispatchBearPayload, topNav]);
 
   useEffect(() => {
     if (!import.meta.env.DEV) return;
@@ -608,7 +700,7 @@ export default function App() {
             variant={topNav === "map" ? "map" : "default"}
             boardBridgeAutoSync={boardAutoFollow}
             theaterVoiceOnly={topNav === "story" && boardAutoFollow}
-            sendDisabled={agentLoading}
+            sendDisabled={agentLoading || safety.locked}
             agentHintExtra={
               topNav === "story"
                 ? boardAutoFollow
@@ -630,6 +722,13 @@ export default function App() {
           mockMode={gesture.mockMode}
         />
       ) : null}
+      <SafetyOverlay
+        safety={safety}
+        connectionError={safetyConnectionError}
+        demoEnabled={safetyDemoEnabled}
+        demoBusy={safetyDemoBusy}
+        onDemoToggle={() => void toggleSafetyDemo()}
+      />
     </div>
   );
 }

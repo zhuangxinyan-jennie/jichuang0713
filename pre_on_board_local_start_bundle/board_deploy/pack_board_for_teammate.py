@@ -50,6 +50,9 @@ done
 
 # 板端运行时与启动脚本
 cp -a {BOARD_PRE}/board_deploy/run_board_runtime.py "$STAGE/board/board_deploy/"
+if [ -d "{BOARD_PRE}/board_deploy/crowd_flow" ]; then
+  cp -a "{BOARD_PRE}/board_deploy/crowd_flow" "$STAGE/board/board_deploy/"
+fi
 cp -a {BOARD_JICHUANG}/run_on_board.sh "$STAGE/jichuang/" 2>/dev/null || true
 cp -a {BOARD_JICHUANG}/output/. "$STAGE/jichuang/output/" 2>/dev/null || true
 

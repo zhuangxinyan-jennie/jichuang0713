@@ -113,6 +113,41 @@ namespace SmartParkTerminal
             dir.PlayByLogicalId(logicalId.Trim());
         }
 
+        /// <summary>
+        /// Safety hard stop from React. Cancels queued Animator work, then replaces
+        /// the current motion with the fixed standing pose.
+        /// </summary>
+        public void EmergencyStop(string unused)
+        {
+            if (clipIdPlayer != null)
+            {
+                clipIdPlayer.StopAllCoroutines();
+                clipIdPlayer.PlayClipById("stand_idle_friendly", " ", "safety_stop", "neutral");
+            }
+
+            var dir = smplhDirector != null ? smplhDirector : FindObjectOfType<XiongdaSmplhMotionDirector>();
+            if (dir != null)
+            {
+                if (!dir.PlayByLogicalId("stand"))
+                {
+                    dir.PlayByStreamingRelativePath("SmplhRetarget/stand.json", "safety_stop");
+                }
+                Debug.Log("[UnityBridge] EmergencyStop -> stand");
+                return;
+            }
+
+            var ret = smplhRetarget != null ? smplhRetarget : FindObjectOfType<SmplhMotionRetarget>();
+            if (ret != null)
+            {
+                ret.LoadMotionFromStreamingRelativePath("SmplhRetarget/stand.json", true);
+                Debug.Log("[UnityBridge] EmergencyStop -> stand.json");
+            }
+            else
+            {
+                Debug.LogWarning("[UnityBridge] EmergencyStop failed: no SMPL director/retarget.");
+            }
+        }
+
         XiongdaFaceBlendShapeDriver ResolveFaceDriver()
         {
             if (faceDriver != null)
