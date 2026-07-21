@@ -10,6 +10,8 @@ from output_parser import OutputParser
 from config import MEMORY_CONFIG, ACTION_LIST, EMOTION_LIST
 from game_state import GameStateController
 from map_guide import MapGuide
+from weather_guide import WeatherGuide
+
 
 class BearAgent:
     def __init__(self, rules_path="rules.json"):
@@ -28,6 +30,7 @@ class BearAgent:
         self.parser = OutputParser()
         self.game_state = GameStateController()
         self.map_guide = MapGuide()
+        self.weather_guide = WeatherGuide()
 
         print("[BearAgent] 初始化完成")
 
@@ -67,6 +70,12 @@ class BearAgent:
 
     def _process_random_interaction(self, perception_result):
         """执行原有随机互动流程：感知融合 → 记忆 → 规划 → 输出。"""
+        speech_text = perception_result.get("speech_text", "")
+        if WeatherGuide.is_weather_question(str(speech_text or "")):
+            response = self.weather_guide.answer(str(speech_text))
+            print(f"[BearAgent] 天气查询输出: {json.dumps(response, ensure_ascii=False, indent=2)}")
+            return response
+
         # 1. 感知融合
         perception_data = self.perception.fuse(perception_result)
         print(f"[BearAgent] 感知: {perception_data['description']}")
@@ -120,4 +129,5 @@ class BearAgent:
         self.memory.clear()
         self.game_state = GameStateController()
         self.map_guide = MapGuide()
+        self.weather_guide = WeatherGuide()
         print("[BearAgent] 记忆已重置")

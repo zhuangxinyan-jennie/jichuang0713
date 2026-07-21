@@ -1,13 +1,23 @@
 # 配置文件模板 — 复制为 config.py 后填入自己的 API Key
 #   copy config.example.py config.py
 
-# LLM配置 - 阿里云百炼 DashScope（OpenAI兼容API）
+# LLM配置 - 默认对接阿里云百炼 DashScope（OpenAI兼容API）
+# 也可用环境变量切到板上本地 OpenAI 兼容服务：
+#   BEAR_LLM_PROVIDER=board_http
+#   BEAR_LLM_BASE_URL=http://127.0.0.1:8000/v1
+#   BEAR_LLM_API_KEY=EMPTY
+#   BEAR_LLM_MODEL=<板上服务暴露的模型名>
+# 详细说明见 README_BOARD_LLM.md
 LLM_CONFIG = {
+    "provider": "dashscope",
     "api_key": "YOUR_DASHSCOPE_API_KEY",
     "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
     "model": "qwen3.5-27b",
     "temperature": 0.4,
     "max_tokens": 500,
+    "timeout_sec": 30.0,
+    "enable_thinking": False,
+    "debug_prompt": False,
 }
 
 # 记忆配置
@@ -76,3 +86,14 @@ EMOTION_LIST = [
     "angry",
     "surprised",
 ]
+
+# 天气（和风天气 QWeather：https://dev.qweather.com/）
+# 免费开发版约 1000 次/天；location_id 在控制台「城市搜索」查 LocationID
+WEATHER_CONFIG = {
+    "api_key": "YOUR_QWEATHER_API_KEY",
+    "location_id": "101190201",  # 无锡；南京 101190101、苏州 101190401、淮安 101190901
+    "location_name": "江苏无锡",
+    # 控制台 → 设置 → API Host（专属域名，不是 devapi.qweather.com）
+    "api_host": "https://YOUR_API_HOST.qweatherapi.com",
+    "cache_ttl_sec": 600,
+}

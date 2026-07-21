@@ -220,3 +220,53 @@ export async function postMapQueryWithOptions(
   }
   return JSON.parse(text) as BearAgentProcessTestResponse;
 }
+
+export type WeatherSnapshot = {
+  source?: string;
+  location_name?: string;
+  text?: string;
+  temp_c?: number | null;
+  feels_like_c?: number | null;
+  humidity?: number | null;
+  wind_dir?: string;
+  wind_scale?: string;
+  tip?: string;
+  indoor_picks?: string[];
+  tomorrow_text?: string;
+  tomorrow_temp_max?: number | null;
+  tomorrow_temp_min?: number | null;
+  updated_at?: string;
+};
+
+export async function fetchWeatherCurrent(): Promise<WeatherSnapshot> {
+  const res = await fetch(`${baseUrl().replace(/\/$/, "")}/api/weather/current`);
+  const text = await res.text();
+  if (!res.ok) {
+    throw new Error(text || `HTTP ${res.status}`);
+  }
+  const data = JSON.parse(text) as { weather?: WeatherSnapshot };
+  return data.weather || {};
+}
+
+export async function postWeatherQuery(perception: PerceptionPayload): Promise<BearAgentProcessTestResponse> {
+  return postWeatherQueryWithOptions(perception);
+}
+
+export async function postWeatherQueryWithOptions(
+  perception: PerceptionPayload,
+  options?: RequestProbeOptions
+): Promise<BearAgentProcessTestResponse> {
+  options?.probe?.mark("agent_fetch_start", { endpoint: "/api/weather-query" });
+  const res = await fetch(`${baseUrl().replace(/\/$/, "")}/api/weather-query`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(perception),
+  });
+  options?.probe?.mark("agent_response_headers", { endpoint: "/api/weather-query", ok: res.ok, status: res.status });
+  const text = await res.text();
+  options?.probe?.mark("agent_response_body", { endpoint: "/api/weather-query", bytes: text.length });
+  if (!res.ok) {
+    throw new Error(text || `HTTP ${res.status}`);
+  }
+  return JSON.parse(text) as BearAgentProcessTestResponse;
+}

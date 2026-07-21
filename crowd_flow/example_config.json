@@ -1,0 +1,46 @@
+{
+  "frame_width": 1280,
+  "frame_height": 720,
+  "roi_polygon": [
+    [0.05, 0.10],
+    [0.95, 0.10],
+    [0.95, 0.98],
+    [0.05, 0.98]
+  ],
+  "roi_normalized": true,
+  "person_confidence": 0.25,
+  "face_confidence": 0.25,
+  "use_unmatched_faces": true,
+  "face_foot_offset_ratio": 5.0,
+  "calibration": null,
+  "kde_bandwidth_m": 0.75,
+  "close_distance_m": 0.8,
+  "cluster_link_distance_m": 1.6,
+  "image_close_distance_in_heights": 0.65,
+  "image_cluster_link_distance_in_heights": 1.5,
+  "max_depth_log_gap": 0.69,
+  "temporal_window_s": 1.5,
+  "warning_count": 10,
+  "critical_count": 15,
+  "warning_density_people_m2": 1.5,
+  "critical_density_people_m2": 2.5,
+  "warning_kde_people_m2": 2.0,
+  "critical_kde_people_m2": 3.5,
+  "warning_close_ratio": 0.7,
+  "critical_close_ratio": 0.85,
+  "min_people_for_proximity": 3,
+  "warning_hold_s": 3.0,
+  "critical_hold_s": 2.0,
+  "recovery_hold_s": 5.0,
+  "repeat_notify_s": 30.0,
+  "flow_lines": [
+    {
+      "name": "entrance",
+      "p1": [0.15, 0.70],
+      "p2": [0.85, 0.70],
+      "normalized": true
+    }
+  ],
+  "line_hysteresis_px": 8.0,
+  "line_cross_cooldown_s": 2.0
+}

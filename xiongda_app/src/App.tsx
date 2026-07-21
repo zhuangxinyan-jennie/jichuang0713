@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from "react";
 import { motion } from "framer-motion";
 import { TopMenu } from "./components/TopMenu";
+import { WeatherBadge } from "./components/WeatherBadge";
 import { UnityEmbed } from "./components/UnityEmbed";
 import { BottomCommandBar } from "./components/BottomCommandBar";
 import { InteractionHud } from "./components/InteractionHud";
@@ -20,7 +21,9 @@ import {
   postMultimodalPlaybackDone,
   postProcessFullWithOptions,
   postReset,
+  postWeatherQueryWithOptions,
 } from "./bear_pipeline/bearAgentClient";
+import { guestInputMatchesWeatherQuery } from "./bear_pipeline/weatherIntentTriggers";
 import { handleBearAgentPayload } from "./bear_pipeline/handleBearAgentPayload";
 import type { BoardAsrLiveFields, PerceptionPayload } from "./bear_pipeline/bearAgentTypes";
 import { parseGuestNavIntent } from "./bear_pipeline/navIntentTriggers";
@@ -38,7 +41,7 @@ function boardAutoPollDefault(): boolean {
 }
 
 type ManualInputSource = "typed" | "voice_mock" | "board_auto";
-type ManualInputRoute = "map_query" | "process";
+type ManualInputRoute = "map_query" | "weather_query" | "process";
 type LatencyProbe = ReturnType<typeof createLatencyProbe>;
 
 export default function App() {
@@ -260,6 +263,42 @@ export default function App() {
     [ctx, buildPerceptionForManualSend, bearPayloadNavOptions]
   );
 
+  const sendWeatherQuestion = useCallback(
+    async (text: string, probe?: LatencyProbe, source: ManualInputSource = "typed") => {
+      const t = text.trim();
+      if (!t) return;
+      setAgentErr("");
+      setAgentLoading(true);
+      try {
+        const perception = buildPerceptionForManualSend(t);
+        setLastSentPerception(perception);
+        const out = await postWeatherQueryWithOptions(perception, { probe });
+        probe?.mark("agent_json_ready", {
+          interaction_type: out.interaction_type || "",
+          speechLength: (out.speech || "").length,
+        });
+        handleBearAgentPayload(out, ctx, bearPayloadNavOptions);
+        probe?.finish("ok", {
+          source,
+          interaction_type: out.interaction_type || "",
+          speechLength: (out.speech || "").length,
+        });
+        clearTtsLatencyContext(probe?.id);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        probe?.finish("error", { source, reason: msg });
+        clearTtsLatencyContext(probe?.id);
+        setAgentErr(msg);
+        ctx.setSubtitle(
+          `天气查询失败：${msg}。请确认 bear_agent 已启动并包含 POST /api/weather-query。`
+        );
+      } finally {
+        setAgentLoading(false);
+      }
+    },
+    [ctx, buildPerceptionForManualSend, bearPayloadNavOptions]
+  );
+
   /** 统一走 Bear Agent 玩法状态机 POST /api/process */
   const dispatchBearFsm = useCallback(
     async (speechForAgent: string, probe?: LatencyProbe, source: ManualInputSource = "typed") => {
@@ -301,6 +340,11 @@ export default function App() {
     const text = guestInput.trim();
     if (!text) return;
     prepareBearAudioPlayback();
+    if (guestInputMatchesWeatherQuery(text)) {
+      const probe = createManualInputProbe("typed", "weather_query", text);
+      void sendWeatherQuestion(text, probe, "typed");
+      return;
+    }
     const navIntent = parseGuestNavIntent(text);
     const route: ManualInputRoute = !navIntent && topNav === "map" ? "map_query" : "process";
     const probe = createManualInputProbe("typed", route, text);
@@ -313,7 +357,7 @@ export default function App() {
       return;
     }
     void dispatchBearFsm(text, probe, "typed");
-  }, [guestInput, topNav, sendMapQuestion, dispatchBearFsm, createManualInputProbe]);
+  }, [guestInput, topNav, sendMapQuestion, sendWeatherQuestion, dispatchBearFsm, createManualInputProbe]);
 
   const onVoiceMock = useCallback(() => {
     prepareBearAudioPlayback();
@@ -450,6 +494,7 @@ export default function App() {
       />
       <div className="relative z-10 flex min-h-0 flex-1 flex-col">
         <TopMenu active={topNav} onSelect={onTopNav} />
+        <WeatherBadge />
         <div className="min-h-0 flex-1 px-1 py-1 md:px-2 md:py-2">
           <div className="mx-auto flex h-full min-h-0 min-w-0 w-full max-w-[100%] flex-1 flex-col">
             <motion.div

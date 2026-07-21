@@ -100,6 +100,10 @@ def build_model(args, preset):
         "fp16": args.fp16,
         "trt_concurrent": args.trt_concurrent,
     }
+    if args.load_vllm:
+        model_kwargs["vllm_gpu_memory_utilization"] = float(
+            getattr(args, "vllm_gpu_memory_utilization", 0.2)
+        )
     model = AutoModel(**model_kwargs)
     model.model.clear_cuda_cache_after_tts = args.clear_cuda_cache_after_tts
     model.model.stream_poll_interval = args.stream_poll_interval

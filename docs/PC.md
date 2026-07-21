@@ -18,6 +18,15 @@ powershell -ExecutionPolicy Bypass -File .\setup-env.ps1
 
 Agent 依赖在 `bear_agent/.venv`（由 `setup-env.ps1` 创建）。
 
+**LLM 后端（云端百炼，可切换）：** 默认 `provider=dashscope`，经 HTTPS 调用阿里云。可用环境变量切换：
+
+| 变量 | 常用值 |
+|------|--------|
+| `BEAR_LLM_PROVIDER` | `dashscope`（默认）/ `board_http` / `rules_only` |
+| `DASHSCOPE_API_KEY` | 百炼密钥（也可写在 `config.py`，勿提交 Git） |
+
+说明见 [bear_agent/README_BOARD_LLM.md](../bear_agent/README_BOARD_LLM.md)。板上可用 `bash bear_agent/start_on_board.sh`。
+
 ### 1.2 CosyVoice TTS（可选）
 
 未下载模型前可用 `-SkipTts` 跳过。
@@ -33,6 +42,8 @@ powershell -ExecutionPolicy Bypass -File .\setup-cosyvoice-venv.ps1 -CreateConda
 | 源码 | `third_party/CosyVoice/`（不在 Git，需 clone 或解压 `third_party.zip`） |
 | 权重 | `pretrained_models/CosyVoice2-0.5B/`（不在 Git，脚本下载） |
 | TTS 服务 | `cosyvoice_live_release/tts_server.py` |
+| Windows 显存上限 | 环境变量 `COSYVOICE_GPU_MEMORY_FRACTION`（默认 `0.3`，仅本地后端） |
+| 云端 CosyVoice（百炼） | 见 `cosyvoice_live_release/README.md`：复刻 `enroll_xiongda_dashscope.py`，启动 `start_tts_cloud.ps1` |
 
 ### 1.3 前端
 

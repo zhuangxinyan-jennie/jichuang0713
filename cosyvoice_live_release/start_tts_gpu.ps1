@@ -84,6 +84,10 @@ $env:XIONGDA_TTS_PORT = [string]$Port
 $env:COSYVOICE_MODEL_DIR = (Join-Path (Split-Path -Parent $Root) "pretrained_models\CosyVoice2-0.5B")
 $env:COSYVOICE_REPO = (Join-Path (Split-Path -Parent $Root) "third_party\CosyVoice")
 $env:COSYVOICE_STREAM_TOKEN_HOP_LEN = "20"
+# Cap this process to ~30% VRAM; set COSYVOICE_GPU_MEMORY_FRACTION=0 to disable
+if ([string]::IsNullOrWhiteSpace($env:COSYVOICE_GPU_MEMORY_FRACTION)) {
+    $env:COSYVOICE_GPU_MEMORY_FRACTION = "0.3"
+}
 
 Write-Host "=== Xiongda CosyVoice TTS ===" -ForegroundColor Cyan
 Write-Host ("Root:   {0}" -f $Root)
@@ -91,6 +95,7 @@ Write-Host ("Python: {0}" -f $Python)
 Write-Host ("Device: cuda")
 Write-Host ("URL:    http://127.0.0.1:{0}" -f $Port)
 Write-Host ("Mode:   fp16 + TensorRT + punctuation split")
+Write-Host ("VRAM:   fraction={0}" -f $env:COSYVOICE_GPU_MEMORY_FRACTION)
 Write-Host ""
 
 if ($Background) {

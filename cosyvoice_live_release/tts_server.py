@@ -85,6 +85,16 @@ def _env_bool(name: str, default: bool) -> bool:
     return _truthy(raw)
 
 
+def _env_float(name: str, default: float) -> float:
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        return float(raw)
+    except ValueError:
+        return default
+
+
 def _resolve_output_dir() -> Path:
     raw = os.environ.get("XIONGDA_TTS_OUTPUT_DIR", "").strip()
     if raw:
@@ -124,6 +134,11 @@ class CosyVoiceTtsEngine:
         fp16 = _env_bool("COSYVOICE_FP16", use_cuda_defaults) and not _truthy(os.environ.get("COSYVOICE_NO_FP16"))
         load_trt = _env_bool("COSYVOICE_LOAD_TRT", use_cuda_defaults) and not _truthy(os.environ.get("COSYVOICE_NO_LOAD_TRT"))
         load_jit = _env_bool("COSYVOICE_LOAD_JIT", False)
+        # 默认不开 vLLM（Windows 基本不可用）；需要时设 COSYVOICE_LOAD_VLLM=1
+        load_vllm = _env_bool("COSYVOICE_LOAD_VLLM", False) and use_cuda_defaults
+        vllm_gpu_memory_utilization = _env_float("COSYVOICE_VLLM_GPU_MEMORY_UTILIZATION", 0.2)
+        # Windows 可用：限制本进程最多占用整卡显存的比例（0=不限制；默认 0.3）
+        gpu_memory_fraction = _env_float("COSYVOICE_GPU_MEMORY_FRACTION", 0.3 if use_cuda_defaults else 0.0)
         model_dir = os.environ.get("COSYVOICE_MODEL_DIR", "") or str(PROJECT_ROOT / "pretrained_models" / "CosyVoice2-0.5B")
         cosyvoice_repo = os.environ.get("COSYVOICE_REPO", "") or str(PROJECT_ROOT / "third_party" / "CosyVoice")
         stream_hop = _env_int("COSYVOICE_STREAM_TOKEN_HOP_LEN", 20)
@@ -134,7 +149,8 @@ class CosyVoiceTtsEngine:
             fp16=fp16,
             load_jit=load_jit,
             load_trt=load_trt,
-            load_vllm=False,
+            load_vllm=load_vllm,
+            vllm_gpu_memory_utilization=vllm_gpu_memory_utilization,
             trt_concurrent=1,
             clear_cuda_cache_after_tts=False,
             stream_poll_interval=float(os.environ.get("COSYVOICE_STREAM_POLL_INTERVAL", "0.02")),
@@ -142,6 +158,24 @@ class CosyVoiceTtsEngine:
             stream_token_hop_len=stream_hop if stream_hop > 0 else None,
             stream_token_max_hop_len=_env_int("COSYVOICE_STREAM_TOKEN_MAX_HOP_LEN", 100),
         )
+
+        memory_limit_info = {"applied": False, "fraction": None}
+        if use_cuda_defaults and gpu_memory_fraction > 0:
+            try:
+                import torch
+
+                if torch.cuda.is_available():
+                    capped = min(1.0, max(0.05, gpu_memory_fraction))
+                    torch.cuda.set_per_process_memory_fraction(capped)
+                    total_gib = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+                    memory_limit_info = {
+                        "applied": True,
+                        "fraction": capped,
+                        "approx_gib": round(total_gib * capped, 2),
+                        "gpu_total_gib": round(total_gib, 2),
+                    }
+            except Exception as exc:
+                memory_limit_info = {"applied": False, "fraction": gpu_memory_fraction, "error": str(exc)}
 
         print(
             json.dumps(
@@ -152,6 +186,9 @@ class CosyVoiceTtsEngine:
                     "fp16": fp16,
                     "load_trt": load_trt,
                     "load_jit": load_jit,
+                    "load_vllm": load_vllm,
+                    "vllm_gpu_memory_utilization": vllm_gpu_memory_utilization if load_vllm else None,
+                    "gpu_memory_fraction": memory_limit_info,
                     "stream_token_hop_len": self.args.stream_token_hop_len,
                     "split_punctuation": self.split_punctuation,
                 },
@@ -328,6 +365,136 @@ class CosyVoiceTtsEngine:
         )
 
 
+class DashScopeTtsEngine:
+    """阿里云百炼 CosyVoice：不占本地 GPU，用复刻音色合成。"""
+
+    def __init__(self) -> None:
+        from dashscope_cosyvoice_client import (  # noqa: WPS433
+            load_cached_voice,
+            resolve_voice_id,
+            synthesize_wav_bytes,
+            target_model,
+        )
+
+        self.output_dir = _resolve_output_dir()
+        self.counter = 0
+        self.device = "cloud"
+        self.split_punctuation = not _truthy(os.environ.get("COSYVOICE_NO_SPLIT_PUNCTUATION"))
+        self.model_name = target_model()
+        self.voice_id = resolve_voice_id(ROOT)
+        self._synthesize_wav_bytes = synthesize_wav_bytes
+        cached = load_cached_voice(ROOT) or {}
+        print(
+            json.dumps(
+                {
+                    "event": "dashscope_tts_config",
+                    "device": self.device,
+                    "model": self.model_name,
+                    "voice_id": self.voice_id,
+                    "cache_model": cached.get("target_model"),
+                    "split_punctuation": self.split_punctuation,
+                },
+                ensure_ascii=False,
+            ),
+            flush=True,
+        )
+
+    def synthesize(self, text: str) -> tuple[bytes, Path, list[dict]]:
+        clean = text.replace("\r\n", "\n").strip()
+        if not clean:
+            raise ValueError("empty text")
+        self.counter += 1
+        base = f"dashscope_{self.counter:06d}"
+        parts = split_text_by_punctuation(clean) if self.split_punctuation else [clean]
+        wav_paths: list[Path] = []
+        results: list[dict] = []
+        for index, part in enumerate(parts):
+            started = time.perf_counter()
+            wav, meta = self._synthesize_wav_bytes(part, voice_id=self.voice_id, model=self.model_name, root=ROOT)
+            out = self.output_dir / f"{base}_{index:02d}.wav"
+            out.write_bytes(wav)
+            elapsed = time.perf_counter() - started
+            results.append(
+                {
+                    "source_text": clean,
+                    "segment_index": index,
+                    "segment_count": len(parts),
+                    "audio_seconds": None,
+                    "first_chunk_seconds": elapsed,
+                    "request_id": meta.get("request_id"),
+                    "path": str(out),
+                }
+            )
+            wav_paths.append(out)
+        combined = self.output_dir / f"{base}.wav"
+        if len(wav_paths) == 1:
+            combined.write_bytes(wav_paths[0].read_bytes())
+        else:
+            _concat_wav_files(wav_paths, combined)
+        return combined.read_bytes(), combined, results
+
+    def synthesize_play_board(self, text: str, board_url: str) -> tuple[Path | None, list[dict]]:
+        """按标点切句：每句合成完立刻推板子播放（先出声，不等全文）。"""
+        clean = text.replace("\r\n", "\n").strip()
+        if not clean:
+            raise ValueError("empty text")
+        self.counter += 1
+        base = f"dashscope_play_{self.counter:06d}"
+        parts = split_text_by_punctuation(clean) if self.split_punctuation else [clean]
+        results: list[dict] = []
+        last: Path | None = None
+        wall0 = time.perf_counter()
+        for index, part in enumerate(parts):
+            started = time.perf_counter()
+            wav, meta = self._synthesize_wav_bytes(part, voice_id=self.voice_id, model=self.model_name, root=ROOT)
+            out = self.output_dir / f"{base}_{index:02d}.wav"
+            out.write_bytes(wav)
+            synth_s = time.perf_counter() - started
+            play_t0 = time.perf_counter()
+            _post_wav_to_board(board_url, out)
+            play_s = time.perf_counter() - play_t0
+            result = {
+                "source_text": clean,
+                "segment_text": part,
+                "segment_index": index,
+                "segment_count": len(parts),
+                "audio_seconds": None,
+                "first_chunk_seconds": synth_s,
+                "board_play_seconds": play_s,
+                "request_id": meta.get("request_id"),
+                "path": str(out),
+            }
+            results.append(result)
+            last = out
+            print(
+                json.dumps(
+                    {
+                        "event": "dashscope_segment_played",
+                        "index": index,
+                        "count": len(parts),
+                        "text": part,
+                        "synth_seconds": round(synth_s, 2),
+                        "play_seconds": round(play_s, 2),
+                        "wall_seconds": round(time.perf_counter() - wall0, 2),
+                    },
+                    ensure_ascii=False,
+                ),
+                flush=True,
+            )
+        return last, results
+
+    def iter_pcm16_stream(self, text: str):
+        raise NotImplementedError("dashscope backend does not support pcm stream yet")
+
+
+def _tts_backend() -> str:
+    raw = (os.environ.get("XIONGDA_TTS_BACKEND") or os.environ.get("TTS_BACKEND") or "local").strip().lower()
+    if raw in {"dashscope", "cloud", "aliyun", "bailian"}:
+        return "dashscope"
+    return "local"
+
+
+
 def _concat_wav_files(paths: list[Path], output: Path, silence_sec: float = 0.08) -> None:
     import wave
 
@@ -363,11 +530,17 @@ def _ndjson(payload: dict) -> bytes:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("[cosyvoice_tts_server] 正在加载 CosyVoice 模型，首次较慢...", flush=True)
-    engine = CosyVoiceTtsEngine()
+    backend = _tts_backend()
+    app.state.tts_backend = backend
+    if backend == "dashscope":
+        print("[cosyvoice_tts_server] 使用阿里云百炼 DashScope 后端（不加载本地 CosyVoice）...", flush=True)
+        engine = DashScopeTtsEngine()
+    else:
+        print("[cosyvoice_tts_server] 正在加载 CosyVoice 模型，首次较慢...", flush=True)
+        engine = CosyVoiceTtsEngine()
     app.state.tts_engine = engine
     app.state.tts_device = engine.device
-    print(f"[cosyvoice_tts_server] 模型已就绪；音频保存到 {engine.output_dir}", flush=True)
+    print(f"[cosyvoice_tts_server] 后端={backend} 已就绪；音频保存到 {engine.output_dir}", flush=True)
     yield
     app.state.tts_engine = None
     global _stream_player
@@ -394,14 +567,14 @@ async def api_tts(body: TtsBody, request: Request):
     t0 = time.perf_counter()
     expected = getattr(request.app.state, "tts_device", "cuda")
     requested = (body.device or expected).strip().lower()
-    if requested not in {"cuda", "cpu"}:
+    if requested not in {"cuda", "cpu", "cloud"}:
         requested = expected
-    if requested != expected:
+    if requested != expected and not (expected == "cloud" and requested in {"cuda", "cloud"}):
         raise HTTPException(status_code=400, detail=f"device 与启动时不一致：服务以 {expected} 启动。")
 
-    engine: CosyVoiceTtsEngine | None = getattr(request.app.state, "tts_engine", None)
+    engine = getattr(request.app.state, "tts_engine", None)
     if engine is None:
-        raise HTTPException(status_code=503, detail="CosyVoice TTS engine is not ready.")
+        raise HTTPException(status_code=503, detail="TTS engine is not ready.")
 
     loop = asyncio.get_event_loop()
     try:
@@ -415,12 +588,13 @@ async def api_tts(body: TtsBody, request: Request):
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     dt_ms = (time.perf_counter() - t0) * 1000.0
-    audio_seconds = sum(float(r.get("audio_seconds") or 0.0) for r in results)
+    audio_seconds = sum(float(r.get("audio_seconds") or 0.0) for r in results if r.get("audio_seconds") is not None)
     first_chunk = results[0].get("first_chunk_seconds") if results else None
+    backend = getattr(request.app.state, "tts_backend", "local")
     if _latency_log_enabled():
         msg = (
             f"[latency] POST /api/tts {dt_ms:.1f}ms chars={len(body.text.strip())} "
-            f"mode=cosyvoice segments={len(results)} first_chunk={first_chunk}"
+            f"mode={backend} segments={len(results)} first_chunk={first_chunk}"
         )
         print(msg, flush=True)
         _latency_log_append(msg)
@@ -430,7 +604,7 @@ async def api_tts(body: TtsBody, request: Request):
         media_type="audio/wav",
         headers={
             "X-TTS-Saved-File": saved.name,
-            "X-TTS-Engine": "cosyvoice",
+            "X-TTS-Engine": backend,
             "X-TTS-Segments": str(len(results)),
             "X-TTS-Audio-Seconds": f"{audio_seconds:.3f}",
             "X-TTS-First-Chunk-Seconds": "" if first_chunk is None else f"{float(first_chunk):.3f}",
@@ -475,116 +649,227 @@ async def api_tts_stream(body: TtsBody, request: Request):
     )
 
 
+def _board_speaker_url() -> str:
+    """若设置 BOARD_SPEAKER_URL（如 http://192.168.137.100:9891/play），则播到板子音箱而非本机。"""
+    return (os.environ.get("BOARD_SPEAKER_URL") or os.environ.get("XIONGDA_BOARD_SPEAKER_URL") or "").strip()
+
+
+def _post_wav_to_board(url: str, wav_path: Path) -> None:
+    import urllib.error
+    import urllib.request
+
+    data = wav_path.read_bytes()
+    req = urllib.request.Request(
+        url,
+        data=data,
+        headers={"Content-Type": "audio/wav", "Content-Length": str(len(data))},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=180) as resp:
+            body = resp.read().decode("utf-8", "replace")
+            print(json.dumps({"event": "board_speaker_play", "url": url, "bytes": len(data), "resp": body[:200]}, ensure_ascii=False), flush=True)
+    except urllib.error.URLError as exc:
+        raise RuntimeError(f"board speaker unreachable ({url}): {exc}") from exc
+
+
 @app.post("/api/tts-play")
 async def api_tts_play(body: TtsBody, request: Request):
     """
-    服务端直接播放（sounddevice），播完才返回。
-    复用 REPL 的 stream_play 路径，延迟最优。
+    服务端播放，播完才返回。
+    - 本地 CosyVoice + 无板子：本机 sounddevice 流式播
+    - 设置 BOARD_SPEAKER_URL：按标点切句，每句合成完立刻推板子播（先出声）
+    - DashScope 云端：同样按标点切句立刻推板子（或仅存文件）
     """
     t0 = time.perf_counter()
     expected = getattr(request.app.state, "tts_device", "cuda")
     requested = (body.device or expected).strip().lower()
-    if requested not in {"cuda", "cpu"}:
+    if requested not in {"cuda", "cpu", "cloud"}:
         requested = expected
-    if requested != expected:
+    if requested != expected and not (expected == "cloud" and requested in {"cuda", "cloud"}):
         raise HTTPException(status_code=400, detail=f"device 与启动时不一致：服务以 {expected} 启动。")
 
-    engine: CosyVoiceTtsEngine | None = getattr(request.app.state, "tts_engine", None)
+    engine = getattr(request.app.state, "tts_engine", None)
     if engine is None:
-        raise HTTPException(status_code=503, detail="CosyVoice TTS engine is not ready.")
+        raise HTTPException(status_code=503, detail="TTS engine is not ready.")
 
-    global _stream_player
-    with _stream_player_lock:
-        if _stream_player is None:
-            try:
-                _stream_player = start_stream_player(int(engine.model.sample_rate))
-                if _stream_player is None:
-                    raise HTTPException(
-                        status_code=503,
-                        detail="sounddevice stream player unavailable (no audio device or sounddevice not installed).",
-                    )
-            except Exception as exc:
-                traceback.print_exc()
-                raise HTTPException(status_code=503, detail=f"Failed to start stream player: {exc}") from exc
+    backend = getattr(request.app.state, "tts_backend", "local")
+    board_url = _board_speaker_url()
+    use_board = bool(board_url)
 
     clean = body.text.replace("\r\n", "\n").strip()
     if not clean:
         raise HTTPException(status_code=400, detail="empty text")
 
-    parts = split_text_by_punctuation(clean) if engine.split_punctuation else [clean]
-    results: list[dict] = []
-
     loop = asyncio.get_event_loop()
+    results: list[dict] = []
+    saved = None
 
-    def run_synthesize_and_play():
-        with _synth_lock:
-            for index, part in enumerate(parts):
-                engine.counter += 1
-                out = engine.output_dir / f"cosyvoice_play_{engine.counter:06d}_{index:02d}.wav"
-                result = synthesize(
-                    engine.model,
-                    part,
-                    out,
-                    engine.ref_text,
-                    engine.ref_audio,
-                    engine.spk_id,
-                    engine.cached_spk,
-                    engine.speed,
-                    stream=True,
-                    text_frontend=True,
-                    profile=False,
-                    stream_play=True,
-                    stream_player=_stream_player,
-                )
-                result["source_text"] = clean
-                result["segment_index"] = index
-                result["segment_count"] = len(parts)
-                results.append(result)
+    if use_board:
+        def run_segment_board_play():
+            with _synth_lock:
+                if backend == "dashscope":
+                    out_path, segs = engine.synthesize_play_board(clean, board_url)
+                    results.extend(segs)
+                    return out_path
+                parts = split_text_by_punctuation(clean) if engine.split_punctuation else [clean]
+                last = None
+                for index, part in enumerate(parts):
+                    engine.counter += 1
+                    out = engine.output_dir / f"cosyvoice_play_{engine.counter:06d}_{index:02d}.wav"
+                    result = synthesize(
+                        engine.model,
+                        part,
+                        out,
+                        engine.ref_text,
+                        engine.ref_audio,
+                        engine.spk_id,
+                        engine.cached_spk,
+                        engine.speed,
+                        stream=True,
+                        text_frontend=True,
+                        profile=False,
+                        stream_play=False,
+                        stream_player=None,
+                    )
+                    _post_wav_to_board(board_url, out)
+                    result["source_text"] = clean
+                    result["segment_text"] = part
+                    result["segment_index"] = index
+                    result["segment_count"] = len(parts)
+                    results.append(result)
+                    last = out
+                    print(
+                        json.dumps(
+                            {
+                                "event": "local_segment_played",
+                                "index": index,
+                                "count": len(parts),
+                                "text": part,
+                            },
+                            ensure_ascii=False,
+                        ),
+                        flush=True,
+                    )
+                return last
 
-    try:
-        await loop.run_in_executor(None, run_synthesize_and_play)
-    except Exception as exc:
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        try:
+            saved = await loop.run_in_executor(None, run_segment_board_play)
+        except Exception as exc:
+            traceback.print_exc()
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+        mode = "board_speaker_segment_play"
+    elif backend == "dashscope":
+        def run_cloud_file():
+            with _synth_lock:
+                _data, out_path, segs = engine.synthesize(clean)
+                results.extend(segs)
+                return out_path
+
+        try:
+            saved = await loop.run_in_executor(None, run_cloud_file)
+        except Exception as exc:
+            traceback.print_exc()
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+        mode = "file_only"
+    else:
+        global _stream_player
+        with _stream_player_lock:
+            if _stream_player is None:
+                try:
+                    _stream_player = start_stream_player(int(engine.model.sample_rate))
+                    if _stream_player is None:
+                        raise HTTPException(
+                            status_code=503,
+                            detail="sounddevice stream player unavailable (no audio device or sounddevice not installed).",
+                        )
+                except HTTPException:
+                    raise
+                except Exception as exc:
+                    traceback.print_exc()
+                    raise HTTPException(status_code=503, detail=f"Failed to start stream player: {exc}") from exc
+
+        parts = split_text_by_punctuation(clean) if engine.split_punctuation else [clean]
+
+        def run_synthesize_and_play():
+            with _synth_lock:
+                for index, part in enumerate(parts):
+                    engine.counter += 1
+                    out = engine.output_dir / f"cosyvoice_play_{engine.counter:06d}_{index:02d}.wav"
+                    result = synthesize(
+                        engine.model,
+                        part,
+                        out,
+                        engine.ref_text,
+                        engine.ref_audio,
+                        engine.spk_id,
+                        engine.cached_spk,
+                        engine.speed,
+                        stream=True,
+                        text_frontend=True,
+                        profile=False,
+                        stream_play=True,
+                        stream_player=_stream_player,
+                    )
+                    result["source_text"] = clean
+                    result["segment_index"] = index
+                    result["segment_count"] = len(parts)
+                    results.append(result)
+
+        try:
+            await loop.run_in_executor(None, run_synthesize_and_play)
+        except Exception as exc:
+            traceback.print_exc()
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+        mode = "server_play"
 
     dt_ms = (time.perf_counter() - t0) * 1000.0
-    audio_seconds = sum(float(r.get("audio_seconds") or 0.0) for r in results)
+    audio_seconds = sum(float(r.get("audio_seconds") or 0.0) for r in results if r.get("audio_seconds") is not None)
     first_chunk = results[0].get("first_chunk_seconds") if results else None
 
     if _latency_log_enabled():
         msg = (
             f"[latency] POST /api/tts-play {dt_ms:.1f}ms chars={len(body.text.strip())} "
-            f"mode=cosyvoice_server_play segments={len(results)} first_chunk={first_chunk}"
+            f"mode={backend}_{mode} segments={len(results)} first_chunk={first_chunk}"
         )
         print(msg, flush=True)
         _latency_log_append(msg)
 
     return {
         "status": "played",
-        "engine": "cosyvoice",
-        "mode": "server_play",
+        "engine": backend,
+        "backend": backend,
+        "mode": mode,
+        "board_speaker_url": board_url or None,
         "segments": len(results),
         "audio_seconds": audio_seconds,
         "wall_seconds": dt_ms / 1000.0,
         "first_chunk_seconds": first_chunk,
+        "saved": str(saved) if saved else None,
         "results": results,
     }
 
 
 @app.get("/health")
 def health(request: Request):
-    engine: CosyVoiceTtsEngine | None = getattr(request.app.state, "tts_engine", None)
+    engine = getattr(request.app.state, "tts_engine", None)
+    backend = getattr(request.app.state, "tts_backend", _tts_backend())
     if engine is None:
-        return {"status": "starting", "engine": "cosyvoice", "bundle": str(ROOT)}
-    return {
+        return {"status": "starting", "engine": backend, "bundle": str(ROOT)}
+    payload = {
         "status": "ok",
-        "engine": "cosyvoice",
+        "engine": backend,
+        "backend": backend,
         "mode": "resident",
         "device": engine.device,
         "bundle": str(ROOT),
         "output_dir": str(engine.output_dir),
         "split_punctuation": engine.split_punctuation,
     }
+    if backend == "dashscope":
+        payload["voice_id"] = getattr(engine, "voice_id", None)
+        payload["model"] = getattr(engine, "model_name", None)
+    return payload
 
 
 def main() -> None:

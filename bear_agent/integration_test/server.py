@@ -38,7 +38,12 @@ class BearAgentForHttp(BearAgent):
     """
 
 
-_LATENCY_HTTP_PATHS = frozenset({"/api/process", "/api/process-test", "/api/map-query"})
+_LATENCY_HTTP_PATHS = frozenset({
+    "/api/process",
+    "/api/process-test",
+    "/api/map-query",
+    "/api/weather-query",
+})
 
 
 def _latency_log_enabled() -> bool:
@@ -187,6 +192,38 @@ def process_test(body: PerceptionIn, request: Request):
     perception_dump = perception_dump_for_agent(body)
     result = agent._process_random_interaction(perception_dump)
     _record_board_drive_if_bridge(request, result, perception_dump)
+    return result
+
+
+@app.get("/api/weather/current")
+def weather_current():
+    """轻量天气快照（带服务端缓存），供前端角标轮询。"""
+    from weather_guide import WeatherGuide
+
+    snap = WeatherGuide().get_snapshot()
+    return {"ok": True, "weather": snap}
+
+
+@app.post("/api/weather-query")
+def weather_query(body: PerceptionIn, request: Request):
+    """纯天气问答：和风 API + 规则话术，不经过 LLM。"""
+    from weather_guide import WeatherGuide
+
+    text = (body.speech_text or "").strip()
+    guide = WeatherGuide()
+    if not text:
+        out = {
+            "interaction_type": "weather_query",
+            "speech": "你想问哪天的天气？可以说「今天天气怎么样」或「明天会下雨吗」。",
+            "motion_type": "sequential",
+            "actions": ["左右张望"],
+            "emotion": "smile",
+            "weather": guide.get_snapshot(),
+        }
+        _record_board_drive_if_bridge(request, out, perception_dump_for_agent(body))
+        return out
+    result = guide.answer(text)
+    _record_board_drive_if_bridge(request, result, perception_dump_for_agent(body))
     return result
 
 

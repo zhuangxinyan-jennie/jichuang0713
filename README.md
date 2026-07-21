@@ -10,6 +10,8 @@
 | **[docs/PC.md](docs/PC.md)** | PC 环境、启动、Agent、TTS、Unity |
 | **[docs/BOARD.md](docs/BOARD.md)** | 板端部署、模型、启动、端口 |
 | **[docs/FPGA_AV_EventFusion.md](docs/FPGA_AV_EventFusion.md)** | PG2L100H 异构协同、改造清单、EdgeEvent 协议、开源参考 |
+| **[bear_agent/README_BOARD_LLM.md](bear_agent/README_BOARD_LLM.md)** | Agent LLM：默认云端百炼，可切本地 HTTP / 仅规则 |
+| **板上云端试跑** | 板子目录 `/home/HwHiAiUser/bear_agent_cloud/`；PC 需开热点共享并保持代理 `python bear_agent/tools/pc_board_https_proxy.py`（`192.168.137.1:8899`）；部署/自检：`python bear_agent/tools/deploy_board_cloud_agent.py` |
 
 ---
 
@@ -71,6 +73,8 @@ copy bear_agent\config.example.py bear_agent\config.py
 powershell -ExecutionPolicy Bypass -File .\setup-env.ps1
 .\start-pc-stack.ps1 -SkipTts    # 未装 TTS 模型时先跳过
 ```
+
+Agent 默认调用**云端百炼**大模型（`BEAR_LLM_PROVIDER=dashscope`），说明见 [bear_agent/README_BOARD_LLM.md](bear_agent/README_BOARD_LLM.md)。
 
 浏览器：**http://127.0.0.1:5173**
 

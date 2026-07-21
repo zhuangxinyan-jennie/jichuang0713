@@ -2493,14 +2493,34 @@ def build_runtime_summary(
             "label": agg_gesture,
             "confidence": float(agg_gesture_score),
         },
+        **(
+            {
+                "frame_width": frame_width,
+                "frame_height": frame_height,
+            }
+            if frame_width is not None and frame_height is not None
+            else {}
+        ),
         "faces": [
             {
                 "id": int(t.track_id),
+                "track_id": int(t.track_id),
                 "emotion": str(t.emotion_label or ""),
                 "confidence": float(t.emotion_confidence),
+                "detection_confidence": float(t.confidence),
                 "bbox": [int(t.bbox[0]), int(t.bbox[1]), int(t.bbox[2]), int(t.bbox[3])],
             }
             for t in face_tracks
+        ],
+        "persons": [
+            {
+                "id": int(t.track_id),
+                "track_id": int(t.track_id),
+                "bbox": [int(t.bbox[0]), int(t.bbox[1]), int(t.bbox[2]), int(t.bbox[3])],
+                "confidence": float(t.confidence),
+                "detection_confidence": float(t.confidence),
+            }
+            for t in person_tracks
         ],
         "hands": [
             {

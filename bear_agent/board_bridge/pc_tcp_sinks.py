@@ -109,6 +109,12 @@ def _vision_connection_loop(
                     },
                 )
                 last_vision_json_at = now
+                try:
+                    from .crowd_flow_sink import update_crowd_from_summary
+
+                    update_crowd_from_summary(summary, vision_latest.parent.parent)
+                except Exception:
+                    pass
                 if wakeup_event is not None:
                     wakeup_event.set()
             # 光标关键点默认只由 UDP 快通道写。慢通道（JPEG）仅在快通道超过 1.2s 无心跳时兜底。

@@ -115,3 +115,7 @@ third_party/CosyVoice/.venv*/
 # UniApp / HBuilder local build output
 phone_guide_app/unpackage/
 exports_for_teammate/
+
+# 乐园地图 Unity 完整工程体积过大（约2GB+），暂不入库；仅保留本地
+XiongdaParkMapProject/
+

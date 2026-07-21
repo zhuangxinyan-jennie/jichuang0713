@@ -152,6 +152,8 @@ def main() -> int:
         "fp16": args.fp16,
         "trt_concurrent": args.trt_concurrent,
     }
+    if args.load_vllm:
+        model_kwargs["vllm_gpu_memory_utilization"] = float(args.vllm_gpu_memory_utilization)
     cosyvoice = AutoModel(**model_kwargs)
     result_iter = cosyvoice.inference_zero_shot(
         args.text,
