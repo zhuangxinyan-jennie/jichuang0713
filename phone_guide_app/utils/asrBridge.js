@@ -4,17 +4,29 @@ const BRIDGE_HOST_KEY = "pc_host";
 const BRIDGE_PORT_KEY = "bridge_port";
 const BRIDGE_INSECURE_KEY = "bridge_insecure";
 
+function readStorage(key) {
+  return localStorage.getItem(key) || "";
+}
+
+function writeStorage(key, value) {
+  localStorage.setItem(key, String(value));
+}
+
+function removeStorage(key) {
+  localStorage.removeItem(key);
+}
+
 /** 默认直连板端 Gateway；也可在连接页改成电脑中转地址。 */
 export function getBridgeHost() {
-  return String(uni.getStorageSync(BRIDGE_HOST_KEY) || "192.168.137.100").trim();
+  return String(readStorage(BRIDGE_HOST_KEY) || "192.168.137.100").trim();
 }
 
 export function setBridgeHost(host) {
-  uni.setStorageSync(BRIDGE_HOST_KEY, String(host || "").trim());
+  writeStorage(BRIDGE_HOST_KEY, String(host || "").trim());
 }
 
 export function getBridgePort() {
-  const value = Number(uni.getStorageSync(BRIDGE_PORT_KEY) || 8788);
+  const value = Number(readStorage(BRIDGE_PORT_KEY) || 8788);
   return Number.isInteger(value) && value > 0 && value <= 65535 ? value : 8788;
 }
 
@@ -25,10 +37,10 @@ export function setBridgeEndpoint({ host, port = 8788, insecure = false }) {
   if (!Number.isInteger(cleanPort) || cleanPort <= 0 || cleanPort > 65535) {
     throw new Error("Gateway 端口无效");
   }
-  uni.setStorageSync(BRIDGE_HOST_KEY, cleanHost);
-  uni.setStorageSync(BRIDGE_PORT_KEY, cleanPort);
-  if (insecure) uni.setStorageSync(BRIDGE_INSECURE_KEY, "1");
-  else uni.removeStorageSync(BRIDGE_INSECURE_KEY);
+  writeStorage(BRIDGE_HOST_KEY, cleanHost);
+  writeStorage(BRIDGE_PORT_KEY, cleanPort);
+  if (insecure) writeStorage(BRIDGE_INSECURE_KEY, "1");
+  else removeStorage(BRIDGE_INSECURE_KEY);
 }
 
 /** @deprecated 兼容旧名 */
@@ -41,14 +53,14 @@ export function setPcHost(host) {
 }
 
 export function bridgeHttpBase() {
-  const scheme = uni.getStorageSync(BRIDGE_INSECURE_KEY) ? "http" : "https";
+  const scheme = readStorage(BRIDGE_INSECURE_KEY) ? "http" : "https";
   return `${scheme}://${getBridgeHost()}:${getBridgePort()}`;
 }
 
 export function bridgeWsUrl() {
   const token = getGatewayIdentity().token;
   if (!token) return "";
-  const useSecure = !uni.getStorageSync(BRIDGE_INSECURE_KEY);
+  const useSecure = !readStorage(BRIDGE_INSECURE_KEY);
   const scheme = useSecure ? "wss" : "ws";
   return `${scheme}://${getBridgeHost()}:${getBridgePort()}/ws?token=${encodeURIComponent(token)}`;
 }
@@ -67,14 +79,14 @@ export function previewMjpegUrl() {
 
 export function getGatewayIdentity() {
   return {
-    token: String(uni.getStorageSync(CLIENT_TOKEN_KEY) || ""),
-    userId: String(uni.getStorageSync(USER_ID_KEY) || ""),
+    token: String(readStorage(CLIENT_TOKEN_KEY) || ""),
+    userId: String(readStorage(USER_ID_KEY) || ""),
   };
 }
 
 export function clearGatewayIdentity() {
-  uni.removeStorageSync(CLIENT_TOKEN_KEY);
-  uni.removeStorageSync(USER_ID_KEY);
+  removeStorage(CLIENT_TOKEN_KEY);
+  removeStorage(USER_ID_KEY);
 }
 
 function gatewayRequest(path, { method = "GET", data, token, adminToken } = {}) {
@@ -83,30 +95,23 @@ function gatewayRequest(path, { method = "GET", data, token, adminToken } = {}) 
   if (clientToken) headers.Authorization = `Bearer ${clientToken}`;
   if (adminToken) headers["X-Admin-Token"] = adminToken;
 
-  return new Promise((resolve, reject) => {
-    uni.request({
-      url: `${bridgeHttpBase()}${path}`,
-      method,
-      data,
-      header: headers,
-      timeout: 5000,
-      success(response) {
-        const status = Number(response.statusCode || 0);
-        if (status >= 200 && status < 300) {
-          resolve(response.data || {});
-          return;
-        }
-        const body = response.data && typeof response.data === "object" ? response.data : {};
-        const error = new Error(body.message || `Gateway 请求失败 (${status})`);
-        error.code = body.code || "GATEWAY_ERROR";
-        error.status = status;
-        reject(error);
-      },
-      fail(error) {
-        reject(new Error((error && error.errMsg) || "无法连接板端 Gateway"));
-      },
+  return fetch(`${bridgeHttpBase()}${path}`, {
+    method,
+    headers,
+    body: data === undefined ? undefined : JSON.stringify(data),
+  })
+    .then(async (response) => {
+      const body = await response.json().catch(() => ({}));
+      if (response.ok) return body || {};
+      const error = new Error(body.message || `Gateway 请求失败 (${response.status})`);
+      error.code = body.code || "GATEWAY_ERROR";
+      error.status = response.status;
+      throw error;
+    })
+    .catch((error) => {
+      if (error && error.status) throw error;
+      throw new Error((error && error.message) || "无法连接板端 Gateway");
     });
-  });
 }
 
 export async function pairGateway() {
@@ -117,8 +122,8 @@ export async function pairGateway() {
     data: previous.token ? { resume_token: previous.token } : {},
   });
   if (!result.token || !result.user_id) throw new Error("Gateway 配对响应不完整");
-  uni.setStorageSync(CLIENT_TOKEN_KEY, result.token);
-  uni.setStorageSync(USER_ID_KEY, result.user_id);
+  writeStorage(CLIENT_TOKEN_KEY, result.token);
+  writeStorage(USER_ID_KEY, result.user_id);
   return result;
 }
 
@@ -233,22 +238,19 @@ export function createAsrSocket({ onStatus, onPartial, onFinal, onAgentResponse,
       return;
     }
     onStatus && onStatus("connecting", `连接 ${getBridgeHost()}:${getBridgePort()}`);
-    socketTask = uni.connectSocket({
-      url,
-      // 自签证书：App 端常需在 manifest 放行；HBuilder 真机调试请勾选不校验
-      success() {},
-    });
+    socketTask = new WebSocket(url);
+    socketTask.binaryType = "arraybuffer";
 
-    socketTask.onOpen(() => {
+    socketTask.addEventListener("open", () => {
       opened = true;
       onStatus && onStatus("open", "已连接（直连板子或电脑桥接）");
       try {
-        socketTask.send({ data: JSON.stringify({ type: "ping" }) });
+        socketTask.send(JSON.stringify({ type: "ping" }));
       } catch (_) {}
     });
 
-    socketTask.onMessage((res) => {
-      let data = res.data;
+    socketTask.addEventListener("message", (res) => {
+      const data = res.data;
       if (typeof data !== "string") return;
       let msg;
       try {
@@ -267,15 +269,15 @@ export function createAsrSocket({ onStatus, onPartial, onFinal, onAgentResponse,
       else if (msg.type === "error") onError && onError(msg.message || "错误");
     });
 
-    socketTask.onClose(() => {
+    socketTask.addEventListener("close", () => {
       opened = false;
       if (stopped) return;
       onStatus && onStatus("closed", "连接已断开，正在重连…");
       reconnectTimer = setTimeout(connect, 2500);
     });
 
-    socketTask.onError((e) => {
-      onError && onError((e && e.errMsg) || "WebSocket 错误（请确认电脑已开 bridge 且用 wss）");
+    socketTask.addEventListener("error", () => {
+      onError && onError("WebSocket 错误（请确认板端 Gateway 已启动）");
     });
   }
 
@@ -284,19 +286,18 @@ export function createAsrSocket({ onStatus, onPartial, onFinal, onAgentResponse,
   return {
     sendPcmFloat32(float32Array) {
       if (!opened || !socketTask) return;
-      // uni App 可直接发 ArrayBuffer
       const buf = float32Array.buffer.slice(
         float32Array.byteOffset,
         float32Array.byteOffset + float32Array.byteLength
       );
-      socketTask.send({ data: buf });
+      socketTask.send(buf);
     },
     close() {
       stopped = true;
       opened = false;
       if (reconnectTimer) clearTimeout(reconnectTimer);
       try {
-        socketTask && socketTask.close({});
+        socketTask && socketTask.close();
       } catch (_) {}
     },
   };

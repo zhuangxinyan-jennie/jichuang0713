@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Phone Guide</string>
+    <string name="title_activity_main">Phone Guide</string>
+    <string name="package_name">com.fudan.phoneguide</string>
+    <string name="custom_url_scheme">com.fudan.phoneguide</string>
+</resources>

@@ -94,6 +94,7 @@ import {
   startBoardRuntime,
   stopBoardRuntime,
 } from "../../utils/asrBridge.js";
+import { scanJoinCode } from "../../utils/browserMedia.js";
 
 export default {
   data() {
@@ -140,26 +141,19 @@ export default {
   },
   methods: {
     async connectManual() {
-      await this.connectToEndpoint({ host: this.host, port: Number(this.port), insecure: false });
+      await this.connectToEndpoint({ host: this.host, port: Number(this.port), insecure: true });
     },
     scan() {
-      uni.scanCode({
-        scanType: ["qrCode"],
-        success: async (result) => {
-          try {
-            const endpoint = parseJoinCode(result.result);
-            this.host = endpoint.host;
-            this.port = String(endpoint.port);
-            await this.connectToEndpoint(endpoint);
-          } catch (error) {
-            this.message = (error && error.message) || "二维码无法解析";
-            uni.showToast({ title: this.message, icon: "none" });
-          }
-        },
-        fail: (error) => {
-          this.message = (error && error.errMsg) || "扫码取消";
-        },
-      });
+      scanJoinCode()
+        .then(async (rawValue) => {
+          const endpoint = parseJoinCode(rawValue);
+          this.host = endpoint.host;
+          this.port = String(endpoint.port);
+          await this.connectToEndpoint({ ...endpoint, insecure: true });
+        })
+        .catch((error) => {
+          this.message = (error && error.message) || "扫码取消";
+        });
     },
     async connectToEndpoint(endpoint) {
       if (this.connectBusy) return;

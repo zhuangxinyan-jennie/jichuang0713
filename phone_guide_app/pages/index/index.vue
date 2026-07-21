@@ -126,7 +126,6 @@ import {
   getBridgeHost,
   getBridgePort,
   getGatewayIdentity,
-  int16ToFloat32,
   joinConversationQueue,
   leaveConversationQueue,
   pairGateway,
@@ -134,6 +133,7 @@ import {
   startGatewayHeartbeat,
   touchConversation,
 } from "../../utils/asrBridge.js";
+import { startPcmCapture } from "../../utils/browserMedia.js";
 
 export default {
   data() {
@@ -147,8 +147,7 @@ export default {
       pillClass: "muted",
       speaking: false,
       socket: null,
-      recorder: null,
-      recorderBound: false,
+      captureStop: null,
       gatewayStop: null,
       endpointHandler: null,
       gatewayConnected: false,
@@ -392,18 +391,18 @@ export default {
       if (this.phoneMuted) return;
       const source = String(payload.audio_url || payload.audio || "").trim();
       if (!source) return;
-      const audio = uni.createInnerAudioContext();
-      audio.src = source;
+      const audio = new Audio(source);
       audio.autoplay = true;
-      audio.onEnded(() => this.stopReplyAudio());
-      audio.onError(() => this.stopReplyAudio());
+      audio.addEventListener("ended", () => this.stopReplyAudio());
+      audio.addEventListener("error", () => this.stopReplyAudio());
+      void audio.play().catch(() => {});
       this.replyAudio = audio;
     },
     stopReplyAudio() {
       if (!this.replyAudio) return;
       try {
-        this.replyAudio.stop();
-        this.replyAudio.destroy();
+        this.replyAudio.pause();
+        this.replyAudio.src = "";
       } catch (_) {}
       this.replyAudio = null;
     },
@@ -417,46 +416,27 @@ export default {
     onUp() {
       this.stopRec();
     },
-    startRec() {
+    async startRec() {
       if (this.speaking) return;
-      this.speaking = true;
-      this.ensureRecorder();
-      void touchConversation().catch(() => {});
-      const recorder = this.recorder;
-      recorder.start({
-        duration: 600000,
-        sampleRate: 16000,
-        numberOfChannels: 1,
-        encodeBitRate: 48000,
-        format: "PCM",
-        frameSize: 4, // KB，约产生帧推流
-      });
-      this.statusText = "流式发送中";
-    },
-    ensureRecorder() {
-      if (this.recorderBound) return;
-      const recorder = uni.getRecorderManager();
-      this.recorder = recorder;
-      recorder.onFrameRecorded((res) => {
-        if (!this.speaking || !this.socket) return;
-        const ab = res.frameBuffer;
-        if (!ab) return;
-        this.socket.sendPcmFloat32(int16ToFloat32(new Int16Array(ab)));
-      });
-      recorder.onError((e) => {
-        this.statusText = (e && e.errMsg) || "录音失败";
+      try {
+        this.captureStop = await startPcmCapture((frame) => {
+          if (this.speaking && this.socket) this.socket.sendPcmFloat32(frame);
+        });
+        this.speaking = true;
+        void touchConversation().catch(() => {});
+        this.statusText = "流式发送中";
+      } catch (error) {
+        this.statusText = (error && error.message) || "录音失败";
         this.pillText = "麦权限";
         this.pillClass = "err";
         this.speaking = false;
-      });
-      this.recorderBound = true;
+      }
     },
     stopRec() {
       if (!this.speaking) return;
       this.speaking = false;
-      try {
-        this.recorder && this.recorder.stop();
-      } catch (_) {}
+      if (this.captureStop) this.captureStop();
+      this.captureStop = null;
       this.statusText = "已停止发送";
     },
   },
