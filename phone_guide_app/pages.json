@@ -12,7 +12,7 @@
     {
       "path": "pages/connect/connect",
       "style": {
-        "navigationBarTitleText": "连接电脑",
+        "navigationBarTitleText": "设备",
         "navigationBarBackgroundColor": "#0a0a0a",
         "navigationBarTextStyle": "white",
         "backgroundColor": "#0a0a0a"
@@ -50,7 +50,7 @@
       },
       {
         "pagePath": "pages/connect/connect",
-        "text": "连接"
+        "text": "设备"
       }
     ]
   }

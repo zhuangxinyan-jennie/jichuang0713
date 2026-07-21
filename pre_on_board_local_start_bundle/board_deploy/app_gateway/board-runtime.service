@@ -1,0 +1,14 @@
+[Unit]
+Description=Xiongda Board Interaction Runtime
+After=network.target xiongda-app-gateway.service
+Requires=xiongda-app-gateway.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=-/home/HwHiAiUser/jichuang/app_gateway.env
+ExecStart=/bin/bash /home/HwHiAiUser/jichuang/run_on_board.sh
+ExecStop=/bin/bash /home/HwHiAiUser/jichuang/stop_board.sh
+
+[Install]
+WantedBy=multi-user.target

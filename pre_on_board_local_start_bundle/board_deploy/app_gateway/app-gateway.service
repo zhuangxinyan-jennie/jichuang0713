@@ -1,0 +1,17 @@
+[Unit]
+Description=Xiongda Phone App Gateway
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/HwHiAiUser/pre_on_board/board_deploy
+Environment=PYTHONPATH=/home/HwHiAiUser/pre_on_board/board_deploy
+Environment=APP_GATEWAY_START_CMD=systemctl start xiongda-board-runtime.service
+Environment=APP_GATEWAY_STOP_CMD=systemctl stop xiongda-board-runtime.service
+EnvironmentFile=-/home/HwHiAiUser/jichuang/app_gateway.env
+ExecStart=/usr/local/miniconda3/bin/python3 -m app_gateway.server --host 0.0.0.0 --port 8788 --cert /home/HwHiAiUser/jichuang/app_gateway_certs/cert.pem --key /home/HwHiAiUser/jichuang/app_gateway_certs/key.pem --asr-audio-port 18081 --asr-result-port 18084
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

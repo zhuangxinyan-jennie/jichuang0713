@@ -32,6 +32,7 @@ from board_state import (
 from schemas import BoardAsrLiveIn, PerceptionIn
 from settings import load_server_settings
 from safety_supervisor import SafetySupervisor
+from gateway_registration import GatewayRegistrar
 
 
 class BearAgentForHttp(BearAgent):
@@ -118,7 +119,15 @@ async def lifespan(app: FastAPI):
     if not state_path:
         state_path = str(Path(ROOT) / "outputs" / "safety_state.json")
     app.state.safety_supervisor = SafetySupervisor(state_path=state_path)
-    yield
+    app.state.gateway_registrar = GatewayRegistrar.from_env()
+    if app.state.gateway_registrar is not None:
+        app.state.gateway_registrar.start()
+    try:
+        yield
+    finally:
+        registrar = getattr(app.state, "gateway_registrar", None)
+        if registrar is not None:
+            registrar.stop()
 
 
 _SETTINGS = load_server_settings()

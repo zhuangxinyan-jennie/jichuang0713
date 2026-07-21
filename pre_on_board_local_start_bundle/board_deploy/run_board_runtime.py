@@ -56,6 +56,7 @@ def _read_float_env(name: str, default: float) -> float:
 
 
 RUNTIME_SUMMARY_PATH = ROOT / "logs" / "latest_runtime_summary.json"
+APP_PREVIEW_PATH = ROOT / "logs" / "latest_app_preview.jpg"
 MODELS_DIR = ROOT / "models_om"
 DEFAULT_YOLO_OM = MODELS_DIR / "yolo_face_hand_person.om"
 DEFAULT_GESTURE_OM = MODELS_DIR / "gesture_mlp.om"
@@ -84,6 +85,9 @@ if DETECTOR_BACKEND not in {"pose_om", "yolo", "hybrid"}:
 ACTION_POSE_CONF_THRES = _read_float_env("ACTION_POSE_CONF_THRES", 0.25)
 ACTION_POSE_IOU_THRES = _read_float_env("ACTION_POSE_IOU_THRES", 0.45)
 RESULT_JPEG_QUALITY = _read_int_env("RESULT_JPEG_QUALITY", 45)
+APP_PREVIEW_INTERVAL_S = max(0.1, _read_float_env("APP_PREVIEW_INTERVAL_S", 0.2))
+APP_PREVIEW_MAX_WIDTH = max(320, _read_int_env("APP_PREVIEW_MAX_WIDTH", 640))
+APP_PREVIEW_JPEG_QUALITY = min(80, max(30, _read_int_env("APP_PREVIEW_JPEG_QUALITY", 55)))
 POSE_INPUT_SIZE = _read_int_env("POSE_INPUT_SIZE", 0)
 CROWD_FLOW_ENABLE = os.environ.get("CROWD_FLOW_ENABLE", "1").strip() != "0"
 CROWD_MAX_PERSONS = _read_int_env("CROWD_MAX_PERSONS", 32)
@@ -2332,6 +2336,31 @@ def send_result_frame(
     send_packet(sock, buf.tobytes())
 
 
+def write_app_preview(frame: np.ndarray, path: Path = APP_PREVIEW_PATH) -> bool:
+    """Write a throttled phone preview without exposing an incomplete JPEG."""
+    output = frame
+    height, width = frame.shape[:2]
+    if width > APP_PREVIEW_MAX_WIDTH:
+        scale = APP_PREVIEW_MAX_WIDTH / float(width)
+        output = cv2.resize(
+            frame,
+            (APP_PREVIEW_MAX_WIDTH, max(1, int(round(height * scale)))),
+            interpolation=cv2.INTER_AREA,
+        )
+    ok, encoded = cv2.imencode(
+        ".jpg",
+        output,
+        [int(cv2.IMWRITE_JPEG_QUALITY), APP_PREVIEW_JPEG_QUALITY],
+    )
+    if not ok:
+        return False
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_bytes(encoded.tobytes())
+    os.replace(temporary, path)
+    return True
+
+
 def build_runtime_summary(
     tracks: list[Track],
     action_label: str,
@@ -2661,6 +2690,7 @@ def main() -> None:
         last_hybrid_yolo_at = 0.0
         last_full_detector_at = 0.0
         last_summary_write_at = 0.0
+        last_app_preview_write_at = 0.0
         last_no_display_log_at = 0.0
         while True:
             loop_started = time.perf_counter()
@@ -2881,6 +2911,13 @@ def main() -> None:
                 2,
                 cv2.LINE_AA,
             )
+            now_for_preview = time.monotonic()
+            if now_for_preview - last_app_preview_write_at >= APP_PREVIEW_INTERVAL_S:
+                try:
+                    if write_app_preview(show):
+                        last_app_preview_write_at = now_for_preview
+                except Exception:
+                    pass
             with result_state_lock:
                 result_sock = result_state.get("result_sock")
             if result_sock is not None:

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "version": "f63d6af954e40cbe",
+  "files": [
+    {
+      "path": "park-map.png",
+      "size": 248940,
+      "sha256": "91dc7d6eb5183ea9f4c579ba85a46cb4cd8f95d9dbcd53cfa150ad54ca0ccf85"
+    },
+    {
+      "path": "places_2d.json",
+      "size": 7841,
+      "sha256": "cddc42fab64f1554e9f9b56f822d6ef7797188cbd1bf5d8e33f1092af015ad35"
+    },
+    {
+      "path": "poi_registry.json",
+      "size": 9149,
+      "sha256": "aeff73a8bbda5cff5a075052e48d9d7147969e9674eeeb8f4242c3b9e4091811"
+    },
+    {
+      "path": "road_nav_graph.json",
+      "size": 19812,
+      "sha256": "989eb7ccc3b3499e50e928b070a8d562bc12a84a6252a9053acd8530bd3fa8df"
+    }
+  ]
+}

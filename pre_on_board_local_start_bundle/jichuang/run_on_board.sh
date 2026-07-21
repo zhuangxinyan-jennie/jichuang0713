@@ -14,6 +14,7 @@ if [[ ! -f "${BOARD_ROOT}/board_deploy/run_board_runtime.py" ]]; then
 fi
 
 cd "${BOARD_ROOT}"
+export PYTHONPATH="${BOARD_ROOT}/board_deploy:${BOARD_ROOT}/sound_to_text/voice_asr/src${PYTHONPATH:+:${PYTHONPATH}}"
 
 if [[ -f /usr/local/Ascend/ascend-toolkit/set_env.sh ]]; then
   # shellcheck disable=SC1091
@@ -67,6 +68,8 @@ echo "[INFO] BOARD_LOCAL_MIC=${BOARD_LOCAL_MIC} BOARD_LOCAL_CAMERA=${BOARD_LOCAL
 
 pkill -f "[r]un_board_runtime.py" >/dev/null 2>&1 || true
 pkill -f "[b]oard_audio_receiver.py" >/dev/null 2>&1 || true
+pkill -f "[a]pp_gateway.audio_router" >/dev/null 2>&1 || true
+pkill -f "[a]pp_gateway.result_relay" >/dev/null 2>&1 || true
 sleep 1
 
 VIDEO_ARGS=(--action-backend "${ACTION_BACKEND}" --detector-backend "${DETECTOR_BACKEND}" --crowd-config "${CROWD_FLOW_CONFIG}")
@@ -102,13 +105,38 @@ else
 fi
 
 if [[ -x "${PY_ASR}" ]]; then
-  ASR_ARGS=(--backend "${ASR_BACKEND}" --summary-dir "${OUTPUT_DIR}")
-  if [[ "${BOARD_LOCAL_MIC}" == "1" ]]; then
-    ASR_ARGS+=(--capture-local --audio-device "${AUDIO_DEVICE}" --audio-backend "${AUDIO_BACKEND}" --result-host "${BOARD_RESULT_HOST}")
-  fi
+  nohup "${PY_ASR}" -m app_gateway.result_relay \
+    --listen-host 127.0.0.1 --listen-port 18088 \
+    --pc-host "${BOARD_RESULT_HOST}" --pc-port 18083 \
+    --gateway-host 127.0.0.1 --gateway-port 18084 \
+    > "${OUTPUT_DIR}/board_asr_relay.log" 2>&1 &
+  echo "${!}" > "${OUTPUT_DIR}/board_asr_relay.pid"
+
+  ASR_ARGS=(
+    --backend "${ASR_BACKEND}"
+    --summary-dir "${OUTPUT_DIR}"
+    --host 127.0.0.1
+    --port 18086
+    --result-host 127.0.0.1
+    --result-port 18088
+  )
   nohup "${PY_ASR}" board_deploy/board_audio_receiver.py "${ASR_ARGS[@]}" \
     > "${OUTPUT_DIR}/board_asr_runtime.log" 2>&1 &
   echo "${!}" > "${OUTPUT_DIR}/board_asr.pid"
+
+  sleep 1
+  INITIAL_AUDIO_SOURCE="board"
+  if [[ "${BOARD_LOCAL_MIC}" != "1" ]]; then
+    INITIAL_AUDIO_SOURCE="phone"
+  fi
+  nohup "${PY_ASR}" -m app_gateway.audio_router \
+    --phone-host 0.0.0.0 --phone-port 18081 \
+    --control-host 127.0.0.1 --control-port 18087 \
+    --asr-host 127.0.0.1 --asr-port 18086 \
+    --audio-device "${AUDIO_DEVICE}" --audio-backend "${AUDIO_BACKEND}" \
+    --initial-source "${INITIAL_AUDIO_SOURCE}" \
+    > "${OUTPUT_DIR}/board_audio_router.log" 2>&1 &
+  echo "${!}" > "${OUTPUT_DIR}/board_audio_router.pid"
 else
   echo "[WARN] 未找到 ASR Python: ${PY_ASR}"
 fi
