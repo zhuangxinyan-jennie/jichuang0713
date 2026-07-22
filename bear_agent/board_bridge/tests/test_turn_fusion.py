@@ -118,6 +118,30 @@ def test_person_gone_clears_gesture_hold():
     assert t.ready_gesture_only_perception({"person_detected": False}, now_mono=2.5) is None
 
 
+def test_person_gone_clears_speech_turn():
+    """无人时语音回合也必须清空，避免麦克风字继续进 Agent。"""
+    t = InteractionTurnFusion()
+    t.observe(
+        hand_label="none",
+        hand_conf=0.0,
+        asr_partial="熊大你好",
+        now_mono=0.0,
+        person_detected=True,
+    )
+    assert t.mode == "speech"
+    t.note_speech_candidate("熊大你好", 0.5)
+    t.observe(
+        hand_label="none",
+        hand_conf=0.0,
+        asr_finalish="熊大你好",
+        now_mono=0.8,
+        person_detected=False,
+    )
+    assert t.mode == "idle"
+    assert t.pending_speech == ""
+    assert t.ready_enriched_perception({"person_detected": False}, now_mono=2.0) is None
+
+
 def test_gesture_during_speech_midway():
     t = InteractionTurnFusion()
     t.observe(hand_label="none", hand_conf=0.0, asr_partial="我想去", now_mono=0.0)

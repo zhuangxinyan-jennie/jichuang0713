@@ -9,6 +9,8 @@ class BoardAsrLiveIn(BaseModel):
     partial: str = ""
     final: str = ""
     normalized: str = ""
+    # 摄像头实时是否检出游客；供前端「检测到人/未检测到人」角标（可不随本轮 Agent POST）
+    person_detected: bool | None = None
 
 
 class PerceptionIn(BaseModel):

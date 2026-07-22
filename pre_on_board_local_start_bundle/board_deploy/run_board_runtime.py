@@ -18,6 +18,7 @@ import numpy as np
 from stream_protocol import recv_json, recv_packet, send_json, send_packet
 
 from video_capture import open_capture
+from fpga_udp_capture import fpga_udp_capture_loop, is_fpga_camera_source
 
 try:
     from ais_bench.infer.interface import InferSession
@@ -2275,6 +2276,33 @@ def local_camera_capture(
         cap.release()
 
 
+def fpga_camera_capture(
+    shared: LatestFrame,
+    stop_event: threading.Event,
+    *,
+    bind_ip: str,
+    port: int,
+    width: int,
+    height: int,
+    iface: str,
+) -> None:
+    """从 LAN1 接收 FPGA UDP 视频并写入 LatestFrame（BGR）。"""
+    print(
+        f"[BOARD] FPGA LAN1 capture bind={bind_ip}:{port} "
+        f"size={width}x{height} iface={iface}",
+        flush=True,
+    )
+    fpga_udp_capture_loop(
+        shared.publish,
+        stop_event,
+        bind_ip=bind_ip,
+        port=port,
+        native_width=width,
+        native_height=height,
+        iface=iface,
+    )
+
+
 def video_server(
     host: str,
     port: int,
@@ -2625,8 +2653,36 @@ def main() -> None:
     )
     parser.add_argument(
         "--camera-source",
-        default=os.environ.get("VIDEO_DEVICE", "0"),
-        help="Local camera index or video path (default 0 / VIDEO_DEVICE env).",
+        default=os.environ.get("VIDEO_SOURCE", os.environ.get("VIDEO_DEVICE", "fpga")),
+        help="fpga/lan1=FPGA UDP on LAN1; or USB index/path (default: VIDEO_SOURCE/fpga).",
+    )
+    parser.add_argument(
+        "--fpga-bind",
+        default=os.environ.get("FPGA_BIND_IP", "192.168.1.100"),
+        help="FPGA UDP bind IP on LAN1 (eth0).",
+    )
+    parser.add_argument(
+        "--fpga-port",
+        type=int,
+        default=int(os.environ.get("FPGA_UDP_PORT", "1234")),
+        help="FPGA UDP port (default 1234).",
+    )
+    parser.add_argument(
+        "--fpga-width",
+        type=int,
+        default=int(os.environ.get("FPGA_WIDTH", "1280")),
+        help="FPGA native frame width.",
+    )
+    parser.add_argument(
+        "--fpga-height",
+        type=int,
+        default=int(os.environ.get("FPGA_HEIGHT", "720")),
+        help="FPGA native frame height.",
+    )
+    parser.add_argument(
+        "--fpga-iface",
+        default=os.environ.get("FPGA_IFACE", "eth0"),
+        help="LAN1 interface name for FPGA (default eth0).",
     )
     parser.add_argument("--result-port", type=int, default=18082)
     parser.add_argument(
@@ -2666,9 +2722,11 @@ def main() -> None:
         args.cursor_host = str(args.result_host).strip()
 
     shared = LatestFrame()
+    use_fpga = bool(args.capture_local) and is_fpga_camera_source(str(args.camera_source))
     if args.capture_local:
+        mode = "FPGA/LAN1" if use_fpga else "USB/local"
         print(
-            f"[BOARD] local camera mode source={args.camera_source} "
+            f"[BOARD] local camera mode={mode} source={args.camera_source} "
             f"result_host={args.result_host}:{args.result_port}",
             flush=True,
         )
@@ -2686,7 +2744,21 @@ def main() -> None:
         except Exception as exc:
             dvpp_decoder = None
             print(f"[BOARD] DVPP JPEGD disabled: {exc}", flush=True)
-    if args.capture_local:
+    if args.capture_local and use_fpga:
+        video_thread = threading.Thread(
+            target=fpga_camera_capture,
+            kwargs={
+                "shared": shared,
+                "stop_event": stop_event,
+                "bind_ip": str(args.fpga_bind),
+                "port": int(args.fpga_port),
+                "width": int(args.fpga_width),
+                "height": int(args.fpga_height),
+                "iface": str(args.fpga_iface),
+            },
+            daemon=True,
+        )
+    elif args.capture_local:
         video_thread = threading.Thread(
             target=local_camera_capture,
             args=(str(args.camera_source), shared, stop_event),

@@ -149,6 +149,15 @@ def multimodal_playback_done(request: Request):
     return {"ok": True}
 
 
+@app.post("/api/multimodal/force-idle")
+def multimodal_force_idle(request: Request):
+    """联调恢复：强制放开闸门，让板端麦克风 ASR 立刻恢复到网页字幕。"""
+    gate = getattr(request.app.state, "multimodal_gate", None)
+    if gate is not None:
+        gate.force_idle()
+    return {"ok": True, "busy": False}
+
+
 @app.post("/api/multimodal/playback-start")
 def multimodal_playback_start(request: Request):
     """
@@ -172,6 +181,7 @@ def board_asr_live(body: BoardAsrLiveIn, request: Request):
         partial=body.partial,
         final=body.final,
         normalized=body.normalized,
+        person_detected=body.person_detected,
     )
     return {"ok": True}
 

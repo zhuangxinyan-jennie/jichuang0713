@@ -29,4 +29,4 @@ export interface AgentJsonPayload {
   module?: string;
 }
 
-export type TopNavId = "voice" | "story" | "map" | "recommend";
+export type TopNavId = "world" | "story" | "recommend";

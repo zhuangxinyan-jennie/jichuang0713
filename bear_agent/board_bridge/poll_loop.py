@@ -106,6 +106,15 @@ def poll_loop(
             perception["gesture"] = "none"
             perception["gesture_confidence"] = 0.0
 
+        person_ok = bool(perception.get("person_detected"))
+        try:
+            person_count = int(perception.get("person_count") or 0)
+        except (TypeError, ValueError):
+            person_count = 0
+        if person_ok and person_count <= 0:
+            # 兼容部分帧只打了 detected=true 未填 count
+            person_count = 1
+
         fp = fingerprint_for_trigger(perception)
         speech_now = pick_speech_text(adoc, use_partial_fallback=cfg.speech_use_partial_fallback).strip()
         partial = (adoc.get("partial") or "").strip()
@@ -133,7 +142,7 @@ def poll_loop(
             fusion.reset_trigger_memory()
             turn_fusion.reset()
             engagement.reset()
-            post_board_asr_live(url, partial="", final="", normalized="")
+            post_board_asr_live(url, partial="", final="", normalized="", person_detected=person_ok)
             continue
 
         if gate_busy:
@@ -145,10 +154,56 @@ def poll_loop(
             fusion.reset_trigger_memory()
             turn_fusion.reset()
             # 不 reset engagement：熊大说话时人仍可能在互动中
-            post_board_asr_live(url, partial="", final="", normalized="")
+            post_board_asr_live(url, partial="", final="", normalized="", person_detected=person_ok)
             continue
 
-        post_board_asr_live(url, partial=partial, final=final_txt, normalized=norm_txt)
+        # 无人：麦克风即使有字也不进 Agent；前端字幕/多模态也保持空
+        if cfg.require_person_for_multimodal and not person_ok:
+            if utterance_clear_event is not None:
+                utterance_clear_event.set()
+            if speech_now or partial or final_txt or norm_txt:
+                clear_latest_asr_utterance(asr_path)
+            last_posted_speech = ""
+            last_fp = None
+            fusion.reset_trigger_memory()
+            turn_fusion.reset()
+            engagement.reset()
+            post_board_asr_live(url, partial="", final="", normalized="", person_detected=False)
+            try:
+                atomic_write_json(
+                    output_dir / "perception_preview.json",
+                    {
+                        "perception": {
+                            **dict(perception),
+                            "speech_text": "",
+                            "person_detected": False,
+                            "person_count": 0,
+                        },
+                        "asr_partial": "",
+                        "asr_final": "",
+                        "asr_normalized": "",
+                        "vision_ts": vdoc.get("ts"),
+                        "asr_ts": adoc.get("ts"),
+                        "ts": time.time(),
+                        "bridge_trigger": {
+                            "mode": "person_required_gate",
+                            "blocked": True,
+                            "reason": "no_person_detected",
+                            "raw_speech_dropped": bool(speech_now or partial or final_txt or norm_txt),
+                        },
+                    },
+                )
+            except OSError:
+                pass
+            continue
+
+        post_board_asr_live(
+            url,
+            partial=partial,
+            final=final_txt,
+            normalized=norm_txt,
+            person_detected=True,
+        )
 
         hand_l, hand_c, body_l, body_c = extract_hand_body_from_perception(perception)
         turn_fusion.observe(
@@ -358,7 +413,7 @@ def poll_loop(
                     if utterance_clear_event is not None:
                         utterance_clear_event.set()
                     clear_latest_asr_utterance(asr_path)
-                    post_board_asr_live(url, partial="", final="", normalized="")
+                    post_board_asr_live(url, partial="", final="", normalized="", person_detected=True)
             except urllib.error.URLError as e:
                 log_print(f"[board_bridge] POST failed: {e}")
                 # 纯手势失败也进入冷却+须释放，避免每 0.8s 用同一陈旧 like 狂打

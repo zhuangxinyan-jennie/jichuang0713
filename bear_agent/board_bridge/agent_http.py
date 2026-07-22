@@ -50,13 +50,18 @@ def post_board_asr_live(
     partial: str,
     final: str,
     normalized: str,
+    person_detected: bool | None = None,
     timeout: float = 3.0,
 ) -> None:
     ep = agent_http_base(base_url).rstrip("/") + "/api/board-asr-live"
-    data = json.dumps(
-        {"partial": partial, "final": final, "normalized": normalized},
-        ensure_ascii=False,
-    ).encode("utf-8")
+    payload: dict[str, Any] = {
+        "partial": partial,
+        "final": final,
+        "normalized": normalized,
+    }
+    if person_detected is not None:
+        payload["person_detected"] = bool(person_detected)
+    data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     req = urllib.request.Request(
         ep,
         data=data,

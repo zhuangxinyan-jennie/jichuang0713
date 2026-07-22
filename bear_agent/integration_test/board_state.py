@@ -14,7 +14,7 @@ def empty_board_drive() -> dict[str, Any]:
 
 
 def empty_board_asr_live() -> dict[str, Any]:
-    return {"partial": "", "final": "", "normalized": "", "ts": None}
+    return {"partial": "", "final": "", "normalized": "", "ts": None, "person_detected": None}
 
 
 def clear_board_asr_live_cache(app_state: Any) -> None:
@@ -25,6 +25,7 @@ def clear_board_asr_live_cache(app_state: Any) -> None:
     live["final"] = ""
     live["normalized"] = ""
     live["ts"] = time.time()
+    # 不清除 person_detected：有人/无人角标应继续反映最新视觉
 
 
 def record_board_drive_if_bridge(
@@ -51,7 +52,14 @@ def record_board_drive_if_bridge(
     clear_board_asr_live_cache(app_state)
 
 
-def update_board_asr_live(app_state: Any, *, partial: str, final: str, normalized: str) -> None:
+def update_board_asr_live(
+    app_state: Any,
+    *,
+    partial: str,
+    final: str,
+    normalized: str,
+    person_detected: bool | None = None,
+) -> None:
     live = getattr(app_state, "board_asr_live", None)
     if live is None:
         live = empty_board_asr_live()
@@ -60,11 +68,14 @@ def update_board_asr_live(app_state: Any, *, partial: str, final: str, normalize
     live["final"] = (final or "").strip()
     live["normalized"] = (normalized or "").strip()
     live["ts"] = time.time()
+    if person_detected is not None:
+        live["person_detected"] = bool(person_detected)
 
 
 def board_auto_last_payload(app_state: Any) -> dict[str, Any]:
     bd = getattr(app_state, "board_drive", None) or empty_board_drive()
     live = getattr(app_state, "board_asr_live", None) or empty_board_asr_live()
+    live_person = live.get("person_detected")
     return {
         "seq": int(bd.get("seq", 0)),
         "ts": bd.get("ts"),
@@ -74,6 +85,8 @@ def board_auto_last_payload(app_state: Any) -> dict[str, Any]:
         "asr_final": live.get("final") or "",
         "asr_normalized": live.get("normalized") or "",
         "asr_live_ts": live.get("ts"),
+        # 摄像头实时有人/无人（与 perception 本轮快照解耦）
+        "live_person_detected": live_person if isinstance(live_person, bool) else None,
     }
 
 

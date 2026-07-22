@@ -1,0 +1,22 @@
+# 统一 WebGL（熊大 + 乐园地图）
+
+本目录用于 **合并工程** 产物，与旧双包分开：
+
+| 目录 | 用途 | 是否可删以回退 |
+|------|------|----------------|
+| `public/webgl/` | 旧：仅熊大聊天 | 保留 |
+| `public/webgl-map/` | 旧：仅地图 | 保留 |
+| `public/webgl-merged/` | 新：熊大+地图同一场景 | 没有 `build-info.json` 时前端自动回退双包 |
+
+## 如何生成
+
+1. 运行（若尚未创建合并工程）：
+   `powershell -ExecutionPolicy Bypass -File .\scripts\setup_merged_unity_project.ps1`
+2. Unity Hub 打开 `XiongdaParkMapMergedProject`（**不要**改原来的两个工程）
+3. 菜单：`Tools → 狗熊岭智慧终端 → 合并工程：挂上 UnityBridge + 模式相机`
+4. 在熊大上配置 SMPL / 表情引用（与语音工程同款）
+5. 菜单：`Tools → 狗熊岭智慧终端 → 构建合并 WebGL（Development）到 webgl-merged`
+   或：`powershell -ExecutionPolicy Bypass -File .\scripts\build_merged_webgl.ps1`
+6. 重启 `npm run dev`，顶部点 **「全图互动」**
+
+没有 `build-info.json` 时，前端显示构建提示（不再加载旧双包）。

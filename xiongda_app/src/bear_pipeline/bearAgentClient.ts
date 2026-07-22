@@ -189,6 +189,22 @@ export async function postMultimodalPlaybackStart(): Promise<void> {
   }
 }
 
+/** 刷新/恢复：强制放开播音闸门，避免 ASR 字幕被一直清空。 */
+export async function postMultimodalForceIdle(): Promise<void> {
+  try {
+    const res = await fetch(`${baseUrl().replace(/\/$/, "")}/api/multimodal/force-idle`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!res.ok) {
+      const t = await res.text().catch(() => "");
+      console.warn("[bearAgent] force-idle HTTP", res.status, t);
+    }
+  } catch (e) {
+    console.warn("[bearAgent] force-idle failed", e);
+  }
+}
+
 export async function postReset(): Promise<void> {
   const res = await fetch(`${baseUrl().replace(/\/$/, "")}/api/reset`, { method: "POST" });
   if (!res.ok) {

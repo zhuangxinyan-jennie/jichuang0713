@@ -51,6 +51,11 @@ export type BoardAsrLiveFields = {
   asr_normalized: string;
   /** 服务端更新时间戳（秒），可选 */
   asr_live_ts: number | null;
+  /**
+   * 摄像头实时是否检出游客（与本轮 perception 解耦）。
+   * `null`：尚未收到板端推送。
+   */
+  live_person_detected?: boolean | null;
 };
 
 /** GET /api/board-auto/last — 板端 board_bridge 触发的最近一次响应（供前端轮询） */

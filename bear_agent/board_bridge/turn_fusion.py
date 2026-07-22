@@ -184,16 +184,13 @@ class InteractionTurnFusion:
         speaking = bool(partial or finalish)
         hand_on = self._meaningful_hand(hand_label, hand_conf)
 
-        # 人不在画面：立刻结束手势回合，并解锁「须先放下再触发」
+        # 人不在画面：结束一切回合（含语音），避免“无人时麦克风仍进 Agent”
         if not person_detected:
             if self.need_release_before_rearm:
                 self._mark_released()
-            if self.mode == "gesture":
+            if self.mode != "idle":
                 self.reset()
-            elif self.mode == "idle":
-                self._clear_hold()
-            # speech 回合仍可继续（只靠 ASR）；清掉手势保持即可
-            elif self.mode in ("speech", "speech_grace"):
+            else:
                 self._clear_hold()
             return
 

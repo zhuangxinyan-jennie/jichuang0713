@@ -1,79 +1,18 @@
-【你已经不用手写代码，只要按顺序做下面几步】
+【已退役 · 保留备份】
 
+语音页的独立熊大包已被「统一双熊 WebGL」取代。
 
+请改用：
+  xiongda_app/public/webgl-merged/
 
-═══ 第一步：Unity 里导出 WebGL ═══
+构建方式（Unity 合并工程）：
+  XiongdaParkMapMergedProject
+  Tools → 狗熊岭智慧终端 → 构建合并 WebGL（Development）到 webgl-merged
 
-1. 打开 Unity 工程 XiongdaUnityProject。
+网页在检测到 webgl-merged/build-info.json 时自动只加载一份 3D 场景：
+  - 聊天：InteractiveXiongda（SMPL + 表情）
+  - 地图：PlayableXiongda（导览跑步）
 
-2. 菜单 File → Build Settings。
+若需临时回退旧双包：删除 webgl-merged/build-info.json，或设 VITE_UNITY_MERGED=0。
 
-3. 左边选 WebGL，若提示 Switch Platform 就点一下（第一次可能要装模块）。
-
-4. 先打开或生成终端场景：菜单 Tools → 狗熊岭智慧终端 → 生成 SmartParkTerminal 场景（一键）。
-
-   （会自动放好「UnityBridge」物体。网页通过 PlaySmplStreamingRelativePath 播放 StreamingAssets/SmplhRetarget 下的 *.json。）
-
-5. 在熊模型（CharacterArea 下）上配置 SmplhMotionRetarget：characterRoot、tpose、Use Delta 等，详见 Assets/Scripts/SmartParkTerminal/README_SmartTerminal.md。
-
-6. File → Build Settings → Add Open Scenes，确认要打的就是 SmartParkTerminal。
-
-7. 点 Build，选一个空文件夹（例如桌面上的 WebGL_Out）。
-
-
-
-═══ 第二步：拷贝到本前端 ═══
-
-把整个 WebGL 输出文件夹里的【全部内容】复制到：
-
-    xiongda_app\public\webgl\
-
-复制后应能看到类似：
-
-    public\webgl\Build\xxx.loader.js
-
-    public\webgl\StreamingAssets\SmplhRetarget\*.json
-
-
-
-也可以双击运行（或在 PowerShell 执行）：
-
-    xiongda_app\scripts\copy-webgl-from-unity.ps1
-
-按提示填 Unity 输出路径，脚本会自动拷到 public\webgl。
-
-
-
-═══ 第三步：写好 build-info.json ═══
-
-1. 把本目录下的 build-info.example.json 复制一份，改名为：
-
-    build-info.json
-
-2. 用记事本打开，把里面的文件名改成你 Build 文件夹里【真实存在】的文件名。
-
-   （Unity 打包名和你工程名有关，不一定是示例里的名字。）
-
-3. 若 Unity 勾选了压缩，后缀可能是 .br / .gz，路径里也要带上后缀。
-
-
-
-保存后运行前端：
-
-    cd xiongda_app
-
-    npm run dev
-
-浏览器打开页面，中间应出现 Unity 画面；点右侧动作按钮，熊大会播对应 SMPL JSON 动作。
-
-
-
-═══ 常见问题 ═══
-
-· 仍是灰色占位：多半是 build-info.json 路径写错，或没拷全文件。按 F12 看控制台报错。
-
-· 能进 Unity 但没动作：检查场景里是否有物体名叫「UnityBridge」，且挂了 UnityBridge 脚本；熊身上是否有 SmplhMotionRetarget 且 Humanoid Animator 已被脚本关闭（否则会盖掉 JSON）。
-
-· 路径必须与前端一致：例如 SmplhRetarget/挥手致意.json（相对 StreamingAssets）。
-
-
+详见仓库 docs/UNITY_MERGED.md

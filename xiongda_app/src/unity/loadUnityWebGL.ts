@@ -97,9 +97,35 @@ export let lastMapUnityLoadError: string | null = null;
 
 const unityBootPromises = new Map<string, Promise<boolean>>();
 
+function isMapLikeBasePath(basePath: string): boolean {
+  return basePath === "/webgl-map" || basePath === "/webgl-merged";
+}
+
 function normalizeBasePath(basePath: string): string {
   const trimmed = basePath.trim().replace(/\/+$/, "");
   return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+}
+
+/** 合并包 build-info 若只有 loaderStem，补全 Unity 2018 加载地址 */
+function normalizeBuildInfo(
+  basePath: string,
+  raw: UnityBuildInfo & { loaderStem?: string }
+): UnityBuildInfo {
+  if (is2018Info(raw)) return raw;
+  const m = raw as UnityBuildInfoModern;
+  if (m.loaderUrl && m.dataUrl && m.frameworkUrl && m.codeUrl) return raw;
+
+  const stem = typeof raw.loaderStem === "string" ? raw.loaderStem.trim() : "";
+  if (!stem) return raw;
+
+  return {
+    loaderMode: "unity2018",
+    unityLoaderUrl: `${basePath}/Build/UnityLoader.js`,
+    unityProgressUrl: `${basePath}/TemplateData/UnityProgress.js`,
+    templateStyleUrl: `${basePath}/TemplateData/style.css`,
+    jsonManifest: `${basePath}/Build/${stem}.json`,
+    streamingAssetsUrl: `${basePath}/StreamingAssets`,
+  };
 }
 
 /**
@@ -115,7 +141,7 @@ export function tryLoadUnityWebGL(
   const existing = unityBootPromises.get(cacheKey);
   if (existing) return existing;
 
-  if (basePath === "/webgl-map") {
+  if (isMapLikeBasePath(basePath)) {
     lastMapUnityLoadError = null;
   } else {
     lastUnityLoadError = null;
@@ -126,6 +152,8 @@ export function tryLoadUnityWebGL(
     if (!ok) {
       const fallback = "Unity 未就绪（详见控制台日志）";
       if (basePath === "/webgl-map") {
+        if (!lastMapUnityLoadError) lastMapUnityLoadError = fallback;
+      } else if (isMapLikeBasePath(basePath)) {
         if (!lastMapUnityLoadError) lastMapUnityLoadError = fallback;
       } else if (!lastUnityLoadError) {
         lastUnityLoadError = fallback;
@@ -146,7 +174,7 @@ async function loadUnityWebGLInner(
 ): Promise<boolean> {
   const tag = options?.logTag ?? "[Unity]";
   const setError = (msg: string) => {
-    if (basePath === "/webgl-map") lastMapUnityLoadError = msg;
+    if (isMapLikeBasePath(basePath)) lastMapUnityLoadError = msg;
     else lastUnityLoadError = msg;
   };
 
@@ -156,7 +184,8 @@ async function loadUnityWebGLInner(
       setError(`缺少或无法访问 ${basePath}/build-info.json（HTTP ${res.status}）`);
       return false;
     }
-    const cfg = (await res.json()) as UnityBuildInfo;
+    const cfgRaw = (await res.json()) as UnityBuildInfo & { loaderStem?: string };
+    const cfg = normalizeBuildInfo(basePath, cfgRaw);
 
     const registerInstance = (instance: UnityWebGLHandle) => {
       if (options?.onInstanceReady) {
@@ -203,14 +232,14 @@ async function loadUnityWebGLInner(
           if (typeof window.UnityProgress === "function") {
             window.UnityProgress(gi, p);
           }
-          if (p >= 0.99 && basePath === "/webgl-map") {
+          if (p >= 0.99 && isMapLikeBasePath(basePath)) {
             markMapUnityFullyReady();
           }
         },
       });
       registerInstance(gameInstance as UnityWebGLHandle);
       console.info(`${tag} 2018 UnityLoader 已启动 (${basePath})`);
-      if (basePath === "/webgl-map") {
+      if (isMapLikeBasePath(basePath)) {
         window.setTimeout(() => markMapUnityFullyReady(), 2500);
       }
       return true;

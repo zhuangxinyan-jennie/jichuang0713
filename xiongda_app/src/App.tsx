@@ -2,22 +2,27 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } fr
 import { motion } from "framer-motion";
 import { TopMenu } from "./components/TopMenu";
 import { WeatherBadge } from "./components/WeatherBadge";
-import { UnityEmbed } from "./components/UnityEmbed";
+import { WorldUnityEmbed } from "./components/WorldUnityEmbed";
 import { BottomCommandBar } from "./components/BottomCommandBar";
 import { InteractionHud } from "./components/InteractionHud";
-import { MapUnityEmbed } from "./components/MapUnityEmbed";
 import { GestureCursorOverlay } from "./gesture/GestureCursorOverlay";
 import { useGestureCursor } from "./gesture/useGestureCursor";
 import type { TopNavId } from "./types";
 import { makeAgentContext } from "./services/agentContext";
 import { handleAgentJson, handleMapQuery, handleRecommendation } from "./services/agentApi";
 import { prepareBearAudioPlayback } from "./services/xiongdaTts";
+import {
+  probeMergedUnityAvailable,
+  setMergedPlayMode,
+  syncMergedPlayModeFromTopNav,
+} from "./services/unityMergedMode";
 import { useUnityReady } from "./hooks/useUnityReady";
 import { agentPipelineDebugUi } from "./bear_pipeline/agentPipelineUi";
 import { useTerminalKeyboardIsolation } from "./hooks/useTerminalKeyboardIsolation";
 import {
   fetchBoardAutoLast,
   postMapQueryWithOptions,
+  postMultimodalForceIdle,
   postMultimodalPlaybackDone,
   postProcessFullWithOptions,
   postReset,
@@ -26,7 +31,7 @@ import {
 import { guestInputMatchesWeatherQuery } from "./bear_pipeline/weatherIntentTriggers";
 import { handleBearAgentPayload } from "./bear_pipeline/handleBearAgentPayload";
 import type { BoardAsrLiveFields, PerceptionPayload } from "./bear_pipeline/bearAgentTypes";
-import { parseGuestNavIntent } from "./bear_pipeline/navIntentTriggers";
+import { parseGuestNavIntent, guestInputLooksLikeMapQuestion } from "./bear_pipeline/navIntentTriggers";
 import {
   clearTtsLatencyContext,
   createLatencyProbe,
@@ -45,8 +50,10 @@ type ManualInputRoute = "map_query" | "weather_query" | "process";
 type LatencyProbe = ReturnType<typeof createLatencyProbe>;
 
 export default function App() {
-  const [topNav, setTopNav] = useState<TopNavId>("voice");
+  const [topNav, setTopNav] = useState<TopNavId>("world");
   const [guestInput, setGuestInput] = useState("");
+  /** 合并 WebGL 可用时只加载一份；否则回退双包 */
+  const [useMergedUnity, setUseMergedUnity] = useState(false);
   const [subtitle, setSubtitle] = useState("");
   const [currentSmplPath, setCurrentSmplPath] = useState("—");
   /** 与底部游客句子一并发给 /api/process 的感知字段 */
@@ -87,9 +94,25 @@ export default function App() {
     ? "WebGL 已连接（PlaySmplStreamingRelativePath）"
     : "未加载（占位 / 调试用，仍会更新当前 SMPL 路径）";
 
-  /** 仅地图页启用手势光标（本机摄像头 MediaPipe，不依赖板端） */
-  const gestureEnabled = topNav === "map";
+  /** 全图互动页启用手势光标（2D 地图选点） */
+  const gestureEnabled = topNav === "world";
+  const showWorldUnity = topNav === "world" || topNav === "story";
   const gesture = useGestureCursor(gestureEnabled);
+
+  useEffect(() => {
+    let cancelled = false;
+    void probeMergedUnityAvailable().then((ok) => {
+      if (!cancelled) setUseMergedUnity(ok);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!useMergedUnity) return;
+    syncMergedPlayModeFromTopNav(topNav);
+  }, [useMergedUnity, topNav]);
 
   const onSelect2DPlace = useCallback(
     (name: string) => {
@@ -99,19 +122,29 @@ export default function App() {
     [setSubtitle, setGuestInput]
   );
 
+  const enterWorldTabFromAgent = useCallback(
+    (unityMode: "chat" | "map" = "chat") => {
+      setTopNav("world");
+      if (useMergedUnity) {
+        setMergedPlayMode(unityMode);
+      }
+    },
+    [useMergedUnity]
+  );
+
   const enterStoryTabFromAgent = useCallback(() => {
     setTopNav("story");
   }, []);
 
   const enterVoiceTabFromAgent = useCallback(() => {
-    setTopNav("voice");
-    setSubtitle("已切换到「语音聊天」。你可以直接和熊大聊天，也可以说「剧情互动」或「地图查询」切换玩法。");
-  }, []);
+    enterWorldTabFromAgent("chat");
+    setSubtitle("已在「全图互动」：你可以和熊大聊天、做随机动作；问路时熊大会在地图里跑过去。");
+  }, [enterWorldTabFromAgent]);
 
   const enterMapTabFromAgent = useCallback(() => {
-    setTopNav("map");
+    enterWorldTabFromAgent("map");
     handleMapQuery("", ctx);
-  }, [ctx]);
+  }, [ctx, enterWorldTabFromAgent]);
 
   const bearPayloadNavOptions = useMemo(
     () => ({
@@ -125,17 +158,18 @@ export default function App() {
   const onTopNav = useCallback(
     (id: TopNavId) => {
       setTopNav(id);
-      if (id === "voice") return;
+      if (id === "world") {
+        setSubtitle(
+          "全图互动：可聊天、随机动作；问「海螺湾怎么走」时熊大会在 3D 地图里跑过去，到了还能在同一位置继续聊。"
+        );
+        return;
+      }
       if (id === "story") {
         setSubtitle(
           boardAutoFollow
             ? "益智小剧场：若熊大还没念开场，请对着麦克风说「剧情互动」。进入后请用语音回答选项（如 A/B、先听听规则、往左）。"
             : "益智小剧场：用底部输入说「剧情互动」进入，再按提示选题。"
         );
-        return;
-      }
-      if (id === "map") {
-        handleMapQuery("", ctx);
         return;
       }
       if (id === "recommend") {
@@ -179,8 +213,8 @@ export default function App() {
       } else {
         p = mapPerception(text);
       }
-      /** 语音聊天页不参与躯干动作推理：固定为 none（仍可用手势 / 表情等其它字段） */
-      if (topNav === "voice") {
+      /** 剧情页不参与躯干动作推理 */
+      if (topNav === "story") {
         return { ...p, gesture: "none" };
       }
       return p;
@@ -216,7 +250,7 @@ export default function App() {
   const applyLiveBoardPerception = useCallback(
     (p: PerceptionPayload) => {
       if (typeof p.emotion === "string" && p.emotion.trim()) setBearEmotion(p.emotion.trim());
-      if (topNav !== "voice" && typeof p.gesture === "string" && p.gesture.trim()) {
+      if (topNav !== "story" && typeof p.gesture === "string" && p.gesture.trim()) {
         setBearGesture(p.gesture.trim());
       }
       if (typeof p.hand_gesture === "string" && p.hand_gesture.trim()) {
@@ -346,13 +380,16 @@ export default function App() {
       return;
     }
     const navIntent = parseGuestNavIntent(text);
-    const route: ManualInputRoute = !navIntent && topNav === "map" ? "map_query" : "process";
+    const route: ManualInputRoute =
+      !navIntent && topNav === "world" && guestInputLooksLikeMapQuestion(text)
+        ? "map_query"
+        : "process";
     const probe = createManualInputProbe("typed", route, text);
     if (navIntent) {
       void dispatchBearFsm(text, probe, "typed");
       return;
     }
-    if (topNav === "map") {
+    if (topNav === "world" && guestInputLooksLikeMapQuestion(text)) {
       void sendMapQuestion(text, probe, "typed");
       return;
     }
@@ -361,8 +398,8 @@ export default function App() {
 
   const onVoiceMock = useCallback(() => {
     prepareBearAudioPlayback();
-    if (topNav === "map") {
-      const simulated = "怎么去海螺湾";
+    if (topNav === "world" && guestInputLooksLikeMapQuestion(guestInput.trim())) {
+      const simulated = guestInput.trim() || "怎么去海螺湾";
       setGuestInput(simulated);
       const probe = createManualInputProbe("voice_mock", "map_query", simulated);
       void sendMapQuestion(simulated, probe, "voice_mock");
@@ -419,6 +456,8 @@ export default function App() {
       setBoardLiveAsr(null);
       return;
     }
+    // 刷新网页后若上一轮播音闸门未释放，会一直清空 ASR，看起来像麦克风失灵。
+    void postMultimodalForceIdle();
     let cancelled = false;
     const tick = async () => {
       try {
@@ -430,6 +469,8 @@ export default function App() {
           asr_final: r.asr_final,
           asr_normalized: r.asr_normalized,
           asr_live_ts: r.asr_live_ts,
+          live_person_detected:
+            typeof r.live_person_detected === "boolean" ? r.live_person_detected : null,
         });
         if (r.perception) {
           setBoardBridgePerception(r.perception);
@@ -503,21 +544,27 @@ export default function App() {
               className="relative flex min-h-0 min-w-0 flex-1 flex-col"
             >
               <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-forest/10 bg-black/5 shadow-inner">
-                <div
-                  className={topNav === "map" ? "hidden" : "flex min-h-0 flex-1 flex-col"}
-                  aria-hidden={topNav === "map"}
-                >
-                  <UnityEmbed blockGamePointer={terminalIslandFocused} />
-                </div>
-                <div className={topNav === "map" ? "flex min-h-0 flex-1 flex-col" : "hidden"}>
-                  <MapUnityEmbed
+                {showWorldUnity ? (
+                  <WorldUnityEmbed
                     blockGamePointer={terminalIslandFocused}
                     onSelect2DPlace={onSelect2DPlace}
+                    mergedReady={useMergedUnity}
                   />
-                </div>
+                ) : (
+                  <div className="flex min-h-0 flex-1 items-center justify-center bg-cream/50 p-6 text-center text-sm text-slate-600">
+                    当前为「项目推荐」页；请点顶部「全图互动」体验 3D 熊大。
+                  </div>
+                )}
                 <InteractionHud
                   liveAsr={boardLiveAsr}
                   lastSentPerception={lastSentPerception}
+                  personDetected={
+                    typeof boardLiveAsr?.live_person_detected === "boolean"
+                      ? boardLiveAsr.live_person_detected
+                      : boardBridgePerception == null
+                        ? null
+                        : Boolean(boardBridgePerception.person_detected)
+                  }
                   agentLoading={agentLoading}
                 />
               </div>
@@ -543,7 +590,7 @@ export default function App() {
             subtitle={subtitle}
             currentSmplPath={currentSmplPath}
             unityStatusText={unityStatusText}
-            variant={topNav === "map" ? "map" : "default"}
+            variant={topNav === "world" ? "world" : "default"}
             boardBridgeAutoSync={boardAutoFollow}
             theaterVoiceOnly={topNav === "story" && boardAutoFollow}
             sendDisabled={agentLoading}

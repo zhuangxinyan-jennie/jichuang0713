@@ -8,7 +8,7 @@ type BottomCommandBarProps = {
   onVoiceMock: () => void;
   subtitle: string;
   /** 保留兼容：地图模式文案略不同 */
-  variant?: "default" | "map";
+  variant?: "default" | "map" | "world";
   sendDisabled?: boolean;
   agentHintExtra?: string;
   boardBridgeAutoSync?: boolean;
@@ -30,7 +30,7 @@ export function BottomCommandBar({
   boardBridgeAutoSync = false,
   theaterVoiceOnly = false,
 }: BottomCommandBarProps) {
-  const isMap = variant === "map";
+  const isMap = variant === "map" || variant === "world";
   if (theaterVoiceOnly) {
     return (
       <footer className="shrink-0 border-t border-forest/10 bg-white/85 px-3 py-2 shadow-[0_-8px_30px_rgba(0,0,0,0.06)] backdrop-blur-md md:px-4 md:py-2.5">
@@ -78,7 +78,9 @@ export function BottomCommandBar({
           onKeyDown={(e) => e.key === "Enter" && !sendDisabled && onSend()}
           disabled={sendDisabled}
           placeholder={
-            isMap
+            variant === "world"
+              ? "随机聊天，或问路：怎么去海螺湾"
+              : isMap
               ? "输入问路，例如：怎么去海螺湾"
               : boardBridgeAutoSync
                 ? "也可在此输入想说的话（会覆盖本轮语音文字）"

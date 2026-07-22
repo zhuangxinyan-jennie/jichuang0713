@@ -1,0 +1,11 @@
+{
+  "loaderMode": "unity2018",
+  "unityLoaderUrl": "/webgl-merged/Build/UnityLoader.js",
+  "unityProgressUrl": "/webgl-merged/TemplateData/UnityProgress.js",
+  "templateStyleUrl": "/webgl-merged/TemplateData/style.css",
+  "jsonManifest": "/webgl-merged/Build/ParkMapMerged.json",
+  "streamingAssetsUrl": "/webgl-merged/StreamingAssets",
+  "loaderStem": "ParkMapMerged",
+  "merged": true,
+  "dualBear": true
+}

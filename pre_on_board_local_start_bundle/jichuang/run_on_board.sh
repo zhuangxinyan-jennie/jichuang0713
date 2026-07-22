@@ -31,7 +31,14 @@ BOARD_LOCAL_CAMERA="${BOARD_LOCAL_CAMERA:-1}"
 # 1=把摄像头预览全屏显示到板子 HDMI/扩展屏；0=无窗口（仅推流到 PC）
 BOARD_LOCAL_DISPLAY="${BOARD_LOCAL_DISPLAY:-1}"
 AUDIO_DEVICE="${AUDIO_DEVICE:-0}"
+# 默认改吃 FPGA/LAN1；若要用 USB 设 VIDEO_SOURCE=0 或 VIDEO_DEVICE=0
+VIDEO_SOURCE="${VIDEO_SOURCE:-${VIDEO_DEVICE:-fpga}}"
 VIDEO_DEVICE="${VIDEO_DEVICE:-0}"
+FPGA_BIND_IP="${FPGA_BIND_IP:-192.168.1.100}"
+FPGA_UDP_PORT="${FPGA_UDP_PORT:-1234}"
+FPGA_IFACE="${FPGA_IFACE:-eth0}"
+FPGA_WIDTH="${FPGA_WIDTH:-1280}"
+FPGA_HEIGHT="${FPGA_HEIGHT:-720}"
 AUDIO_BACKEND="${AUDIO_BACKEND:-auto}"
 BOARD_RESULT_HOST="${BOARD_RESULT_HOST:-${BEAR_PC_HOST:-192.168.137.1}}"
 ASR_BACKEND="${ASR_BACKEND:-ctc_om}"
@@ -46,6 +53,7 @@ if [[ "${POSE_INPUT_MODE}" == "aipp" && -z "${POSE_OM}" ]]; then
   POSE_OM="${BOARD_ROOT}/models_om/yolo11n_pose_640_aipp.om"
 fi
 export ACTION_BACKEND DETECTOR_BACKEND ACTION_INFER_STRIDE POSE_INPUT_MODE POSE_OM
+export VIDEO_SOURCE FPGA_BIND_IP FPGA_UDP_PORT FPGA_IFACE FPGA_WIDTH FPGA_HEIGHT
 
 OM_DIR="${BOARD_ROOT}/asr_om"
 CTC_OM_FILE="ctc_stream_fp16_linux_aarch64.om"
@@ -68,7 +76,19 @@ if [[ "${ASR_BACKEND}" == "om" ]]; then
   done
 fi
 
-echo "[INFO] BOARD_LOCAL_MIC=${BOARD_LOCAL_MIC} BOARD_LOCAL_CAMERA=${BOARD_LOCAL_CAMERA} BOARD_LOCAL_DISPLAY=${BOARD_LOCAL_DISPLAY} ASR_BACKEND=${ASR_BACKEND} ACTION_BACKEND=${ACTION_BACKEND} POSE_INPUT_MODE=${POSE_INPUT_MODE} → ${BOARD_RESULT_HOST}:18082/18083"
+echo "[INFO] BOARD_LOCAL_MIC=${BOARD_LOCAL_MIC} BOARD_LOCAL_CAMERA=${BOARD_LOCAL_CAMERA} BOARD_LOCAL_DISPLAY=${BOARD_LOCAL_DISPLAY} VIDEO_SOURCE=${VIDEO_SOURCE} ASR_BACKEND=${ASR_BACKEND} ACTION_BACKEND=${ACTION_BACKEND} POSE_INPUT_MODE=${POSE_INPUT_MODE} → ${BOARD_RESULT_HOST}:18082/18083"
+
+# 视觉改吃 FPGA 时：停掉抢占 1234 的 PC 转发，并确保 LAN1 IP
+case "${VIDEO_SOURCE}" in
+  fpga|udp|lan1|fpga_udp|FPGA|UDP|LAN1)
+    echo "[INFO] FPGA/LAN1 mode: bind ${FPGA_BIND_IP}:${FPGA_UDP_PORT} on ${FPGA_IFACE}"
+    pkill -f "[f]pga_udp_forward_to_pc.py" >/dev/null 2>&1 || true
+    ip link set "${FPGA_IFACE}" up >/dev/null 2>&1 || true
+    if ! ip -4 addr show dev "${FPGA_IFACE}" 2>/dev/null | grep -q "${FPGA_BIND_IP}"; then
+      ip addr add "${FPGA_BIND_IP}/24" dev "${FPGA_IFACE}" >/dev/null 2>&1 || true
+    fi
+    ;;
+esac
 
 pkill -f "[r]un_board_runtime.py" >/dev/null 2>&1 || true
 pkill -f "[b]oard_audio_receiver.py" >/dev/null 2>&1 || true
@@ -97,8 +117,14 @@ else
   VIDEO_ARGS+=(--no-display)
 fi
 if [[ "${BOARD_LOCAL_CAMERA}" == "1" ]]; then
-  VIDEO_ARGS+=(--capture-local --camera-source "${VIDEO_DEVICE}" --result-host "${BOARD_RESULT_HOST}")
+  VIDEO_ARGS+=(--capture-local --camera-source "${VIDEO_SOURCE}" --result-host "${BOARD_RESULT_HOST}")
+  case "${VIDEO_SOURCE}" in
+    fpga|udp|lan1|fpga_udp|FPGA|UDP|LAN1)
+      VIDEO_ARGS+=(--fpga-bind "${FPGA_BIND_IP}" --fpga-port "${FPGA_UDP_PORT}" --fpga-iface "${FPGA_IFACE}" --fpga-width "${FPGA_WIDTH}" --fpga-height "${FPGA_HEIGHT}")
+      ;;
+  esac
   nohup env DISPLAY="${DISPLAY:-}" XAUTHORITY="${XAUTHORITY:-}" QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-xcb}" \
+    VIDEO_SOURCE="${VIDEO_SOURCE}" FPGA_BIND_IP="${FPGA_BIND_IP}" FPGA_UDP_PORT="${FPGA_UDP_PORT}" \
     "${PY_VIDEO}" board_deploy/run_board_runtime.py "${VIDEO_ARGS[@]}" \
     > "${OUTPUT_DIR}/board_video_runtime.log" 2>&1 &
   echo "${!}" > "${OUTPUT_DIR}/board_video.pid"

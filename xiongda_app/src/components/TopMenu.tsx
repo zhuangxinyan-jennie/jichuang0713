@@ -1,10 +1,9 @@
-import { MapPinned, MessageCircle, Sparkles, Theater } from "lucide-react";
+import { Globe2, Sparkles, Theater } from "lucide-react";
 import type { TopNavId } from "../types";
 
-const items: { id: TopNavId; label: string; icon: typeof MessageCircle }[] = [
-  { id: "voice", label: "语音聊天", icon: MessageCircle },
+const items: { id: TopNavId; label: string; icon: typeof Globe2 }[] = [
+  { id: "world", label: "全图互动", icon: Globe2 },
   { id: "story", label: "益智小剧场", icon: Theater },
-  { id: "map", label: "地图查询", icon: MapPinned },
   { id: "recommend", label: "项目推荐", icon: Sparkles },
 ];
 

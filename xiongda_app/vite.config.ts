@@ -9,7 +9,7 @@ import { defineConfig, loadEnv } from "vite";
 function webglMimePlugin(): Plugin {
   const patch = (_req: IncomingMessage, res: ServerResponse) => {
     const raw = _req.url?.split("?")[0] ?? "";
-    if (!raw.includes("/webgl/") && !raw.includes("/webgl-map/")) return;
+    if (!raw.includes("/webgl/") && !raw.includes("/webgl-map/") && !raw.includes("/webgl-merged/")) return;
     if (raw.endsWith(".unityweb") || raw.endsWith(".json")) {
       if (raw.endsWith(".json")) {
         res.setHeader("Content-Type", "application/json; charset=utf-8");

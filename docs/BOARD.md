@@ -110,6 +110,8 @@ export BOARD_LOCAL_MIC=1
 export BOARD_LOCAL_CAMERA=1
 export BOARD_LOCAL_DISPLAY=1           # 1=摄像头全屏显示到板子 HDMI 扩展屏；0=只推流不弹窗
 export BOARD_RESULT_HOST=192.168.137.1    # 改成你 PC 的 USB 网 IP
+export VIDEO_SOURCE=fpga                 # 默认：从 LAN1 收 FPGA UDP（192.168.1.100:1234）
+# 若临时改回 USB：export VIDEO_SOURCE=0
 export ASR_BACKEND=ctc_om
 export ACTION_BACKEND=stgcn
 # 可选：启用静态 AIPP pose（更快）。需已同步 yolo11n_pose_640_aipp.om
@@ -119,6 +121,7 @@ export ACTION_BACKEND=stgcn
 bash /home/HwHiAiUser/jichuang/run_on_board.sh
 ```
 
+**视频输入说明：** 默认 `VIDEO_SOURCE=fpga`，310B 在 LAN1（`eth0`）绑定 `192.168.1.100:1234` 接收 FPGA 推流；会自动停掉抢端口的 PC 预览转发器。USB 摄像头已非默认。
 **成功日志示例：**
 
 ```text

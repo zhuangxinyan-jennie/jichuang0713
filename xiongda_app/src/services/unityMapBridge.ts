@@ -1,4 +1,5 @@
 import type { UnityWebGLHandle } from "./unitySendClip";
+import { isMergedUnityAvailableSync, setMergedPlayMode } from "./unityMergedMode";
 
 const MAP_BRIDGE_OBJECT = "ParkMapUnityBridge";
 
@@ -39,8 +40,12 @@ export function isMapUnityFullyReady(): boolean {
 }
 
 function mapInstance(): UnityWebGLHandle | undefined {
-  const w = window as Window & { mapUnityInstance?: UnityWebGLHandle };
-  return cachedMapInstance ?? w.mapUnityInstance;
+  const w = window as Window & {
+    mapUnityInstance?: UnityWebGLHandle;
+    unityInstance?: UnityWebGLHandle;
+  };
+  // 合并包：导航与表演共用同一 WebGL 实例
+  return cachedMapInstance ?? w.mapUnityInstance ?? w.unityInstance;
 }
 
 function sendMapMessage(method: string, arg: string): void {
@@ -131,6 +136,9 @@ export function triggerMapNavigationFromPayload(payload: Record<string, unknown>
     typeof payload.destination === "string" ? payload.destination.trim() : "";
 
   scheduleMapNavigation(() => {
+    if (isMergedUnityAvailableSync()) {
+      setMergedPlayMode("map");
+    }
     if (pathWorld.length >= 2) {
       // 沿 Agent 下发的密集 path_world 逐点行走（沿路，非直线）
       sendNavigateAlongPath(pathWorld);

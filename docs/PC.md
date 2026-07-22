@@ -56,9 +56,29 @@ npm install
 
 ## 2. 日常启动
 
-### 方式 A：一键（推荐）
+### 方式 A：展会 / 答辩一键完整演示（推荐）
 
-双击 **`启动PC端完整流程.bat`**，或：
+双击仓库根目录 **`start-full-demo.bat`**（推荐），或 **`一键启动完整演示.bat`**，或：
+
+```powershell
+.\start-full-demo.ps1
+```
+
+会依次启动：
+
+1. Bear Agent（`:8765`）
+2. 云端 TTS（`:9890`，经 `BOARD_SPEAKER_URL` 播到板端 CS202）
+3. 板端：FPGA 视频 + 麦克风 ASR + `board_speaker_player`（`:9891`）
+4. `board_bridge`（`:18082` / `:18083`）
+5. 前端 Vite（`:5173`），并自动打开浏览器
+
+演示结束双击 **`停止完整演示.bat`**（或 `.\stop-full-demo.ps1`）。
+
+可选参数：`-NoBoard`、`-SkipTts`、`-ReuseExisting`、`-NoOpenBrowser`。
+
+### 方式 A2：仅 PC 开发栈
+
+双击 **`启动PC端完整流程.bat`**（若有），或：
 
 ```powershell
 .\start-pc-stack.ps1              # 含 TTS
@@ -139,6 +159,17 @@ python -m board_bridge.run_visitor_pipeline
 ### board_bridge 回合融合（语音 ↔ 手势）
 
 默认 `speech_novelty` 触发下，不再「整句一出立刻 POST」，而是按互动回合收束：
+
+**无人门控（默认开）：** 摄像头未检出游客（`person_detected=false`，或视觉 JSON 停更约 2.5s）时：
+
+- 麦克风即使识别出字，**也不送进 Agent**
+- 手势 / 表情 / 动作同样不投稿
+- 网页字幕与多模态输入保持空
+- 游客重新入画后，需重新说话/做手势才会触发
+
+关闭此门控（不推荐）：`$env:BEAR_BRIDGE_REQUIRE_PERSON="0"` 后重启 `board_bridge`。
+
+实现：`bear_agent/board_bridge/poll_loop.py` + `turn_fusion.py`。
 
 | 情况 | 行为 |
 |------|------|
@@ -274,6 +305,17 @@ Unity Hub 打开 `XiongdaParkMapProject/`。
 若 Console 报 `llvm-link.exe` / `il2cpp.exe did not run properly`：见 `XiongdaParkMapProject/README.md` 故障排查（虚拟内存、清理缓存、Development 构建）。
 
 产物目录：`xiongda_app/public/webgl-map/`（与熊大 `public/webgl/` **分开，不会互相覆盖**）。
+
+### 5.2.1 合并工程（可选 · 可回退）
+
+见 **[UNITY_MERGED.md](UNITY_MERGED.md)**：副本 `XiongdaParkMapMergedProject/`，产物 `public/webgl-merged/`。
+
+**双熊同场景**（推荐）：
+- `InteractiveXiongda`：语音互动（SMPL + 表情，`UnityBridge`）
+- `PlayableXiongda`：地图导览（Run + 导航，`ParkMapUnityBridge`）
+- 菜单 **合并工程：挂上 UnityBridge + 模式相机** 后构建
+
+原 `XiongdaUnityProject` / `XiongdaParkMapProject` **保持不动**；`public/webgl/` 已退役。无合并包时前端回退 `webgl` + `webgl-map` 双包。
 
 ### 5.3 2D 平面图 + 板端手势光标（默认，非 MediaPipe）
 

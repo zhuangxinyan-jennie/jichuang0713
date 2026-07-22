@@ -6,18 +6,25 @@ export type InteractionHudProps = {
   liveAsr: BoardAsrLiveFields | null;
   /** 本轮实际送进 Agent 的多模态（右上角） */
   lastSentPerception: PerceptionPayload | null;
+  /**
+   * 摄像头实时是否认出人（与无人门控同源）。
+   * `null`：尚未收到板端视觉；`true`/`false`：检测到人 / 未检测到人。
+   */
+  personDetected?: boolean | null;
   /** Agent 忙时轻微提示 */
   agentLoading?: boolean;
 };
 
 /**
  * 叠在熊大/地图视口上：
+ * - 左上角：摄像头是否检测到人（实时）
  * - 右上角：本轮送入 Agent 的多模态输入（不是实时帧）
  * - 底部：ASR 字幕（实时识别过程）
  */
 export function InteractionHud({
   liveAsr,
   lastSentPerception,
+  personDetected = null,
   agentLoading = false,
 }: InteractionHudProps) {
   const partial = (liveAsr?.asr_partial ?? "").trim();
@@ -30,8 +37,42 @@ export function InteractionHud({
   const handCn = labelHandGesture(lastSentPerception?.hand_gesture);
   const actionCn = labelBodyGesture(lastSentPerception?.gesture);
 
+  const personLabel =
+    personDetected === true ? "检测到人" : personDetected === false ? "未检测到人" : "等待摄像头…";
+  const personTone =
+    personDetected === true
+      ? "border-emerald-400/50 bg-emerald-950/70 text-emerald-100"
+      : personDetected === false
+        ? "border-rose-400/45 bg-rose-950/70 text-rose-100"
+        : "border-white/25 bg-black/55 text-white/80";
+
   return (
     <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden" aria-live="polite">
+      {/* 左上角：摄像头是否检测到人（实时，驱动无人门控） */}
+      <div className="absolute left-3 top-3 md:left-4 md:top-4">
+        <div
+          className={[
+            "flex items-center gap-2 rounded-xl border px-3 py-2 text-[11px] font-semibold shadow-lg backdrop-blur-md md:text-xs",
+            personTone,
+          ].join(" ")}
+          role="status"
+          aria-label={personLabel}
+        >
+          <span
+            className={[
+              "inline-block h-2 w-2 shrink-0 rounded-full",
+              personDetected === true
+                ? "bg-emerald-400"
+                : personDetected === false
+                  ? "bg-rose-400"
+                  : "bg-white/50",
+            ].join(" ")}
+            aria-hidden
+          />
+          <span>{personLabel}</span>
+        </div>
+      </div>
+
       {/* 右上角：本轮送入 Agent 的输入 */}
       <div className="absolute right-3 top-3 max-w-[min(88vw,17rem)] md:right-4 md:top-4">
         <div className="rounded-xl border border-white/25 bg-black/60 px-3 py-2.5 text-[11px] leading-relaxed text-white shadow-lg backdrop-blur-md md:text-xs">

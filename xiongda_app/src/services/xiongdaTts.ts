@@ -32,6 +32,7 @@ let currentPlaybackFinish: (() => void) | null = null;
 let playbackSession = 0;
 
 function notifyPlaybackActuallyStarted(): void {
+  // 保留给流式/浏览器播放路径；服务端播音请用 await notifyPlaybackStart()，避免与 done 竞态。
   void import("../bear_pipeline/handleBearAgentPayload")
     .then((m) => m.notifyPlaybackStart())
     .catch(() => {
@@ -232,6 +233,13 @@ async function playServerSideTts(
 
   const body = { text, ...ttsDeviceBody() };
   probe?.mark("server_play_fetch_start");
+  // 必须先 await start，再播，再由外层 await done。
+  // 若 start 不 await，可能在 done 之后才到达服务端，把闸门重新锁死 → 之后麦克风全被清空。
+  try {
+    await import("../bear_pipeline/handleBearAgentPayload").then((m) => m.notifyPlaybackStart());
+  } catch {
+    /* ignore */
+  }
   try {
     const res = await fetch(`${ttsBaseUrl()}/api/tts-play`, {
       method: "POST",
@@ -248,7 +256,6 @@ async function playServerSideTts(
       audio_seconds: result.audio_seconds,
       first_chunk_seconds: result.first_chunk_seconds,
     });
-    notifyPlaybackActuallyStarted();
     return "ended";
   } catch (e) {
     if (controller.signal.aborted) return "unsupported";
@@ -567,11 +574,25 @@ export function announceBearSpeech(text: string, onEnded?: () => void): void {
           if (currentPlaybackFinish === onEnded) {
             currentPlaybackFinish = null;
           }
+          // 先 await done，避免只 fire-and-forget 导致闸门未释放。
+          try {
+            const { postMultimodalPlaybackDone } = await import("../bear_pipeline/bearAgentClient");
+            await postMultimodalPlaybackDone();
+          } catch {
+            /* ignore */
+          }
           onEnded?.();
           probe?.finish("server_play_ended");
           return;
         }
         probe?.mark("server_play_fallback", { reason: serverResult });
+        // 服务端播放失败时也要松开闸门，否则麦克风会被一直清空。
+        try {
+          const { postMultimodalForceIdle } = await import("../bear_pipeline/bearAgentClient");
+          await postMultimodalForceIdle();
+        } catch {
+          /* ignore */
+        }
       }
 
       const streamResult = await playStreamingTts(t, session, controller, probe);

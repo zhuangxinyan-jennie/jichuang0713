@@ -45,6 +45,8 @@ class MultimodalTurnGate:
         self._busy = False
         self._asr_clear_token = 0
         self._watchdog: threading.Timer | None = None
+        # playback-done 之后进入排空；此期间忽略迟到的 playback-start，避免闸门被重新锁死。
+        self._draining = False
 
     def _next_asr_clear_token_locked(self) -> None:
         self._asr_clear_token += 1
@@ -75,6 +77,7 @@ class MultimodalTurnGate:
 
     def _release_idle_locked(self) -> None:
         self._busy = False
+        self._draining = False
         self._cv.notify_all()
 
     def _arm_playback_drain(self) -> None:
@@ -104,10 +107,14 @@ class MultimodalTurnGate:
             while self._busy:
                 self._cv.wait(timeout=1.0)
             self._busy = True
+            self._draining = False
 
     def release_after_inference(self, result: Any) -> None:
         """推理结束：若仍需等待前端播完，则保持 busy；否则释放。"""
         if agent_output_expects_playback_wait(result):
+            with self._cv:
+                self._draining = False
+                self._busy = True
             self._arm_playback_watchdog()
             return
         self._cancel_watchdog()
@@ -119,14 +126,20 @@ class MultimodalTurnGate:
         with self._cv:
             self._next_asr_clear_token_locked()
             self._busy = True
+            self._draining = True
             self._cv.notify_all()
         self._arm_playback_drain()
 
     def mark_playback_started(self) -> None:
         """前端开始播放熊大语音时调用：暂停 board_bridge 采纳麦克风 ASR。"""
         with self._cv:
+            # 关键：start 请求若未 await，可能在 playback-done 之后才到达。
+            # 排空阶段若再 mark_started，会把闸门重新锁住约 90s，表现为“只有第一句能识别”。
+            if self._draining:
+                return
             self._next_asr_clear_token_locked()
             self._busy = True
+            self._draining = False
             self._cv.notify_all()
         self._arm_playback_watchdog()
 
@@ -144,7 +157,7 @@ class MultimodalTurnGate:
     def status(self) -> dict[str, int | bool]:
         """供 board_bridge 轮询：busy 控制静音；token 控制清空本地 ASR 缓存。"""
         with self._cv:
-            return {"busy": self._busy, "asr_clear_token": self._asr_clear_token}
+            return {"busy": self._busy, "asr_clear_token": self._asr_clear_token, "draining": self._draining}
 
 
 BOARD_BRIDGE_CALLER = "board-bridge"
