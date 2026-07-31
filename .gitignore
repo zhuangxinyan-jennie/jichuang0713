@@ -25,6 +25,7 @@ venv/
 env/
 __pycache__/
 gesture_cursor_project/python/__pycache__/
+experiments/gesture_cursor_project/python/__pycache__/
 *.py[cod]
 .pytest_cache/
 .mypy_cache/
@@ -58,10 +59,13 @@ pre_on_board_local_start_bundle/pc_received_output/
 
 # HGBO: 昇腾 CANN 安装包请放本地 packages/，勿提交 GitHub
 HGBO/packages/*.run
+research/HGBO/packages/*.run
 
 # HGBO-DSE: 图数据集 pt 可本地用 hgp/data_process/gen_dataset_std.py 重新生成
 HGBO-DSE-main/dataset/std/
 HGBO-DSE-main/dataset/rdc/
+research/HGBO-DSE-main/dataset/std/
+research/HGBO-DSE-main/dataset/rdc/
 
 # Large ML assets — 用 deploy 脚本在板端下载/编译，勿提交 GitHub
 pretrained_models/
@@ -74,43 +78,47 @@ board_on_device/
 
 # Reference/download folders that can be recreated from scripts
 cozy_ref/
+archive/cozy_ref/
+archive/bundles/
+archive/tts-local/CosyVoice/
+archive/tts-local/CosyVoice2-0.5B/
 third_party/CosyVoice/
 
 # Generated Unity outputs and local Unity caches
-XiongdaUnityProject/Library/
-XiongdaUnityProject/Temp/
-XiongdaUnityProject/Obj/
-XiongdaUnityProject/obj/
-XiongdaUnityProject/Build/
-XiongdaUnityProject/Builds/
-XiongdaUnityProject/Logs/
-XiongdaUnityProject/UserSettings/
-XiongdaUnityProject/WEB/
-XiongdaUnityProject/.vs/
-XiongdaUnityProject/*.csproj
-XiongdaUnityProject/*.sln
-XiongdaUnityProject/PackagesToImport/
-XiongdaUnityProject/background/
-XiongdaUnityProject/xiongda_app/
+unity/XiongdaUnityProject/Library/
+unity/XiongdaUnityProject/Temp/
+unity/XiongdaUnityProject/Obj/
+unity/XiongdaUnityProject/obj/
+unity/XiongdaUnityProject/Build/
+unity/XiongdaUnityProject/Builds/
+unity/XiongdaUnityProject/Logs/
+unity/XiongdaUnityProject/UserSettings/
+unity/XiongdaUnityProject/WEB/
+unity/XiongdaUnityProject/.vs/
+unity/XiongdaUnityProject/*.csproj
+unity/XiongdaUnityProject/*.sln
+unity/XiongdaUnityProject/PackagesToImport/
+unity/XiongdaUnityProject/background/
+unity/XiongdaUnityProject/xiongda_app/
 xiongda_app/public/webgl/Build/
 xiongda_app/public/webgl/StreamingAssets/
 # 地图 WebGL 二进制走 Git LFS（见 .gitattributes）；若未装 LFS 可本地 Unity 构建
 # xiongda_app/public/webgl-map/Build/
 
 # 乐园地图 Unity 工程（与 XiongdaUnityProject 同样忽略本地缓存）
-XiongdaParkMapProject/Library/
-XiongdaParkMapProject/Temp/
-XiongdaParkMapProject/Obj/
-XiongdaParkMapProject/Build/
-XiongdaParkMapProject/Builds/
-XiongdaParkMapProject/Logs/
-XiongdaParkMapProject/UserSettings/
-XiongdaParkMapProject/.vs/
-XiongdaParkMapProject/*.csproj
-XiongdaParkMapProject/*.sln
+unity/XiongdaParkMapProject/Library/
+unity/XiongdaParkMapProject/Temp/
+unity/XiongdaParkMapProject/Obj/
+unity/XiongdaParkMapProject/Build/
+unity/XiongdaParkMapProject/Builds/
+unity/XiongdaParkMapProject/Logs/
+unity/XiongdaParkMapProject/UserSettings/
+unity/XiongdaParkMapProject/.vs/
+unity/XiongdaParkMapProject/*.csproj
+unity/XiongdaParkMapProject/*.sln
 
 # 合并 Unity 工程（体积大，本地 setup_merged_unity_project.ps1 生成；脚本在 scripts/unity_merged_overlay/）
-XiongdaParkMapMergedProject/
+unity/XiongdaParkMapMergedProject/
 
 # 合并 WebGL 产物（本地 Unity 构建；仓库只保留 build-info.json / 说明）
 xiongda_app/public/webgl-merged/Build/
@@ -126,18 +134,20 @@ docs/ppt_slides/
 pc_received_output/
 
 # 本地导入的 Unity 模型资源（体积大，勿提交）
-XiongdaUnityProject/Assets/XiongdaImported/xiongda_base_default/xiongda0722/
-XiongdaUnityProject/Assets/XiongdaImported/xiongda_base_default/xionger0722/
-XiongdaUnityProject/Assets/XiongdaImported/xiongda_base_default/xiongda0722.meta
-XiongdaUnityProject/Assets/XiongdaImported/xiongda_base_default/xionger0722.meta
+unity/XiongdaUnityProject/Assets/XiongdaImported/xiongda_base_default/xiongda0722/
+unity/XiongdaUnityProject/Assets/XiongdaImported/xiongda_base_default/xionger0722/
+unity/XiongdaUnityProject/Assets/XiongdaImported/xiongda_base_default/xiongda0722.meta
+unity/XiongdaUnityProject/Assets/XiongdaImported/xiongda_base_default/xionger0722.meta
 
 # CosyVoice local virtual environment
 third_party/CosyVoice/.venv*/
 
 # UniApp / HBuilder local build output
 phone_guide_app/unpackage/
+experiments/phone_guide_app/unpackage/
 exports_for_teammate/
+archive/exports_for_teammate/
 
 # ��԰��ͼ Unity ���������������Լ2GB+�����ݲ���⣻����������
-XiongdaParkMapProject/
+unity/XiongdaParkMapProject/
 

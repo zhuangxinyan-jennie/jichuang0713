@@ -17,23 +17,29 @@ namespace SmartParkTerminal
         [SerializeField] private ParkMapBearController bearController;
         [SerializeField] private float arriveThreshold = 0.85f;
         [SerializeField] private float groundY = 0.22f;
-        [SerializeField] private float stuckSkipSeconds = 1.2f;
-        [SerializeField] private float stuckMinProgress = 0.08f;
+        [SerializeField] private float stuckSkipSeconds = 0.85f;
+        [SerializeField] private int stuckBlockedFrames = 12;
+        [SerializeField] private float snapSearchRadius = 6f;
 
         private readonly List<Vector3> waypoints = new List<Vector3>();
         private int waypointIndex;
         private bool navigating;
         private Coroutine registryCoroutine;
-        private Vector3 lastProgressPos;
         private float stuckTimer;
+        private int consecutiveBlockedFrames;
+        private string destinationLabel = string.Empty;
+        private CharacterController characterController;
+        private Vector3 navigationDestination;
 
         public bool IsNavigating
         {
             get { return navigating; }
         }
 
-        /// <summary>到达目的地时触发（供 MergedPlayModeBridge 切回互动熊）。</summary>
-        public event Action NavigationFinished;
+        public Vector3 LastArrivalPosition { get; private set; }
+
+        /// <summary>到达目的地时触发（供 MergedPlayModeBridge 切回互动熊）。参数为最终世界坐标。</summary>
+        public event Action<Vector3> NavigationFinished;
 
         private void Awake()
         {
@@ -41,6 +47,13 @@ namespace SmartParkTerminal
             {
                 bearController = GetComponent<ParkMapBearController>();
             }
+
+            characterController = GetComponent<CharacterController>();
+        }
+
+        public void SetDestinationLabel(string label)
+        {
+            destinationLabel = (label ?? string.Empty).Trim();
         }
 
         private void Update()
@@ -51,8 +64,8 @@ namespace SmartParkTerminal
             }
 
             Vector3 pos = transform.position;
-            Vector3 target = waypoints[waypointIndex];
-            target.y = groundY;
+            Vector3 target = SanitizeWaypoint(waypoints[waypointIndex]);
+            waypoints[waypointIndex] = target;
 
             Vector3 to = target - pos;
             to.y = 0f;
@@ -60,48 +73,47 @@ namespace SmartParkTerminal
 
             if (dist <= arriveThreshold)
             {
-                waypointIndex++;
-                if (waypointIndex >= waypoints.Count)
-                {
-                    FinishNavigation();
-                    return;
-                }
-
+                AdvanceWaypoint();
                 return;
             }
 
             Vector3 dir = to.normalized;
-            bearController.StepAutoMove(dir);
-            UpdateStuckRecovery(pos, dist);
+            bool moved = bearController.StepAutoMove(dir);
+            if (moved)
+            {
+                consecutiveBlockedFrames = 0;
+                stuckTimer = 0f;
+            }
+            else
+            {
+                consecutiveBlockedFrames++;
+                stuckTimer += Time.deltaTime;
+                if (consecutiveBlockedFrames >= stuckBlockedFrames || stuckTimer >= stuckSkipSeconds)
+                {
+                    HandleStuck(dist);
+                }
+            }
         }
 
-        private void UpdateStuckRecovery(Vector3 pos, float distToTarget)
+        private void AdvanceWaypoint()
         {
-            Vector3 flatDelta = pos - lastProgressPos;
-            flatDelta.y = 0f;
-            if (flatDelta.magnitude >= stuckMinProgress)
-            {
-                lastProgressPos = pos;
-                stuckTimer = 0f;
-                return;
-            }
-
-            stuckTimer += Time.deltaTime;
-            if (stuckTimer < stuckSkipSeconds)
-            {
-                return;
-            }
-
+            waypointIndex++;
+            consecutiveBlockedFrames = 0;
             stuckTimer = 0f;
-            lastProgressPos = pos;
+            if (waypointIndex >= waypoints.Count)
+            {
+                FinishNavigation();
+            }
+        }
+
+        private void HandleStuck(float distToTarget)
+        {
+            consecutiveBlockedFrames = 0;
+            stuckTimer = 0f;
+
             if (distToTarget <= arriveThreshold * 2.5f)
             {
-                waypointIndex++;
-                if (waypointIndex >= waypoints.Count)
-                {
-                    FinishNavigation();
-                }
-
+                AdvanceWaypoint();
                 return;
             }
 
@@ -135,6 +147,7 @@ namespace SmartParkTerminal
                 return;
             }
 
+            SetDestinationLabel(placeName.Trim());
             CancelNavigationInternal(false);
             if (registryCoroutine != null)
             {
@@ -152,13 +165,25 @@ namespace SmartParkTerminal
         private void BeginNavigation(List<Vector3> points)
         {
             waypoints.Clear();
+            Vector3? last = null;
             for (int i = 0; i < points.Count; i++)
             {
-                Vector3 p = points[i];
-                p.y = groundY;
+                Vector3 p = SanitizeWaypoint(points[i]);
+                if (last.HasValue && (p - last.Value).sqrMagnitude < 0.04f)
+                {
+                    continue;
+                }
+
                 waypoints.Add(p);
+                last = p;
             }
 
+            if (waypoints.Count == 0)
+            {
+                return;
+            }
+
+            navigationDestination = waypoints[waypoints.Count - 1];
             waypointIndex = 0;
             SkipReachedWaypoints();
 
@@ -169,13 +194,32 @@ namespace SmartParkTerminal
 
             navigating = true;
             stuckTimer = 0f;
-            lastProgressPos = transform.position;
+            consecutiveBlockedFrames = 0;
             if (bearController != null)
             {
+                bearController.Configure(5.8f, 420f, groundY, 1.15f, 0.23f, 0.18f, 0.04f);
                 bearController.ManualControlEnabled = false;
             }
 
-            Debug.Log("[ParkMapAutoNavigator] 开始导航，路径点 " + waypoints.Count + " 个");
+            Debug.Log("[ParkMapAutoNavigator] 开始导航，路径点 " + waypoints.Count +
+                      "，终点 " + navigationDestination);
+        }
+
+        private Vector3 SanitizeWaypoint(Vector3 point)
+        {
+            Vector3 p = point;
+            p.y = groundY;
+            ParkMapWalkability walkability = ParkMapWalkability.Instance;
+            if (walkability != null)
+            {
+                if (!walkability.TrySnapToRoadCorridor(ref p, snapSearchRadius))
+                {
+                    walkability.TrySnapToWalkable(ref p, snapSearchRadius);
+                }
+            }
+
+            p.y = groundY;
+            return p;
         }
 
         private void SkipReachedWaypoints()
@@ -203,14 +247,82 @@ namespace SmartParkTerminal
             navigating = false;
             waypoints.Clear();
             waypointIndex = 0;
+            consecutiveBlockedFrames = 0;
+            stuckTimer = 0f;
+
+            // 以路径终点为准，避免卡在起点或 snap 回城堡附近
+            Vector3 pos = navigationDestination;
+            if (pos.sqrMagnitude < 0.0001f)
+            {
+                pos = transform.position;
+            }
+
+            pos.y = groundY;
+            ParkMapWalkability walkability = ParkMapWalkability.Instance;
+            if (walkability != null)
+            {
+                if (!walkability.TrySnapToRoadCorridor(ref pos, snapSearchRadius * 2f))
+                {
+                    walkability.TrySnapToWalkable(ref pos, snapSearchRadius * 2f);
+                }
+            }
+
+            pos.y = groundY;
+            LastArrivalPosition = pos;
+            ApplyPosition(pos);
+
             if (bearController != null)
             {
                 bearController.StopAutoMove();
                 bearController.ManualControlEnabled = true;
             }
 
-            Debug.Log("[ParkMapAutoNavigator] 已到达目的地");
-            NavigationFinished?.Invoke();
+            Debug.Log("[ParkMapAutoNavigator] 已到达目的地 " + pos + "（label=" + destinationLabel + "）");
+            // 保持导览熊画面；切互动熊由前端在路线 TTS 播完后 ConfirmNavigationArrival
+            NavigationFinished?.Invoke(pos);
+            NotifyWebArrival(pos);
+        }
+
+        private void ApplyPosition(Vector3 pos)
+        {
+            if (characterController == null)
+            {
+                characterController = GetComponent<CharacterController>();
+            }
+
+            if (characterController != null)
+            {
+                characterController.enabled = false;
+                transform.position = pos;
+                characterController.enabled = true;
+            }
+            else
+            {
+                transform.position = pos;
+            }
+        }
+
+        private void NotifyWebArrival(Vector3 pos)
+        {
+            string dest = EscapeJson(destinationLabel);
+            string payload = string.Format(
+                CultureInfo.InvariantCulture,
+                "{{\"x\":{0:F3},\"y\":{1:F3},\"z\":{2:F3},\"destination\":\"{3}\"}}",
+                pos.x,
+                pos.y,
+                pos.z,
+                dest);
+            ParkMapNavWebCallback.NotifyArrived(payload);
+        }
+
+        private static string EscapeJson(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return string.Empty;
+            }
+
+            return value.Replace("\\", "\\\\").Replace("\"", "\\\"");
         }
 
         private void CancelNavigationInternal(bool reenableManual)
@@ -224,6 +336,8 @@ namespace SmartParkTerminal
             navigating = false;
             waypoints.Clear();
             waypointIndex = 0;
+            consecutiveBlockedFrames = 0;
+            stuckTimer = 0f;
             if (bearController != null)
             {
                 bearController.StopAutoMove();

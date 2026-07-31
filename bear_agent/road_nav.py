@@ -263,8 +263,28 @@ def expand_path_world(
         if w:
             poi_worlds.append(w)
 
+    if len(poi_path) == 1:
+        name = poi_path[0]
+        w = get_place_world(registry, name)
+        if not w:
+            return []
+        if graph is None:
+            graph_path = _default_graph_path()
+            if os.path.isfile(graph_path):
+                graph = load_road_nav_graph(graph_path)
+        anchor_name = POI_ROAD_ANCHORS.get(name)
+        if graph and anchor_name and anchor_name in (graph.get("nodes") or {}):
+            aw = graph["nodes"][anchor_name]
+            return [{"x": aw["x"], "y": ground_y, "z": aw["z"]}]
+        if graph:
+            node_key = nearest_road_node(graph, w, poi_name=name)
+            if node_key and node_key in (graph.get("nodes") or {}):
+                nw = graph["nodes"][node_key]
+                return [{"x": nw["x"], "y": ground_y, "z": nw["z"]}]
+        return [{**w, "y": ground_y}]
+
     if len(poi_worlds) <= 1:
-        return poi_worlds
+        return [{**w, "y": ground_y} for w in poi_worlds]
 
     if graph is None:
         graph_path = _default_graph_path()
@@ -304,29 +324,39 @@ def expand_path_world(
         else:
             dense = fallback_dense
 
-    # 最后一段：沿路网走到 POI 锚点，再短距离到门口（禁止抄近路穿建筑/湖面）
+    # 终点停在道路锚点，不延伸到 POI 建筑 world（避免熊大跑进建筑碰撞体）
     dest_name = poi_path[-1]
-    dest = {**poi_worlds[-1], "y": ground_y}
-    if dense:
+    anchor_name = POI_ROAD_ANCHORS.get(dest_name)
+    anchor_world = None
+    if anchor_name and graph.get("nodes", {}).get(anchor_name):
+        anchor_world = graph["nodes"][anchor_name]
+
+    if dense and anchor_world:
         last_road = dense[-1]
-        anchor_name = POI_ROAD_ANCHORS.get(dest_name)
-        if anchor_name and graph.get("nodes", {}).get(anchor_name):
-            anchor_world = graph["nodes"][anchor_name]
-            start_node = nearest_road_node(graph, last_road, poi_name=None)
-            if start_node and start_node != anchor_name:
-                tail_nodes = _shortest_node_path(graph, start_node, anchor_name)
-                if tail_nodes and len(tail_nodes) >= 2:
-                    tail_dense = _densify_node_path(graph, tail_nodes, step_m=step_m, ground_y=ground_y)
-                    if tail_dense:
-                        dense.extend(tail_dense[1:])
-                        last_road = dense[-1]
-        if _dist2d(last_road, dest) > 0.45:
-            tail = _densify_world_segment(last_road, dest, step_m=step_m, ground_y=ground_y)
-            if tail:
-                dense.extend(tail[1:])
-        else:
-            dense[-1] = dest
+        start_node = nearest_road_node(graph, last_road, poi_name=None)
+        if start_node and start_node != anchor_name:
+            tail_nodes = _shortest_node_path(graph, start_node, anchor_name)
+            if tail_nodes and len(tail_nodes) >= 2:
+                tail_dense = _densify_node_path(graph, tail_nodes, step_m=step_m, ground_y=ground_y)
+                if tail_dense:
+                    dense.extend(tail_dense[1:])
+        dense[-1] = {
+            "x": round(float(anchor_world["x"]), 3),
+            "y": ground_y,
+            "z": round(float(anchor_world["z"]), 3),
+        }
+    elif dense:
+        # 保留最后一个路网插值点，不追加到建筑 POI
+        dense[-1]["y"] = ground_y
+    elif anchor_world:
+        dense = [
+            {
+                "x": round(float(anchor_world["x"]), 3),
+                "y": ground_y,
+                "z": round(float(anchor_world["z"]), 3),
+            }
+        ]
     elif poi_worlds:
-        dense.append(dest)
+        dense = [{**poi_worlds[-1], "y": ground_y}]
 
     return _dedupe_points(dense)

@@ -11,6 +11,7 @@ from config import MEMORY_CONFIG, ACTION_LIST, EMOTION_LIST
 from game_state import GameStateController
 from map_guide import MapGuide
 from weather_guide import WeatherGuide
+from greeting_guide import is_greeting_speech, greeting_response
 
 
 class BearAgent:
@@ -74,6 +75,11 @@ class BearAgent:
         if WeatherGuide.is_weather_question(str(speech_text or "")):
             response = self.weather_guide.answer(str(speech_text))
             print(f"[BearAgent] 天气查询输出: {json.dumps(response, ensure_ascii=False, indent=2)}")
+            return response
+
+        if is_greeting_speech(str(speech_text or "")):
+            response = greeting_response(str(speech_text))
+            print(f"[BearAgent] 问候输出: {json.dumps(response, ensure_ascii=False, indent=2)}")
             return response
 
         # 1. 感知融合

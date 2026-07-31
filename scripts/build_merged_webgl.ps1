@@ -6,8 +6,8 @@
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$projectPath = Join-Path $repoRoot "XiongdaParkMapMergedProject"
-$logFile = Join-Path $repoRoot "XiongdaParkMapMergedProject\Logs\build_merged_webgl.log"
+$projectPath = Join-Path $repoRoot "unity\XiongdaParkMapMergedProject"
+$logFile = Join-Path $repoRoot "unity\XiongdaParkMapMergedProject\Logs\build_merged_webgl.log"
 $outDir = Join-Path $repoRoot "xiongda_app\public\webgl-merged"
 
 if (-not (Test-Path $projectPath)) {

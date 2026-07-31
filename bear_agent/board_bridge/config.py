@@ -55,6 +55,8 @@ class BridgeRuntimeConfig:
     distance_coach_enabled: bool = False
     # 偏左/偏右站位提示；默认关，确认 lateral_zone 正常后再开
     position_coach_enabled: bool = False
+    # 无人（摄像头未检出游客）时：不把语音/手势等送进 Agent，字幕也保持空
+    require_person_for_multimodal: bool = True
 
     @property
     def use_fingerprint_trigger(self) -> bool:
@@ -82,4 +84,6 @@ def load_bridge_runtime_config() -> BridgeRuntimeConfig:
         latency_log_file=env_str("BEAR_LATENCY_LOG_FILE", ""),
         distance_coach_enabled=env_bool("BEAR_DISTANCE_COACH", False),
         position_coach_enabled=env_bool("BEAR_POSITION_COACH", False),
+        # 默认开：无人不进 Agent。若要旧行为：BEAR_BRIDGE_REQUIRE_PERSON=0
+        require_person_for_multimodal=env_bool("BEAR_BRIDGE_REQUIRE_PERSON", True),
     )

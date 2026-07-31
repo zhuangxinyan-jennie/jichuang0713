@@ -5,6 +5,12 @@ import { sendClipById, sendSmplStreamingRelativePath } from "../services/unitySe
 export const DEFAULT_CLIP_STEP_MS = 4000;
 export const DEFAULT_SMPL_STEP_MS = 3500;
 
+/** 互动熊待机 SMPL（循环呼吸等小幅动作） */
+export const STAND_SMPL_PATH = "SmplhRetarget/stand.json";
+
+/** 叉腰昂首.json：105 帧 @ 30fps */
+export const CHAYAO_ANGSHOU_DURATION_MS = Math.ceil((105 / 30) * 1000);
+
 let runId = 0;
 
 function nextRun(): number {
@@ -56,6 +62,29 @@ export function playSmplPathSequence(
       ctx.setCurrentSmplPath(p);
     }, i * stepMs);
   });
+}
+
+/**
+ * 播放一次动作 JSON，结束后切回 stand 待机（讲解/TTS 可继续，口型不受影响）。
+ */
+export function playSmplActionThenStand(
+  actionRelativePath: string,
+  ctx: AgentContext,
+  actionDurationMs: number = CHAYAO_ANGSHOU_DURATION_MS,
+  standPath: string = STAND_SMPL_PATH
+): void {
+  const gen = nextRun();
+  const action = actionRelativePath.trim();
+  if (!action) return;
+
+  sendSmplStreamingRelativePath(action);
+  ctx.setCurrentSmplPath(action);
+
+  window.setTimeout(() => {
+    if (isStale(gen)) return;
+    sendSmplStreamingRelativePath(standPath);
+    ctx.setCurrentSmplPath(standPath);
+  }, actionDurationMs);
 }
 
 /** 新一轮 Agent 输出开始时调用，取消尚未触发的队列回调 */

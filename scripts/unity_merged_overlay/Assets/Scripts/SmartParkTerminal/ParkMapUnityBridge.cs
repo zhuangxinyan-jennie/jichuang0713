@@ -27,7 +27,8 @@ namespace SmartParkTerminal
         {
             if (bearController == null)
             {
-                var guide = GameObject.Find(MergedPlayModeBridge.GuideBearObjectName);
+                Transform guide = MergedPlayModeBridge.FindSceneTransformByName(
+                    MergedPlayModeBridge.GuideBearObjectName);
                 if (guide != null)
                 {
                     bearController = guide.GetComponent<ParkMapBearController>();
@@ -36,7 +37,7 @@ namespace SmartParkTerminal
 
             if (bearController == null)
             {
-                bearController = FindObjectOfType<ParkMapBearController>();
+                bearController = MergedPlayModeBridge.FindSceneGuideBearController();
             }
 
             if (autoNavigator == null && bearController != null)
@@ -84,6 +85,16 @@ namespace SmartParkTerminal
             if (autoNavigator != null)
             {
                 autoNavigator.CancelNavigation();
+            }
+        }
+
+        /// <summary>WebGL：设置本次导航目的地中文名（到达后回传 Agent）。</summary>
+        public void SetNavigationDestination(string placeName)
+        {
+            EnsureReferences();
+            if (autoNavigator != null)
+            {
+                autoNavigator.SetDestinationLabel(placeName);
             }
         }
 

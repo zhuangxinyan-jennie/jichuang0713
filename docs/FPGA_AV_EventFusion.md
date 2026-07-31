@@ -79,8 +79,8 @@
 | PC 桥接 | `bear_agent/board_bridge/` |
 | Agent 服务 | `bear_agent/integration_test/server.py` |
 | 前端 | `xiongda_app/` |
-| Unity 熊大 | `XiongdaUnityProject/` |
-| Unity 地图 | `XiongdaParkMapProject/` |
+| Unity 熊大 | `unity/XiongdaUnityProject/` |
+| Unity 地图 | `unity/XiongdaParkMapProject/` |
 
 ### 2.3 FPGA 现状
 

@@ -93,7 +93,7 @@ export function MapUnityEmbed({ blockGamePointer = false, onSelect2DPlace }: Map
           >
             <p className="text-lg font-extrabold tracking-wide text-emerald-100">3D 乐园地图窗口</p>
             <p className="max-w-lg text-sm leading-relaxed text-emerald-100/80">
-              请用 Unity 打开 <code className="rounded bg-black/50 px-1">XiongdaParkMapProject</code>，
+              请用 Unity 打开 <code className="rounded bg-black/50 px-1">unity/XiongdaParkMapProject</code>，
               菜单 <strong>Tools → 狗熊岭智慧终端 → 构建地图 WebGL 到 xiongda_app</strong>，
               或手动 Build 后运行 <code className="rounded bg-black/50 px-1">copy-webgl-map-from-unity.ps1</code>。
               然后重启 <code className="rounded bg-black/50 px-1">npm run dev</code>。

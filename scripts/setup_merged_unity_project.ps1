@@ -15,9 +15,10 @@ $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 # scripts/ → repo root
 $Root = Split-Path -Parent $Root
-$Park = Join-Path $Root "XiongdaParkMapProject"
-$Bear = Join-Path $Root "XiongdaUnityProject"
-$Merged = Join-Path $Root "XiongdaParkMapMergedProject"
+$UnityRoot = Join-Path $Root "unity"
+$Park = Join-Path $UnityRoot "XiongdaParkMapProject"
+$Bear = Join-Path $UnityRoot "XiongdaUnityProject"
+$Merged = Join-Path $UnityRoot "XiongdaParkMapMergedProject"
 
 if (-not (Test-Path -LiteralPath $Park)) { throw "Missing $Park" }
 if (-not (Test-Path -LiteralPath $Bear)) { throw "Missing $Bear" }
@@ -101,6 +102,9 @@ if (Test-Path (Join-Path $Bear "Assets\StreamingAssets\SmplhRetarget.meta")) {
 
 Write-Host "[3.2/4] Copy interactive bear model (xiongda.fbx + face rig) ..." -ForegroundColor Yellow
 Copy-BearItem "Assets\XiongdaImported\xiongda_base_default\xiongda_maybe_final_new"
+
+Write-Host "[3.25/4] Copy guide bear prefab (Legacy Run 熊大) ..." -ForegroundColor Yellow
+Copy-BearItem "Assets\XiongdaImported\xiongda_base_default\Prefabs"
 
 # Editor helpers from bear if useful
 if (Test-Path (Join-Path $Bear "Assets\Editor\SmplhCalibrationHelper.cs")) {

@@ -12,6 +12,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from board_bridge.speech_pick import PLAY_VOICE_TRIGGERS, compact_cn
+
 # 互动舒适区（米）
 SWEET_MIN_M = 0.4
 SWEET_MAX_M = 1.5
@@ -40,10 +42,14 @@ _WAKE_MARKERS = (
 
 
 def speech_has_wake_intent(speech: str | None) -> bool:
+    """口令/称呼，或含问路·切模式词（与 speech_pick.PLAY_VOICE_TRIGGERS 对齐）。"""
     text = (speech or "").strip()
     if not text:
         return False
-    return any(m in text for m in _WAKE_MARKERS)
+    if any(m in text for m in _WAKE_MARKERS):
+        return True
+    compact = compact_cn(text)
+    return bool(compact) and any(t in compact for t in PLAY_VOICE_TRIGGERS)
 
 
 def comfort_zone_status(distance_m: float | None) -> str:

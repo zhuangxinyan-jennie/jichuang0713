@@ -28,12 +28,29 @@ class WeatherGuideTests(unittest.TestCase):
             "temp_c": 22,
             "feels_like_c": 22,
             "wind_dir": "北风",
-            "tip": "带伞。",
+            "play_recommendation": WeatherGuide._build_play_recommendation("小雨", 22, None),
+            "tip": WeatherGuide._build_play_recommendation("小雨", 22, None)["summary"],
             "indoor_picks": ["海螺湾"],
         }
         speech = guide._speech_from_snapshot(snap, "今天天气怎么样")
         self.assertIn("小雨", speech)
         self.assertIn("22", speech)
+        self.assertIn("室内", speech)
+
+    def test_answer_actions(self) -> None:
+        guide = WeatherGuide()
+        out = guide.answer("今天天气怎么样")
+        self.assertEqual(out["actions"], ["捂耳倾听", "叉腰昂首"])
+
+    def test_outdoor_recommendation(self) -> None:
+        rec = WeatherGuide._build_play_recommendation("晴", 26, None)
+        self.assertEqual(rec["priority"], "室外")
+        self.assertIn("飞越极限", rec["picks"][0])
+
+    def test_indoor_recommendation(self) -> None:
+        rec = WeatherGuide._build_play_recommendation("小雨", 20, None)
+        self.assertEqual(rec["priority"], "室内")
+        self.assertIn("海螺湾", rec["picks"])
 
     def test_tomorrow_branch(self) -> None:
         guide = WeatherGuide()

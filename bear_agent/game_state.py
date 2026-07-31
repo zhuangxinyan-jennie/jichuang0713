@@ -64,6 +64,33 @@ class GameStateController:
             "story_waiting_hint": "直接说出地点或「xxx怎么走」。",
         }
 
+    def _enter_map_query(self, perception_result, map_handler, reset_random_memory=None):
+        """
+        进入地图问路状态。若本句已含目的地（如「海螺湾怎么走」），直接问路并触发导航，
+        避免只回「你想去哪儿」而卡住、导览熊不出现。
+        """
+        if reset_random_memory:
+            reset_random_memory()
+        self.state = self.MAP_QUERY
+        speech = speech_text_from_perception(perception_result)
+        if speech.strip():
+            result = map_handler(perception_result)
+            if isinstance(result, dict) and self._map_result_actionable(result):
+                return self._mark_target_mode(result, "map")
+        return self._mark_target_mode(self._map_mode_ack(), "map")
+
+    @staticmethod
+    def _map_result_actionable(result):
+        if result.get("highlight_category"):
+            return True
+        if result.get("found") is False:
+            return False
+        destination = result.get("destination")
+        path = result.get("path_world") or result.get("path")
+        if isinstance(destination, str) and destination.strip():
+            return True
+        return isinstance(path, list) and len(path) >= 2
+
     def route(self, perception_result, random_handler, map_handler, reset_random_memory):
         """
         根据当前状态处理输入。
@@ -135,8 +162,7 @@ class GameStateController:
                 self.state = self.RANDOM_INTERACTION
                 return self._mark_target_mode(self._random_mode_ack(), "random")
             if mode == "map":
-                self.state = self.MAP_QUERY
-                return self._mark_target_mode(self._map_mode_ack(), "map")
+                return self._enter_map_query(perception_result, map_handler, reset_random_memory)
             return self._mark_target_mode(self._mode_select_clip(), "voice")
 
         if self.state == self.NO_VISITOR:
@@ -158,9 +184,7 @@ class GameStateController:
                     self.state = self.RANDOM_INTERACTION
                     return self._mark_target_mode(self._random_mode_ack(), "random")
                 if mode == "map":
-                    reset_random_memory()
-                    self.state = self.MAP_QUERY
-                    return self._mark_target_mode(self._map_mode_ack(), "map")
+                    return self._enter_map_query(perception_result, map_handler, reset_random_memory)
             return None
 
         if self.state == self.WAIT_MODE_CHOICE:
@@ -172,8 +196,7 @@ class GameStateController:
                 self.state = self.WAIT_STORY_ANSWER
                 return self._mark_target_mode(self.story.start(), "story")
             if mode == "map":
-                self.state = self.MAP_QUERY
-                return self._mark_target_mode(self._map_mode_ack(), "map")
+                return self._enter_map_query(perception_result, map_handler)
             text_stripped = (speech_text or "").strip()
             if text_stripped:
                 return self._mark_target_mode({
@@ -206,9 +229,7 @@ class GameStateController:
                 self.state = self.WAIT_STORY_ANSWER
                 return self._mark_target_mode(self.story.start(), "story")
             if switch == "map":
-                reset_random_memory()
-                self.state = self.MAP_QUERY
-                return self._mark_target_mode(self._map_mode_ack(), "map")
+                return self._enter_map_query(perception_result, map_handler, reset_random_memory)
 
             # 最后兜底：去掉所有空白后匹配（防止不可见分隔符破坏 parse_mode_choice）
             if self._compact_has_story_intent(speech_text):
@@ -231,8 +252,7 @@ class GameStateController:
                 )
             if bail == "map":
                 self.story.reset()
-                self.state = self.MAP_QUERY
-                return self._mark_target_mode(self._map_mode_ack(), "map")
+                return self._enter_map_query(perception_result, map_handler)
             # 已在剧情中再说「剧情互动」：重新开始本轮开场，避免用户误以为没进来
             if bail == "story":
                 self.story.reset()

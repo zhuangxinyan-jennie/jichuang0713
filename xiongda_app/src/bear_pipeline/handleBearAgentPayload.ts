@@ -9,8 +9,20 @@ import { sendSmplStreamingRelativePath } from "../services/unitySendClip";
 import { postMultimodalPlaybackDone, postMultimodalPlaybackStart } from "./bearAgentClient";
 import { chineseActionToSmplPath } from "./chineseActionToSmplPath";
 import { clipIdsToSmplPaths } from "./clipIdToSmplPath";
-import { cancelQueuedSequences, DEFAULT_SMPL_STEP_MS, playSmplPathSequence } from "./playSequences";
+import {
+  cancelQueuedSequences,
+  DEFAULT_SMPL_STEP_MS,
+  playSmplActionThenStand,
+  playSmplPathSequence,
+} from "./playSequences";
 import { triggerMapNavigationFromPayload } from "../services/unityMapBridge";
+import {
+  beginMapQueryRouteSpeech,
+  beginMapNavigationGateHold,
+  completeMapQueryRouteSpeech,
+  finishMapNavigationPlaybackGate,
+  skipMapQueryRouteSpeechWait,
+} from "../services/mapNavigationHandoff";
 import { setMap2DHighlight } from "../services/map2dHighlightStore";
 
 export type BearAgentDispatchOptions = {
@@ -58,10 +70,15 @@ function voiceIdFromPayload(o: Record<string, unknown>): string {
 }
 
 type SpeechCompletionGate = {
-  speak: (text: string) => void;
+  speak: (text: string, onEnded?: () => void) => void;
   /** 剧情等：走系统朗读，避免板端异步触发后 SoVITS/HTMLAudio 被 autoplay 拦截 */
-  speakBrowser: (text: string) => void;
-  prebaked: (urls: string[], fallbackSpeak?: string, fallbackMode?: "tts" | "browser") => void;
+  speakBrowser: (text: string, onEnded?: () => void) => void;
+  prebaked: (
+    urls: string[],
+    fallbackSpeak?: string,
+    fallbackMode?: "tts" | "browser",
+    onEnded?: () => void
+  ) => void;
   doneIfSilent: () => void;
 };
 
@@ -77,28 +94,36 @@ function createSpeechCompletionGate(onAllFinished?: () => void): SpeechCompletio
     }
   };
   return {
-    speak(text: string) {
+    speak(text: string, onEnded?: () => void) {
       const t = text.replace(/\n+/g, " ").trim();
       if (!t) return;
       pending++;
       announceBearSpeech(t, () => {
         pending--;
+        onEnded?.();
         tryFinish();
       });
     },
-    speakBrowser(text: string) {
+    speakBrowser(text: string, onEnded?: () => void) {
       const t = text.replace(/\n+/g, " ").trim();
       if (!t) return;
       pending++;
       speakBrowserFallback(t, () => {
         pending--;
+        onEnded?.();
         tryFinish();
       });
     },
-    prebaked(urls: string[], fallbackSpeak?: string, fallbackMode: "tts" | "browser" = "tts") {
+    prebaked(
+      urls: string[],
+      fallbackSpeak?: string,
+      fallbackMode: "tts" | "browser" = "tts",
+      onEnded?: () => void
+    ) {
       pending++;
       playPrebakedWavSequence(urls, fallbackSpeak, () => {
         pending--;
+        onEnded?.();
         tryFinish();
       }, fallbackMode);
     },
@@ -190,7 +215,12 @@ export function handleBearAgentPayload(
     const hadSpeech = setSpeechFromPayload(ctx, o);
     const voiceId = voiceIdFromPayload(o);
     const speech = typeof o.speech === "string" ? o.speech.trim() : "";
-    if (voiceId && speech) {
+    const serverPlay =
+      (import.meta.env.VITE_XIONGDA_TTS_SERVER_PLAY as string | undefined)?.trim().toLowerCase() === "1" ||
+      (import.meta.env.VITE_XIONGDA_TTS_SERVER_PLAY as string | undefined)?.trim().toLowerCase() === "true";
+    if (serverPlay && speech) {
+      announcePayloadSpeechWrapped(o);
+    } else if (voiceId && speech) {
       if (sg) sg.prebaked([theaterVoiceUrl(voiceId)], speech, "tts");
       else playPrebakedWavSequence([theaterVoiceUrl(voiceId)], speech, notifyPlaybackDone, "tts");
     } else if (hadSpeech) {
@@ -272,17 +302,62 @@ export function handleBearAgentPayload(
     return;
   }
 
+  if (interactionType === "map_arrival") {
+    const dest = typeof o.destination === "string" ? o.destination.trim() : "";
+    ctx.setCurrentSmplPath(dest ? `到站讲解 → ${dest}` : "到站讲解");
+    const hadSpeech = setSpeechFromPayload(ctx, o);
+    const onArrivalSpeechEnded = () => {
+      finishMapNavigationPlaybackGate();
+      if (!sg) notifyPlaybackDone();
+    };
+    if (hadSpeech) {
+      if (sg) sg.speak(typeof o.speech === "string" ? o.speech.trim() : "", onArrivalSpeechEnded);
+      else {
+        const s = typeof o.speech === "string" ? o.speech.trim() : "";
+        if (s) announceBearSpeech(s, onArrivalSpeechEnded);
+      }
+    } else {
+      finishMapNavigationPlaybackGate();
+    }
+    // 固定「叉腰昂首」播一遍 → stand 待机；TTS 口型继续
+    playSmplActionThenStand(chineseActionToSmplPath("叉腰昂首"), ctx);
+    end();
+    return;
+  }
+
   if (interactionType === "map_query") {
     maybeEnterMapTab();
     const hadSpeech = setSpeechFromPayload(ctx, o);
     const voiceId = voiceIdFromPayload(o);
     const speech = typeof o.speech === "string" ? o.speech.trim() : "";
-    if (voiceId && speech) {
-      if (sg) sg.prebaked([theaterVoiceUrl(voiceId)], speech, "tts");
-      else playPrebakedWavSequence([theaterVoiceUrl(voiceId)], speech, notifyPlaybackDone, "tts");
-    } else if (hadSpeech) {
-      announcePayloadSpeechWrapped(o);
+    const serverPlay =
+      (import.meta.env.VITE_XIONGDA_TTS_SERVER_PLAY as string | undefined)?.trim().toLowerCase() === "1" ||
+      (import.meta.env.VITE_XIONGDA_TTS_SERVER_PLAY as string | undefined)?.trim().toLowerCase() === "true";
+
+    const onRouteSpeechEnded = () => {
+      completeMapQueryRouteSpeech();
+      // board_bridge 路径由 sg → onPlaybackChainFinished 统一 release；手动路径在此 release
+      if (!sg) notifyPlaybackDone();
+    };
+
+    if (speech) {
+      beginMapQueryRouteSpeech();
+      notifyPlaybackStart();
+      // 必须走 sg.speak/prebaked，否则 end() 会立刻 playback-done，麦克风会把路线 TTS 录回去
+      if (sg) {
+        if (serverPlay || !voiceId) sg.speak(speech, onRouteSpeechEnded);
+        else sg.prebaked([theaterVoiceUrl(voiceId)], speech, "tts", onRouteSpeechEnded);
+      } else if (serverPlay) {
+        announceBearSpeech(speech, onRouteSpeechEnded);
+      } else if (voiceId) {
+        playPrebakedWavSequence([theaterVoiceUrl(voiceId)], speech, onRouteSpeechEnded, "tts");
+      } else {
+        announceBearSpeech(speech, onRouteSpeechEnded);
+      }
+    } else {
+      skipMapQueryRouteSpeechWait();
     }
+
     const highlightCategory =
       typeof o.highlight_category === "string" ? o.highlight_category.trim() : "";
     const highlightNames = Array.isArray(o.highlight_names)
@@ -300,12 +375,17 @@ export function handleBearAgentPayload(
           : `地图高亮 → ${highlightNames.join("、") || highlightCategory}`
       );
     } else {
-      ctx.setCurrentSmplPath(
-        typeof o.destination === "string" && o.destination.trim()
-          ? `地图导航 → ${o.destination.trim()}`
-          : "—（地图模式：3D 地图页，见 MapUnityEmbed）"
-      );
-      triggerMapNavigationFromPayload(o);
+      const mapFound = o.found !== false;
+      const navDestination =
+        mapFound && typeof o.destination === "string" ? o.destination.trim() : "";
+      if (navDestination) {
+        ctx.setCurrentSmplPath(`地图导航 → ${navDestination}`);
+        beginMapNavigationGateHold();
+        triggerMapNavigationFromPayload(o);
+      } else {
+        ctx.setCurrentSmplPath(mapFound === false ? "地图问路 → 未识别目的地" : "—（地图模式）");
+        // 未找到目的地时不要 beginMapNavigationGateHold，否则闸门永久占用、麦克风失灵
+      }
     }
     end();
     return;

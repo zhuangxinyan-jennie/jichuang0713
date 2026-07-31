@@ -41,24 +41,33 @@ function Stop-PortListeners {
 }
 
 Write-Host "[1/2] stop PC services ..." -ForegroundColor Yellow
-Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
-    Where-Object {
-        $_.CommandLine -and (
-            $_.CommandLine -match 'board_bridge\.run_pipeline|integration_test\\server\.py|integration_test/server\.py|tts_server\.py|vite'
-        )
-    } |
-    ForEach-Object {
-        Write-Host ("  kill pid={0}" -f $_.ProcessId) -ForegroundColor DarkGray
-        Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
-    }
+Write-Host "      scanning (5-15s, do not click/select in this window) ..." -ForegroundColor DarkGray
+try {
+    Get-CimInstance Win32_Process -ErrorAction Stop |
+        Where-Object {
+            $_.CommandLine -and (
+                $_.CommandLine -match 'board_bridge\.run_pipeline|integration_test\\server\.py|integration_test/server\.py|tts_server\.py|vite'
+            )
+        } |
+        ForEach-Object {
+            Write-Host ("  kill pid={0}" -f $_.ProcessId) -ForegroundColor DarkGray
+            Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
+        }
+} catch {
+    Write-Host ("      WARN: process scan failed: {0}" -f $_.Exception.Message) -ForegroundColor DarkYellow
+}
+Write-Host "      closing ports 8765/9890/5173/18082 ..." -ForegroundColor DarkGray
 Stop-PortListeners @(8765, 9890, 5173, 18082, 18083, 8770)
 Write-Host "      PC stopped" -ForegroundColor Green
 
 if (-not $KeepBoard) {
-    Write-Host ("[2/2] stop board processes ({0}) ..." -f $BoardHost) -ForegroundColor Yellow
+    Write-Host ("[2/2] stop board processes ({0}, up to ~30s if offline) ..." -f $BoardHost) -ForegroundColor Yellow
     $stopPy = Join-Path $Root "scripts\_stop_board_all.py"
     if (Test-Path -LiteralPath $stopPy) {
         & $py $stopPy
+        if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) {
+            Write-Host "      WARN: board stop script exit=$LASTEXITCODE (board may be offline)" -ForegroundColor DarkYellow
+        }
     } else {
         & $py -c ("import json,paramiko;c=paramiko.SSHClient();c.set_missing_host_key_policy(paramiko.AutoAddPolicy());c.connect('{0}',username='root',password='Mind@123',timeout=15);cmd='bash /home/HwHiAiUser/jichuang/stop_board.sh >/dev/null 2>&1 || true; pkill -f board_speaker_player.py || true; echo BOARD_STOPPED';_,o,e=c.exec_command('bash -lc '+json.dumps(cmd),timeout=40);print((o.read()+e.read()).decode('utf-8','replace'));c.close()").format($BoardHost)
     }

@@ -27,23 +27,31 @@ Agent 依赖在 `bear_agent/.venv`（由 `setup-env.ps1` 创建）。
 
 说明见 [bear_agent/README_BOARD_LLM.md](../bear_agent/README_BOARD_LLM.md)。板上可用 `bash bear_agent/start_on_board.sh`。
 
-### 1.2 CosyVoice TTS（可选）
+### 1.2 TTS 语音
 
-未下载模型前可用 `-SkipTts` 跳过。
+**默认：云端百炼 CosyVoice**（不需要 GPU、不需要本地模型）。完整说明见 **[docs/TTS.md](TTS.md)**。
+
+1. 在 `cosyvoice_live_release/env.local.ps1` 填写 `DASHSCOPE_API_KEY` 和音色 ID  
+2. 根目录运行 `start-full-demo.bat` 即可
+
+| 内容 | 路径 |
+|------|------|
+| TTS 服务 | `cosyvoice_live_release/tts_server.py` |
+| 百炼密钥 | `cosyvoice_live_release/env.local.ps1`（勿提交 Git） |
+| 单独启动云端 TTS | `cosyvoice_live_release/start_tts_cloud.ps1` |
+
+**可选：本地 GPU CosyVoice**（离线、需 NVIDIA 显卡）：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\setup-cosyvoice-venv.ps1 -CreateCondaEnv -RecreateVenv
-.\check-cosyvoice-env.ps1
-.\download-cosyvoice-model.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\setup\cosyvoice\setup-cosyvoice-venv.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\setup\cosyvoice\check-cosyvoice-env.ps1
 ```
 
 | 内容 | 路径 |
 |------|------|
-| 源码 | `third_party/CosyVoice/`（不在 Git，需 clone 或解压 `third_party.zip`） |
-| 权重 | `pretrained_models/CosyVoice2-0.5B/`（不在 Git，脚本下载） |
-| TTS 服务 | `cosyvoice_live_release/tts_server.py` |
-| Windows 显存上限 | 环境变量 `COSYVOICE_GPU_MEMORY_FRACTION`（默认 `0.3`，仅本地后端） |
-| 云端 CosyVoice（百炼） | 见 `cosyvoice_live_release/README.md`：复刻 `enroll_xiongda_dashscope.py`，启动 `start_tts_cloud.ps1` |
+| 源码 + venv | `archive/tts-local/CosyVoice/` |
+| 权重 | `archive/tts-local/CosyVoice2-0.5B/` |
+| 安装脚本 | `scripts/setup/cosyvoice/` |
 
 ### 1.3 前端
 
@@ -78,11 +86,12 @@ npm install
 
 ### 方式 A2：仅 PC 开发栈
 
-双击 **`启动PC端完整流程.bat`**（若有），或：
+双击 **`launch/启动PC端完整流程.bat`**，或：
 
 ```powershell
-.\start-pc-stack.ps1              # 含 TTS
-.\start-pc-stack.ps1 -SkipTts     # 无 TTS 模型时
+.\launch\start-pc-stack.ps1              # 含 TTS
+.\launch\start-pc-stack.ps1 -SkipTts     # 无 TTS 模型时
+```
 ```
 
 浏览器：**http://127.0.0.1:5173**
@@ -108,7 +117,7 @@ PC 看 ASR 文字：
 
 ```powershell
 python pre_on_board_local_start_bundle\board_deploy\run_pc_asr_terminal.py
-# 或 .\start-pc-asr-terminal.ps1
+# 或 .\launch\start-pc-asr-terminal.ps1
 ```
 
 ### 方式 C：PC 摄像头推流到板子（旧模式）
@@ -284,7 +293,7 @@ cd bear_agent
 
 ### 5.1 熊大角色（语音 / 剧情页 WebGL）
 
-Unity Hub 打开 `XiongdaUnityProject/`。
+Unity Hub 打开 `unity/XiongdaUnityProject/`。
 
 | 勾选项 | 模式 |
 |--------|------|
@@ -295,20 +304,20 @@ WebGL 产物目录：`xiongda_app/public/webgl/`。
 
 ### 5.2 3D 乐园地图（地图查询页 WebGL）
 
-Unity Hub 打开 `XiongdaParkMapProject/`。
+Unity Hub 打开 `unity/XiongdaParkMapProject/`。
 
 1. **Tools → 狗熊岭智慧终端 → 清理地图 WebGL IL2CPP 缓存**（若曾构建失败）
 2. **Tools → 狗熊岭智慧终端 → 确保场景含 ParkMapUnityBridge**
 3. 优先试 **Tools → 构建地图 WebGL（Development，内存占用较低）**
 4. 或 **Tools → 构建地图 WebGL 到 xiongda_app**
 
-若 Console 报 `llvm-link.exe` / `il2cpp.exe did not run properly`：见 `XiongdaParkMapProject/README.md` 故障排查（虚拟内存、清理缓存、Development 构建）。
+若 Console 报 `llvm-link.exe` / `il2cpp.exe did not run properly`：见 `unity/XiongdaParkMapProject/README.md` 故障排查（虚拟内存、清理缓存、Development 构建）。
 
 产物目录：`xiongda_app/public/webgl-map/`（与熊大 `public/webgl/` **分开，不会互相覆盖**）。
 
 ### 5.2.1 合并工程（可选 · 可回退）
 
-见 **[UNITY_MERGED.md](UNITY_MERGED.md)**：副本 `XiongdaParkMapMergedProject/`，产物 `public/webgl-merged/`。
+见 **[UNITY_MERGED.md](UNITY_MERGED.md)**：副本 `unity/XiongdaParkMapMergedProject/`，产物 `public/webgl-merged/`。
 
 **双熊同场景**（推荐）：
 - `InteractiveXiongda`：语音互动（SMPL + 表情，`UnityBridge`）
@@ -341,7 +350,7 @@ npm run dev
 ```
 
 浏览器 → **地图查询** → **2D地图** → 对着**板子**摄像头举手/捏合。  
-仅缺 8770 时可跑 `gesture_cursor_project\启动板端手势光标.bat`。  
+仅缺 8770 时可跑 `experiments\gesture_cursor_project\启动板端手势光标.bat`。  
 
 **双摄像头并排看扩展屏（测试）：**
 
@@ -357,12 +366,12 @@ python pre_on_board_local_start_bundle\board_deploy\show_dual_cameras_on_hdmi.py
 ### 5.4 手机流式语音 → 板端 ASR
 
 ```powershell
-cd phone_voice_app
+cd experiments/phone_voice_app
 .\start.bat
 # 或: python server\bridge.py --board-host 192.168.137.100
 ```
 
-手机与电脑同一 WiFi，打开控制台里的 `http://<电脑IP>:8788/`，**按住说话**即可流式识别。详细见 [phone_voice_app/README.md](../phone_voice_app/README.md)。
+手机与电脑同一 WiFi，打开控制台里的 `http://<电脑IP>:8788/`，**按住说话**即可流式识别。详细见 [phone_voice_app/README.md](../experiments/phone_voice_app/README.md)。
 
 注意：演示时请勿与其它程序抢占本机 **18083**（除非加 `--no-asr-listen`）。
 
@@ -372,13 +381,13 @@ cd phone_voice_app
 
 | 脚本 | 作用 |
 |------|------|
-| `start-pc-stack.ps1` | PC 全栈 |
-| `phone_voice_app/start.bat` | 手机流式语音桥接（8788 → 板端 18081） |
-| `gesture_cursor_project/启动板端手势光标.bat` | 板端 NPU 光标 :8770（默认；无 MediaPipe） |
-| `gesture_cursor_project/启动2D地图手势演示.bat` | 【旧】本机 MediaPipe（仅离线调试） |
-| `start-pc-asr-terminal.ps1` | 仅听 18083 看识别 |
-| `start-pc-board-viewer.ps1` | 看板端视觉回传 |
-| `run-latency-benchmark.ps1` | 延时测试 |
+| `launch/start-pc-stack.ps1` | PC 全栈（不启板子） |
+| `launch/start-pc-asr-terminal.ps1` | 仅听 18083 看识别 |
+| `launch/start-pc-board-viewer.ps1` | 看板端视觉回传 |
+| `launch/start-unity-pose-server.ps1` | Unity 跟臂 Pose |
+| `experiments/phone_voice_app/start.bat` | 手机流式语音桥接 |
+| `experiments/gesture_cursor_project/启动板端手势光标.bat` | 板端 NPU 手势光标 |
+| `archive/legacy/launch/run-latency-benchmark.ps1` | 延时测试 |
 | `pre_on_board_local_start_bundle/board_deploy/probe_ctc_npu_vs_cpu.py` | NPU vs CPU ASR 对比 |
 
 ---
@@ -387,7 +396,7 @@ cd phone_voice_app
 
 以下仅板端或本地安装用，**不要指望 clone 后自带**：
 
-- `pretrained_models/`、`third_party/CosyVoice/`
+- `archive/tts-local/`（本地 GPU TTS，云端模式不需要）
 - `board_on_device/`、`*.zip`
 - `bear_agent/config.py`（每人本地复制 example）
 

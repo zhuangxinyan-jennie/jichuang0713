@@ -7,7 +7,7 @@
 import heapq
 import os
 
-from poi_registry import get_place_world, load_poi_registry, path_world as registry_path_world
+from poi_registry import get_place_world, load_poi_registry, nearest_place_name, path_world as registry_path_world
 
 
 class MapGuide:
@@ -222,6 +222,56 @@ class MapGuide:
         self._poi_registry_path = poi_registry_path
         self._poi_registry = None
 
+    def set_current_location(
+        self,
+        place_name: str | None = None,
+        *,
+        world_x: float | None = None,
+        world_z: float | None = None,
+    ) -> str:
+        """
+        更新熊大当前所在 POI（导航结束后由前端上报 world 坐标或目的地名）。
+        返回最终采用的 current_location。
+        """
+        if place_name and place_name in self.ALIASES:
+            self.current_location = place_name
+            return self.current_location
+
+        if world_x is not None and world_z is not None:
+            registry = self._get_poi_registry()
+            nearest = nearest_place_name(registry, world_x, world_z) if registry else None
+            if nearest:
+                self.current_location = nearest
+                return self.current_location
+
+        if place_name:
+            matched = self.match_place(place_name)
+            if matched:
+                self.current_location = matched
+        return self.current_location
+
+    def arrival_intro(
+        self,
+        place_name: str | None = None,
+        *,
+        world_x: float | None = None,
+        world_z: float | None = None,
+    ) -> dict:
+        """导航到达后的到站讲解（文案见 data/poi_intros.json）。"""
+        from poi_intros import build_arrival_intro
+
+        name = (place_name or "").strip()
+        if not name or name not in self.ALIASES:
+            name = self.current_location
+        if (not name or name not in self.ALIASES) and world_x is not None and world_z is not None:
+            registry = self._get_poi_registry()
+            nearest = nearest_place_name(registry, world_x, world_z) if registry else None
+            if nearest:
+                name = nearest
+        if not name:
+            name = self.DEFAULT_START
+        return build_arrival_intro(name)
+
     def _get_poi_registry(self):
         if self._poi_registry is None:
             path = self._poi_registry_path or os.path.join(
@@ -240,6 +290,9 @@ class MapGuide:
 
     def answer(self, speech_text):
         """返回地图问路JSON。"""
+        from text_postprocess import apply_poi_homophone_fixes
+
+        speech_text = apply_poi_homophone_fixes((speech_text or "").strip())
         facility = self.match_facility(speech_text)
         if facility == "toilet":
             return self._response(

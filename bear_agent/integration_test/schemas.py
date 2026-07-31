@@ -44,3 +44,11 @@ class PerceptionIn(BaseModel):
                 if isinstance(alt, str) and alt.strip():
                     data = {**data, "speech_text": alt}
         return data
+
+
+class MapLocationIn(BaseModel):
+    x: float
+    z: float
+    y: float | None = None
+    place: str = ""
+    destination: str = ""

@@ -17,9 +17,9 @@
 
 | 路径 | 角色 |
 |------|------|
-| `XiongdaUnityProject/` | **原**语音熊工程，不改 |
-| `XiongdaParkMapProject/` | **原**地图工程，不改 |
-| `XiongdaParkMapMergedProject/` | **合并副本**（可删可重建） |
+| `unity/XiongdaUnityProject/` | **原**语音熊工程，不改 |
+| `unity/XiongdaParkMapProject/` | **原**地图工程，不改 |
+| `unity/XiongdaParkMapMergedProject/` | **合并副本**（可删可重建） |
 | `xiongda_app/public/webgl/` | 旧语音包（已退役，保留备份） |
 | `xiongda_app/public/webgl-map/` | 旧地图包（保留） |
 | `xiongda_app/public/webgl-merged/` | **新统一包** |
@@ -33,7 +33,7 @@ cd F:\jichuang2026\clean_0606
 powershell -ExecutionPolicy Bypass -File .\scripts\setup_merged_unity_project.ps1
 ```
 
-1. Unity Hub → `XiongdaParkMapMergedProject`
+1. Unity Hub → `unity/XiongdaParkMapMergedProject`
 2. 打开 `ParkMap3DBlockout.unity`，**先 Stop Play**
 3. **Tools → 狗熊岭智慧终端 → 合并工程：挂上 UnityBridge + 模式相机**
 4. Play：默认互动熊近景；**C**=聊天 **M**=地图

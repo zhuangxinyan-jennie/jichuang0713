@@ -2,12 +2,14 @@
 
 昇腾 310B 板端（看 + 听 + 动作）+ PC 端（Agent + 网页 + Unity + TTS）联调仓库。
 
-**文档只保留三处，请以本文为准：**
+**文档入口：**
 
 | 文档 | 内容 |
 |------|------|
-| **本文件** | 总览、克隆、目录、一分钟上手 |
-| **[docs/PC.md](docs/PC.md)** | PC 环境、启动、Agent、TTS、Unity |
+| **本文件** | 总览、克隆、一分钟上手 |
+| **[docs/PROJECT_MAP.md](docs/PROJECT_MAP.md)** | **目录地图（合作者先看）** |
+| **[docs/PC.md](docs/PC.md)** | PC 环境、启动、Agent、Unity |
+| **[docs/TTS.md](docs/TTS.md)** | **TTS：云端百炼 vs 本地 GPU** |
 | **[docs/BOARD.md](docs/BOARD.md)** | 板端部署、模型、启动、端口 |
 | **[docs/FPGA_AV_EventFusion.md](docs/FPGA_AV_EventFusion.md)** | PG2L100H 异构协同、改造清单、EdgeEvent 协议、开源参考 |
 | **[bear_agent/README_BOARD_LLM.md](bear_agent/README_BOARD_LLM.md)** | Agent LLM：默认云端百炼，可切本地 HTTP / 仅规则 |
@@ -30,21 +32,36 @@ git lfs pull
 
 ## 目录结构
 
+完整分层见 **[docs/PROJECT_MAP.md](docs/PROJECT_MAP.md)**。摘要：
+
+| 路径 | 用途 | 演示 |
+|------|------|------|
+| `bear_agent/` | Agent + `board_bridge` | ✅ |
+| `xiongda_app/` | React 前端 + WebGL | ✅ |
+| `cosyvoice_live_release/` | TTS | ✅ |
+| `pre_on_board_local_start_bundle/` | 板端运行时 + OM | ✅ |
+| `scripts/` | 启动板子、Unity 打包 | 部分 ✅ |
+| `launch/` | 备用启动（仅 PC、调试） | ❌ |
+| `unity/` | 三个 Unity 源码工程 | ❌ 改完导出 WebGL |
+| `experiments/` | 手势光标、手机端、人流实验 | ❌ |
+| `research/` | `HGBO/`、`HGBO-DSE-main/` 研究 | ❌ |
+| `archive/` | 旧脚本、zip、快照、**本地 TTS 大文件** | ❌ |
+
 | 路径 | 用途 | 是否上 Git |
 |------|------|------------|
 | `bear_agent/` | 熊大 Agent、`board_bridge` 板端回传桥接 | ✅ 代码（❌ `config.py` 含密钥） |
 | `xiongda_app/` | React 前端 WebGL 熊大 | ✅ |
-| `XiongdaUnityProject/` | Unity 熊大角色 WebGL 源码 | ✅（❌ `Library/` 等缓存） |
-| `XiongdaParkMapProject/` | Unity 3D 乐园地图 WebGL 源码 | ✅（❌ `Library/` 等缓存） |
-| `XiongdaParkMapMergedProject/` | **合并副本**（熊大+地图，可回退；见 [docs/UNITY_MERGED.md](docs/UNITY_MERGED.md)） | ✅ 本地生成（❌ `Library/`） |
+| `unity/XiongdaUnityProject/` | Unity 熊大角色 WebGL 源码 | ✅（❌ `Library/` 等缓存） |
+| `unity/XiongdaParkMapProject/` | Unity 3D 乐园地图 WebGL 源码 | ✅（❌ `Library/` 等缓存） |
+| `unity/XiongdaParkMapMergedProject/` | **合并副本**（熊大+地图，可回退；见 [docs/UNITY_MERGED.md](docs/UNITY_MERGED.md)） | ✅ 本地生成（❌ `Library/`） |
 | `pre_on_board_local_start_bundle/` | 板端 Python 运行时 + OM 模型 + 启动脚本 | ✅ |
-| `HGBO/` | 算子优化框架 HGBO-OpTune（Ascend 310B DSE） | ✅（❌ `packages/*.run` 大包） |
-| `HGBO-DSE-main/` | HLS 设计空间探索参考框架 HGBO-DSE（登辉项目阅读材料） | ✅（❌ `dataset/std/`、`dataset/rdc/` 大图 pt，本地生成） |
-| `cosyvoice_live_release/` | CosyVoice TTS 服务 | ✅ |
-| `third_party/CosyVoice/` | CosyVoice 源码 | ❌ 本地安装 |
-| `pretrained_models/` | TTS 权重 | ❌ 脚本下载 |
+| `research/HGBO/` | 算子优化框架 HGBO-OpTune（Ascend 310B DSE） | ✅（❌ `packages/*.run` 大包） |
+| `research/HGBO-DSE-main/` | HLS 设计空间探索参考框架 | ✅（❌ `dataset/std/`、`dataset/rdc/` 大图 pt） |
+| `cosyvoice_live_release/` | TTS 服务（**默认云端百炼**） | ✅ |
+| `archive/tts-local/` | 本地 GPU CosyVoice 源码+权重（演示可忽略） | ❌ 本地安装 |
 
-`board_handoff_for_teammate/` 为历史交接快照，**日常开发请忽略**。
+历史联调脚本、zip、快照在 **`archive/`**；Unity 源码在 **`unity/`**；备用启动在 **`launch/`**；实验在 **`experiments/`**；研究在 **`research/`**。  
+详见 [docs/PROJECT_MAP.md](docs/PROJECT_MAP.md) 与 [archive/README.md](archive/README.md)。
 
 ### HGBO / HGBO-DSE 上传清单（给队友）
 
@@ -52,15 +69,15 @@ git lfs pull
 
 | 文件夹 | 上传说明文档 |
 |--------|----------------|
-| `HGBO/` | [HGBO/UPLOAD_NOTES.md](HGBO/UPLOAD_NOTES.md) |
-| `HGBO-DSE-main/` | [HGBO-DSE-main/UPLOAD_NOTES.md](HGBO-DSE-main/UPLOAD_NOTES.md) |
+| `research/HGBO/` | [research/HGBO/UPLOAD_NOTES.md](research/HGBO/UPLOAD_NOTES.md) |
+| `research/HGBO-DSE-main/` | [research/HGBO-DSE-main/UPLOAD_NOTES.md](research/HGBO-DSE-main/UPLOAD_NOTES.md) |
 
 **一句话对照：**
 
 | 文件夹 | ✅ 已在 GitHub | ❌ 未上传（需本地） |
 |--------|----------------|---------------------|
-| `HGBO/` | 源码、脚本、wheel、配置 | `packages/*.run`（~5GB CANN 安装包）、DSE 实验输出、编译产物、板子密钥 |
-| `HGBO-DSE-main/` | 源码、`hgp/model/`、`dse_ds/`、文档 | `dataset/std/`、`dataset/rdc/`（~1.9GB 图 pt，用 `gen_dataset_std.py` 生成） |
+| `research/HGBO/` | 源码、脚本、wheel、配置 | `packages/*.run`（~5GB CANN 安装包）、DSE 实验输出、编译产物、板子密钥 |
+| `research/HGBO-DSE-main/` | 源码、`hgp/model/`、`dse_ds/`、文档 | `dataset/std/`、`dataset/rdc/`（~1.9GB 图 pt，用 `gen_dataset_std.py` 生成） |
 
 ---
 
@@ -72,13 +89,13 @@ git lfs pull
    也可以双击 **`一键启动完整演示.bat`**（会转调上面的英文 bat）  
    或 PowerShell：`.\start-full-demo.ps1`  
 2. 应弹出**黑色命令行窗口**，依次出现 Agent / TTS / 板端 / 桥接 OK；浏览器打开 **http://127.0.0.1:5173**  
-3. 人对着**板端摄像头 + 麦克风**互动；声音从 **CS202 音箱**出  
+3. 人对着**板端摄像头 + 麦克风**互动；**摄像头认到人后**熊大自动说欢迎语，声音从 **PC 音响**出  
 4. 演示结束：双击 **`stop-full-demo.bat`** 或 **`停止完整演示.bat`**
 
 若双击完全没窗口：请到 `F:\jichuang2026\clean_0606` 目录里点 `start-full-demo.bat`，不要点错别的文件夹拷贝；或右键「以管理员身份运行」再试。
 
-会自动拉起：板端 FPGA 视频 + 麦克风 ASR + CS202 播音、PC 上 Agent、云端 TTS、`board_bridge`、前端网页。  
-常用参数：`-NoBoard` 只开 PC；`-SkipTts` 不开语音；`-ReuseExisting` 不杀已在跑的服务。
+会自动拉起：板端 FPGA 视频 + 麦克风 ASR、PC 上 Agent、云端 TTS（PC 音响）、`board_bridge`、前端网页。  
+常用参数：`-BoardSpeaker` 改回板端 CS202 播音；`-NoBoard` 只开 PC；`-SkipTts` 不开语音；`-ReuseExisting` 不杀已在跑的服务。
 
 ---
 
@@ -90,7 +107,7 @@ copy bear_agent\config.example.py bear_agent\config.py
 # 编辑 config.py 填入百炼 API Key
 
 powershell -ExecutionPolicy Bypass -File .\setup-env.ps1
-.\start-pc-stack.ps1 -SkipTts    # 未装 TTS 模型时先跳过
+.\start-pc-stack.ps1 -SkipTts    # 未装 TTS 模型时先跳过（脚本在 launch/）
 ```
 
 Agent 默认调用**云端百炼**大模型（`BEAR_LLM_PROVIDER=dashscope`），说明见 [bear_agent/README_BOARD_LLM.md](bear_agent/README_BOARD_LLM.md)。
@@ -99,7 +116,8 @@ Agent 默认调用**云端百炼**大模型（`BEAR_LLM_PROVIDER=dashscope`）�
 
 互动页：熊大画面尽量铺满；**左上角**实时显示「检测到人 / 未检测到人」；底部是语音识别字幕，右上角显示本轮送进 Agent 的「表情 / 手势 / 动作」。  
 **无人门控（默认开）**：摄像头没认出人时，麦克风即使有字也不会进 Agent；关掉：`$env:BEAR_BRIDGE_REQUIRE_PERSON=0` 后重启 `board_bridge`。  
-**板端播音**：必须播到 **CS202**（不能播到 CM564 麦克风）；无声可跑 `scripts\_fix_cs202_speaker.py`。  
+**PC 音响（默认）**：TTS 由 `tts_server` 经 sounddevice 在本机播放；**认到人后**自动欢迎，无需游客点击。  
+**板端 CS202 播音**：启动时加 `-BoardSpeaker`；必须播到 **CS202**（不能播到 CM564 麦克风）；无声可跑 `scripts\_fix_cs202_speaker.py`。  
 **远近/左右语音提示默认关**；确认效果后：`$env:BEAR_DISTANCE_COACH=1`、`$env:BEAR_POSITION_COACH=1`。说明见 [docs/PC.md](docs/PC.md)。  
 **全图互动**（顶栏合并原「语音聊天 + 地图查询」）：可聊天、随机动作；问「海螺湾怎么走」时导览熊在 3D 地图里跑过去，到了还能在同一位置继续聊。  
 **地图 · 厕所**：说「厕所 / 卫生间」会在 2D 地图高亮卫生间。
@@ -110,7 +128,7 @@ Agent 默认调用**云端百炼**大模型（`BEAR_LLM_PROVIDER=dashscope`）�
 ### Unity 合并（双熊 · 单 WebGL · 可回退）
 
 目标：一个 WebGL 里 **互动熊**（SMPL+表情）与 **导览熊**（地图跑步）同场景切换。  
-**原两个工程不改**；副本在 `XiongdaParkMapMergedProject/`。说明见 **[docs/UNITY_MERGED.md](docs/UNITY_MERGED.md)**。  
+**原两个工程不改**；副本在 `unity/XiongdaParkMapMergedProject/`。说明见 **[docs/UNITY_MERGED.md](docs/UNITY_MERGED.md)**。  
 产物：`xiongda_app/public/webgl-merged/`。旧 `public/webgl/` 已退役（保留备份）。
 
 Unity Play：**C**=聊天（互动熊） **M**=地图（导览熊）。网页顶栏 **「全图互动」** 内自动切换聊天/导览模式。

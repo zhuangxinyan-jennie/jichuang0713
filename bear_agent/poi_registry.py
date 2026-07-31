@@ -34,6 +34,38 @@ def get_place_world(registry: dict[str, Any], chinese_name: str) -> dict[str, fl
     }
 
 
+def nearest_place_name(
+    registry: dict[str, Any],
+    x: float,
+    z: float,
+    *,
+    max_dist: float = 28.0,
+) -> str | None:
+    """按 world 坐标找最近 POI 中文名（供导航到达后更新 Agent 当前位置）。"""
+    places = registry.get("places") or {}
+    best_name: str | None = None
+    best_d2 = float("inf")
+    max_d2 = max_dist * max_dist
+    for name, entry in places.items():
+        if not isinstance(entry, dict):
+            continue
+        world = entry.get("world")
+        if not isinstance(world, dict):
+            continue
+        try:
+            wx = float(world.get("x", 0))
+            wz = float(world.get("z", 0))
+        except (TypeError, ValueError):
+            continue
+        d2 = (wx - x) ** 2 + (wz - z) ** 2
+        if d2 < best_d2:
+            best_d2 = d2
+            best_name = name
+    if best_name is None or best_d2 > max_d2:
+        return None
+    return best_name
+
+
 def path_world(registry: dict[str, Any], path: list[str]) -> list[dict[str, float]]:
     """把中文路径名列表转为 Unity 导航用的 world 坐标序列（沿道路密集插点）。"""
     try:

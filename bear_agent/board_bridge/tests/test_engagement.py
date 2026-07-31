@@ -62,3 +62,11 @@ def test_gesture_hold_allows_post():
     e = EngagementTracker()
     assert e.allow_interaction_post(now_mono=0.0, is_gesture_only=True) is True
     assert speech_has_wake_intent("随机互动") is True
+
+
+def test_map_route_question_bypasses_bystander_gate():
+    """一句话问路（如「海螺湾怎么走」）应能送进 Agent，不能卡在旁观过滤。"""
+    e = EngagementTracker()
+    assert speech_has_wake_intent("海螺湾怎么走") is True
+    assert e.allow_interaction_post(now_mono=0.0, speech_for_post="海螺湾怎么走") is True
+    assert e.allow_interaction_post(now_mono=0.0, speech_for_post="今天天气不错") is False

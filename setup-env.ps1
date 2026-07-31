@@ -45,6 +45,6 @@ VITE_XIONGDA_TTS_URL=http://127.0.0.1:9890
 "@ | Set-Content $envDev -Encoding UTF8
 }
 
-New-Item -ItemType Directory -Force -Path (Join-Path $Root "pretrained_models\CosyVoice2-0.5B") | Out-Null
 Write-Host ""
-Write-Host "完成。下一步: .\启动PC端完整流程.bat  或  .\start-pc-stack.ps1 -SkipTts" -ForegroundColor Cyan
+Write-Host "完成。TTS 默认走云端百炼，见 docs/TTS.md" -ForegroundColor DarkGray
+Write-Host "下一步: .\start-full-demo.bat  或  .\launch\start-pc-stack.ps1" -ForegroundColor Cyan

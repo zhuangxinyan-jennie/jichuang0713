@@ -27,7 +27,7 @@ from board_state import (
     reset_board_state,
     update_board_asr_live,
 )
-from schemas import BoardAsrLiveIn, PerceptionIn
+from schemas import BoardAsrLiveIn, MapLocationIn, PerceptionIn
 from settings import load_server_settings
 
 
@@ -226,7 +226,7 @@ def weather_query(body: PerceptionIn, request: Request):
             "interaction_type": "weather_query",
             "speech": "你想问哪天的天气？可以说「今天天气怎么样」或「明天会下雨吗」。",
             "motion_type": "sequential",
-            "actions": ["左右张望"],
+            "actions": ["捂耳倾听", "叉腰昂首"],
             "emotion": "smile",
             "weather": guide.get_snapshot(),
         }
@@ -243,8 +243,6 @@ def map_query(body: PerceptionIn, request: Request):
     纯地图问路：直接调用 map_guide.MapGuide（Dijkstra + 方位话术），
     不经过玩法状态机，适合前端「地图查询」页只展示平面图 + 字幕/语音。
     """
-    from map_guide import MapGuide
-
     text = (body.speech_text or "").strip()
     perception_dump = perception_dump_for_agent(body)
 
@@ -259,9 +257,19 @@ def map_query(body: PerceptionIn, request: Request):
         }
         _record_board_drive_if_bridge(request, out, perception_dump)
         return out
-    result = MapGuide().answer(text)
+    result = request.app.state.bear_agent.map_guide.answer(text)
     _record_board_drive_if_bridge(request, result, perception_dump)
     return result
+
+
+@app.post("/api/map-location")
+def map_location(body: MapLocationIn, request: Request):
+    """Unity 导航到达后更新熊大当前 POI，并返回到站讲解（poi_intros.json）。"""
+    agent: BearAgent = request.app.state.bear_agent
+    place = (body.place or body.destination or "").strip() or None
+    loc = agent.map_guide.set_current_location(place, world_x=body.x, world_z=body.z)
+    arrival = agent.map_guide.arrival_intro(place, world_x=body.x, world_z=body.z)
+    return {"ok": True, "current_location": loc, "arrival": arrival}
 
 
 @app.post("/api/process")

@@ -27,7 +27,7 @@
 | `pre_on_board_local_start_bundle/pre_on_board/sherpa_ctc_big/` | `pre_on_board/sherpa_ctc_big/` |
 | `pre_on_board_local_start_bundle/jichuang/*.sh` | `jichuang/` |
 
-**PC 端不用拷到板子**：`bear_agent/`、`xiongda_app/`、`XiongdaUnityProject/`。
+**PC 端不用拷到板子**：`bear_agent/`、`xiongda_app/`、`unity/`。
 
 ### PC 一键上传（可选）
 

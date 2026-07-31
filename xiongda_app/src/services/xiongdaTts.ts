@@ -6,14 +6,22 @@
  * - `VITE_XIONGDA_TTS_URL`（默认 http://127.0.0.1:9890）
  * - `VITE_XIONGDA_TTS_DEVICE`：可选 `cpu` | `cuda`，写入 POST body，便于无显卡时合成
  * - `VITE_XIONGDA_TTS_STREAM_DISABLED=1`：禁用 CosyVoice 流式播放，回到完整 WAV
- * - `VITE_XIONGDA_TTS_SERVER_PLAY=1`：启用服务端 sounddevice 直接播放（延迟最优，
- *   要求 TTS 服务在本机；前端通过 /api/tts-play 阻塞等待播完后再触发 onEnded）
+ * - `VITE_XIONGDA_TTS_SERVER_PLAY=1`：走 `/api/tts-play` 在 PC 本机音响播放（sounddevice，无需游客点击）；
+ *   板端 CS202 需 `-BoardSpeaker` 且设置 `BOARD_SPEAKER_URL`。
+ *   默认 `0`：浏览器 CosyVoice 流式/WAV。
  *
  * 浏览器长时间 await 合成后会丢掉「用户手势」，导致 `audio.play()` 被拒。
  * 请在**同一次点击**里先调用 `prepareBearAudioPlayback()`（再发 Agent / 再等 TTS）。
  */
 import { createTtsLatencyProbe } from "./ttsLatencyProbe";
 import { rewriteLoopbackServiceUrl } from "./lanServiceUrl";
+import {
+  beginSpeechLipSyncFallback,
+  beginSpeechLipSyncForAudioElement,
+  getSpeechLipSyncStreamDestination,
+  resetSpeechLipSyncAudioGraph,
+  stopSpeechLipSync,
+} from "./speechLipSyncAmplitude";
 
 const DEFAULT_TTS_BASE = "http://127.0.0.1:9890";
 const FETCH_TIMEOUT_MS = 180_000;
@@ -32,7 +40,7 @@ let currentPlaybackFinish: (() => void) | null = null;
 let playbackSession = 0;
 
 function notifyPlaybackActuallyStarted(): void {
-  // 保留给流式/浏览器播放路径；服务端播音请用 await notifyPlaybackStart()，避免与 done 竞态。
+  // 口型由 speechLipSyncAmplitude 在各播放路径单独启动；此处仅释放多模态闸门。
   void import("../bear_pipeline/handleBearAgentPayload")
     .then((m) => m.notifyPlaybackStart())
     .catch(() => {
@@ -73,6 +81,7 @@ function revokeCurrentUrl(): void {
 }
 
 function resolveCurrentPlayback(): void {
+  stopSpeechLipSync();
   const cb = currentPlaybackFinish;
   currentPlaybackFinish = null;
   cb?.();
@@ -109,8 +118,10 @@ export function stopBearSpeech(): void {
     /* ignore */
   }
   try {
-    void sharedAudioContext?.close();
-    sharedAudioContext = null;
+    resetSpeechLipSyncAudioGraph();
+    if (sharedAudioContext && sharedAudioContext.state === "running") {
+      void sharedAudioContext.suspend();
+    }
   } catch {
     /* ignore */
   }
@@ -159,11 +170,13 @@ export function speakBrowserFallback(text: string, onEnded?: () => void): void {
   try {
     window.speechSynthesis.cancel();
     notifyPlaybackActuallyStarted();
+    beginSpeechLipSyncFallback();
     let finished = false;
     const finish = () => {
       if (finished) return;
       finished = true;
       window.clearTimeout(fallbackTid);
+      stopSpeechLipSync();
       onEnded?.();
     };
     const fallbackTid = window.setTimeout(
@@ -204,6 +217,34 @@ function serverPlayEnabled(): boolean {
   return raw === "1" || raw === "true";
 }
 
+/** 板端播音模式（SERVER_PLAY=1）下禁止 PC 浏览器 SpeechSynthesis，避免喇叭声被板端麦克风录入。 */
+function pcBrowserFallbackAllowed(): boolean {
+  if (serverPlayEnabled()) return false;
+  const raw = (import.meta.env.VITE_XIONGDA_TTS_ALLOW_BROWSER_FALLBACK as string | undefined)?.trim().toLowerCase();
+  if (raw === "0" || raw === "false") return false;
+  return true;
+}
+
+async function releaseMultimodalPlaybackGateIfAllowed(): Promise<void> {
+  try {
+    const { shouldDeferMapNavigationPlaybackGateRelease } = await import("./mapNavigationHandoff");
+    if (shouldDeferMapNavigationPlaybackGateRelease()) return;
+    const { postMultimodalPlaybackDone } = await import("../bear_pipeline/bearAgentClient");
+    await postMultimodalPlaybackDone();
+  } catch {
+    /* ignore */
+  }
+}
+
+async function lockPlaybackGateForTts(): Promise<void> {
+  try {
+    const { notifyPlaybackStart } = await import("../bear_pipeline/handleBearAgentPayload");
+    await notifyPlaybackStart();
+  } catch {
+    /* ignore */
+  }
+}
+
 type StreamPlayResult = "ended" | "unsupported" | "http_error" | "stream_error" | "partial_error" | "stale";
 
 function base64ToBytes(b64: string): Uint8Array {
@@ -240,6 +281,7 @@ async function playServerSideTts(
   } catch {
     /* ignore */
   }
+  beginSpeechLipSyncFallback();
   try {
     const res = await fetch(`${ttsBaseUrl()}/api/tts-play`, {
       method: "POST",
@@ -248,7 +290,15 @@ async function playServerSideTts(
       signal: controller.signal,
     });
     probe?.mark("server_play_response", { ok: res.ok, status: res.status });
-    if (!res.ok) return "http_error";
+    if (!res.ok) {
+      stopSpeechLipSync();
+      try {
+        await releaseMultimodalPlaybackGateIfAllowed();
+      } catch {
+        /* ignore */
+      }
+      return "http_error";
+    }
 
     const result = await res.json();
     probe?.mark("server_play_completed", {
@@ -256,8 +306,15 @@ async function playServerSideTts(
       audio_seconds: result.audio_seconds,
       first_chunk_seconds: result.first_chunk_seconds,
     });
+    stopSpeechLipSync();
     return "ended";
   } catch (e) {
+    stopSpeechLipSync();
+    try {
+      await releaseMultimodalPlaybackGateIfAllowed();
+    } catch {
+      /* ignore */
+    }
     if (controller.signal.aborted) return "unsupported";
     probe?.mark("server_play_error", { reason: String(e) });
     return "http_error";
@@ -321,7 +378,7 @@ async function playStreamingTts(
       const buffer = pcm16ToAudioBuffer(ctx, base64ToBytes(pcm16B64), sampleRate);
       const source = ctx.createBufferSource();
       source.buffer = buffer;
-      source.connect(ctx.destination);
+      source.connect(getSpeechLipSyncStreamDestination(ctx));
       const startAt = Math.max(nextStart, ctx.currentTime + 0.01);
       nextStart = startAt + buffer.duration;
       pendingSources++;
@@ -420,6 +477,7 @@ export function playPrebakedWavSequence(
     if (ended) return;
     ended = true;
     probe?.mark("sequence_finish");
+    stopSpeechLipSync();
     if (fallbackTimer !== null) {
       window.clearTimeout(fallbackTimer);
       fallbackTimer = null;
@@ -449,6 +507,8 @@ export function playPrebakedWavSequence(
   stopBearSpeech();
   const session = playbackSession;
   currentPlaybackFinish = fireEnd;
+  void lockPlaybackGateForTts();
+
   const queue = [...list];
   const audio = getSharedAudio();
   audio.volume = 1;
@@ -463,8 +523,11 @@ export function playPrebakedWavSequence(
     const fb = fallbackSpeak?.trim();
     if (fb) {
       probe?.mark("fail_all_fallback", { mode: fallbackMode });
-      if (fallbackMode === "browser") speakBrowserFallback(fb.replace(/\n+/g, " "), fireEnd);
-      else announceBearSpeech(fb, fireEnd);
+      if (fallbackMode === "browser" && pcBrowserFallbackAllowed()) {
+        speakBrowserFallback(fb.replace(/\n+/g, " "), fireEnd);
+      } else {
+        announceBearSpeech(fb, fireEnd);
+      }
       probe?.finish("delegated_fallback", { mode: fallbackMode });
     } else fireEnd();
   };
@@ -508,6 +571,11 @@ export function playPrebakedWavSequence(
         .then(() => {
           probe?.mark("play_started", { url });
           notifyPlaybackActuallyStarted();
+          try {
+            beginSpeechLipSyncForAudioElement(audio, getSharedAudioContext());
+          } catch {
+            beginSpeechLipSyncFallback();
+          }
         })
         .catch(() => {
           probe?.mark("play_rejected", { url });
@@ -576,8 +644,7 @@ export function announceBearSpeech(text: string, onEnded?: () => void): void {
           }
           // 先 await done，避免只 fire-and-forget 导致闸门未释放。
           try {
-            const { postMultimodalPlaybackDone } = await import("../bear_pipeline/bearAgentClient");
-            await postMultimodalPlaybackDone();
+            await releaseMultimodalPlaybackGateIfAllowed();
           } catch {
             /* ignore */
           }
@@ -586,13 +653,17 @@ export function announceBearSpeech(text: string, onEnded?: () => void): void {
           return;
         }
         probe?.mark("server_play_fallback", { reason: serverResult });
-        // 服务端播放失败时也要松开闸门，否则麦克风会被一直清空。
-        try {
-          const { postMultimodalForceIdle } = await import("../bear_pipeline/bearAgentClient");
-          await postMultimodalForceIdle();
-        } catch {
-          /* ignore */
-        }
+        console.warn(
+          "[xiongdaTts] PC 服务端播音失败（/api/tts-play），改走浏览器 CosyVoice。",
+          "请确认 tts_server 已安装 sounddevice，且 PC 音响可用。",
+          serverResult
+        );
+        // server play 已在 playServerSideTts 内 release 闸门；此处仅重新上锁走浏览器路径。
+        await lockPlaybackGateForTts();
+      }
+
+      if (!serverPlayEnabled()) {
+        await lockPlaybackGateForTts();
       }
 
       const streamResult = await playStreamingTts(t, session, controller, probe);
@@ -603,6 +674,12 @@ export function announceBearSpeech(text: string, onEnded?: () => void): void {
         }
         if (currentPlaybackFinish === onEnded) {
           currentPlaybackFinish = null;
+        }
+        stopSpeechLipSync();
+        try {
+          await releaseMultimodalPlaybackGateIfAllowed();
+        } catch {
+          /* ignore */
         }
         onEnded?.();
         probe?.finish("stream_ended");
@@ -616,6 +693,12 @@ export function announceBearSpeech(text: string, onEnded?: () => void): void {
         if (currentPlaybackFinish === onEnded) {
           currentPlaybackFinish = null;
         }
+        stopSpeechLipSync();
+        try {
+          await releaseMultimodalPlaybackGateIfAllowed();
+        } catch {
+          /* ignore */
+        }
         onEnded?.();
         probe?.finish("stream_partial_error");
         return;
@@ -625,6 +708,10 @@ export function announceBearSpeech(text: string, onEnded?: () => void): void {
         if (currentTtsAbortController === controller) {
           currentTtsAbortController = null;
         }
+        if (currentPlaybackFinish === onEnded) {
+          currentPlaybackFinish = null;
+        }
+        onEnded?.();
         probe?.finish("stale_session_stream");
         return;
       }
@@ -662,6 +749,7 @@ export function announceBearSpeech(text: string, onEnded?: () => void): void {
       audio.src = objUrl;
       audio.onended = () => {
         probe?.mark("audio_ended");
+        stopSpeechLipSync();
         if (currentPlaybackFinish === onEnded) {
           currentPlaybackFinish = null;
         }
@@ -680,6 +768,11 @@ export function announceBearSpeech(text: string, onEnded?: () => void): void {
         await audio.play();
         probe?.mark("play_started");
         notifyPlaybackActuallyStarted();
+        try {
+          beginSpeechLipSyncForAudioElement(audio, getSharedAudioContext());
+        } catch {
+          beginSpeechLipSyncFallback();
+        }
       } catch (playErr: unknown) {
         probe?.mark("play_rejected");
         revokeCurrentUrl();
@@ -691,11 +784,17 @@ export function announceBearSpeech(text: string, onEnded?: () => void): void {
           /* ignore */
         }
         console.warn(
-          "[xiongdaTts] 音频播放被浏览器拦截或未就绪，已改用系统朗读。若需要克隆音色，请在点击「发送」等按钮后保持页面在前台并等待合成完成；合成较慢时请留意控制台。",
+          "[xiongdaTts] 音频播放被浏览器拦截或未就绪。",
           playErr
         );
-        speakBrowserFallback(t, onEnded);
-        probe?.finish("delegated_browser_fallback", { reason: String(playErr) });
+        if (pcBrowserFallbackAllowed()) {
+          speakBrowserFallback(t, onEnded);
+          probe?.finish("delegated_browser_fallback", { reason: String(playErr) });
+        } else {
+          resolveCurrentPlayback();
+          onEnded?.();
+          probe?.finish("play_rejected_no_browser_fallback", { reason: String(playErr) });
+        }
       }
     } catch (e) {
       window.clearTimeout(tid);
@@ -704,11 +803,17 @@ export function announceBearSpeech(text: string, onEnded?: () => void): void {
       }
       revokeCurrentUrl();
       console.warn(
-        `[xiongdaTts] 请求 ${ttsBaseUrl()}/api/tts 失败（将使用浏览器朗读）。请确认已启动 tts_server.py，且无显卡时服务端设置 XIONGDA_TTS_DEVICE=cpu 或在前端 .env 设置 VITE_XIONGDA_TTS_DEVICE=cpu。`,
+        `[xiongdaTts] 请求 ${ttsBaseUrl()}/api/tts 失败。`,
         e
       );
-      speakBrowserFallback(t, onEnded);
-      probe?.finish("delegated_browser_fallback", { reason: String(e) });
+      if (pcBrowserFallbackAllowed()) {
+        speakBrowserFallback(t, onEnded);
+        probe?.finish("delegated_browser_fallback", { reason: String(e) });
+      } else {
+        resolveCurrentPlayback();
+        onEnded?.();
+        probe?.finish("tts_failed_no_browser_fallback", { reason: String(e) });
+      }
     }
   })();
 }

@@ -483,6 +483,56 @@ class DashScopeTtsEngine:
             )
         return last, results
 
+    def synthesize_play_pc(self, text: str) -> tuple[Path | None, list[dict]]:
+        """按标点切句：每句合成完立刻在本机 sounddevice 播放（PC 音响，无需浏览器点击）。"""
+        clean = text.replace("\r\n", "\n").strip()
+        if not clean:
+            raise ValueError("empty text")
+        self.counter += 1
+        base = f"dashscope_pc_{self.counter:06d}"
+        parts = split_text_by_punctuation(clean) if self.split_punctuation else [clean]
+        results: list[dict] = []
+        last: Path | None = None
+        wall0 = time.perf_counter()
+        for index, part in enumerate(parts):
+            started = time.perf_counter()
+            wav, meta = self._synthesize_wav_bytes(part, voice_id=self.voice_id, model=self.model_name, root=ROOT)
+            out = self.output_dir / f"{base}_{index:02d}.wav"
+            out.write_bytes(wav)
+            synth_s = time.perf_counter() - started
+            play_t0 = time.perf_counter()
+            _play_wav_on_pc(out)
+            play_s = time.perf_counter() - play_t0
+            result = {
+                "source_text": clean,
+                "segment_text": part,
+                "segment_index": index,
+                "segment_count": len(parts),
+                "audio_seconds": None,
+                "first_chunk_seconds": synth_s,
+                "pc_play_seconds": play_s,
+                "request_id": meta.get("request_id"),
+                "path": str(out),
+            }
+            results.append(result)
+            last = out
+            print(
+                json.dumps(
+                    {
+                        "event": "dashscope_pc_segment_played",
+                        "index": index,
+                        "count": len(parts),
+                        "text": part,
+                        "synth_seconds": round(synth_s, 2),
+                        "play_seconds": round(play_s, 2),
+                        "wall_seconds": round(time.perf_counter() - wall0, 2),
+                    },
+                    ensure_ascii=False,
+                ),
+                flush=True,
+            )
+        return last, results
+
     def iter_pcm16_stream(self, text: str):
         raise NotImplementedError("dashscope backend does not support pcm stream yet")
 
@@ -654,6 +704,22 @@ def _board_speaker_url() -> str:
     return (os.environ.get("BOARD_SPEAKER_URL") or os.environ.get("XIONGDA_BOARD_SPEAKER_URL") or "").strip()
 
 
+def _play_wav_on_pc(wav_path: Path) -> None:
+    import numpy as np
+    import sounddevice as sd
+    import wave
+
+    with wave.open(str(wav_path), "rb") as w:
+        rate = w.getframerate()
+        channels = w.getnchannels()
+        frames = w.readframes(w.getnframes())
+    audio = np.frombuffer(frames, dtype="<i2").astype(np.float32) / 32768.0
+    if channels > 1:
+        audio = audio.reshape(-1, channels)
+    sd.play(audio, rate)
+    sd.wait()
+
+
 def _post_wav_to_board(url: str, wav_path: Path) -> None:
     import urllib.error
     import urllib.request
@@ -760,18 +826,19 @@ async def api_tts_play(body: TtsBody, request: Request):
             raise HTTPException(status_code=500, detail=str(exc)) from exc
         mode = "board_speaker_segment_play"
     elif backend == "dashscope":
-        def run_cloud_file():
+
+        def run_cloud_pc_play():
             with _synth_lock:
-                _data, out_path, segs = engine.synthesize(clean)
+                out_path, segs = engine.synthesize_play_pc(clean)
                 results.extend(segs)
                 return out_path
 
         try:
-            saved = await loop.run_in_executor(None, run_cloud_file)
+            saved = await loop.run_in_executor(None, run_cloud_pc_play)
         except Exception as exc:
             traceback.print_exc()
             raise HTTPException(status_code=500, detail=str(exc)) from exc
-        mode = "file_only"
+        mode = "server_play"
     else:
         global _stream_player
         with _stream_player_lock:
@@ -869,6 +936,9 @@ def health(request: Request):
     if backend == "dashscope":
         payload["voice_id"] = getattr(engine, "voice_id", None)
         payload["model"] = getattr(engine, "model_name", None)
+    board_url = _board_speaker_url()
+    if board_url:
+        payload["board_speaker_url"] = board_url
     return payload
 
 

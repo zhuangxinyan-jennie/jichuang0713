@@ -14,7 +14,8 @@ from .json_io import atomic_write_json_fast
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _CROWD_CANDIDATES = (
     _REPO_ROOT / "pre_on_board_local_start_bundle" / "board_deploy" / "crowd_flow",
-    _REPO_ROOT / "crowd_flow",
+    _REPO_ROOT / "experiments" / "crowd_flow",
+    _REPO_ROOT / "crowd_flow",  # legacy root path
 )
 
 _analyzer = None

@@ -16,6 +16,7 @@ import {
   setMergedPlayMode,
   syncMergedPlayModeFromTopNav,
 } from "./services/unityMergedMode";
+import { isMapNavigationActive } from "./services/unityMapBridge";
 import { useUnityReady } from "./hooks/useUnityReady";
 import { agentPipelineDebugUi } from "./bear_pipeline/agentPipelineUi";
 import { useTerminalKeyboardIsolation } from "./hooks/useTerminalKeyboardIsolation";
@@ -30,6 +31,8 @@ import {
 } from "./bear_pipeline/bearAgentClient";
 import { guestInputMatchesWeatherQuery } from "./bear_pipeline/weatherIntentTriggers";
 import { handleBearAgentPayload } from "./bear_pipeline/handleBearAgentPayload";
+import { registerMapArrivalPlayback } from "./bear_pipeline/mapArrivalDispatch";
+import { shouldDeferMapNavigationPlaybackGateRelease } from "./services/mapNavigationHandoff";
 import type { BoardAsrLiveFields, PerceptionPayload } from "./bear_pipeline/bearAgentTypes";
 import { parseGuestNavIntent, guestInputLooksLikeMapQuestion } from "./bear_pipeline/navIntentTriggers";
 import {
@@ -43,6 +46,19 @@ function boardAutoPollDefault(): boolean {
   if (v === undefined) return true;
   const s = String(v).trim().toLowerCase();
   return !(s === "0" || s === "false" || s === "off");
+}
+
+function agentAutoStartEnabled(): boolean {
+  const flag = (import.meta.env.VITE_AGENT_AUTO_START as string | undefined)?.trim().toLowerCase();
+  return !(flag === "0" || flag === "false" || flag === "off");
+}
+
+/** 认到人后延迟多久播欢迎语（毫秒）。默认 1s，与 `VITE_PERSON_WELCOME_DELAY_MS` 对齐。 */
+function personWelcomeDelayMs(): number {
+  const raw = (import.meta.env.VITE_PERSON_WELCOME_DELAY_MS as string | undefined)?.trim();
+  if (!raw) return 1000;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : 1000;
 }
 
 type ManualInputSource = "typed" | "voice_mock" | "board_auto";
@@ -70,7 +86,10 @@ export default function App() {
   /** 本轮实际送进 Agent 的多模态（右下角展示） */
   const [lastSentPerception, setLastSentPerception] = useState<PerceptionPayload | null>(null);
   const lastBoardDriveSeqRef = useRef(0);
-  const didAutoStartRef = useRef(false);
+  const lastPersonDetectedRef = useRef<boolean | null>(null);
+  const personWelcomeArmedRef = useRef(true);
+  const personWelcomeInFlightRef = useRef(false);
+  const personWelcomeDelayTimerRef = useRef<number | null>(null);
   /** 焦点在右侧/底部表单内：隔离键盘并暂时禁止点击 Unity，避免「只能输入一次」 */
   const [terminalIslandFocused, setTerminalIslandFocused] = useState(false);
 
@@ -111,6 +130,8 @@ export default function App() {
 
   useEffect(() => {
     if (!useMergedUnity) return;
+    // 合并包探测完成时不要打断已发起的导览（否则会一直停在聊天熊/空镜头）
+    if (isMapNavigationActive()) return;
     syncMergedPlayModeFromTopNav(topNav);
   }, [useMergedUnity, topNav]);
 
@@ -154,6 +175,18 @@ export default function App() {
     }),
     [enterMapTabFromAgent, enterStoryTabFromAgent, enterVoiceTabFromAgent]
   );
+
+  useEffect(() => {
+    registerMapArrivalPlayback((arrival) => {
+      handleBearAgentPayload(arrival, ctx, {
+        ...bearPayloadNavOptions,
+        onPlaybackChainFinished: () => {
+          if (shouldDeferMapNavigationPlaybackGateRelease()) return;
+          void postMultimodalPlaybackDone();
+        },
+      });
+    });
+  }, [ctx, bearPayloadNavOptions]);
 
   const onTopNav = useCallback(
     (id: TopNavId) => {
@@ -411,43 +444,44 @@ export default function App() {
     void dispatchBearFsm(simulated, probe, "voice_mock");
   }, [topNav, sendMapQuestion, dispatchBearFsm, createManualInputProbe]);
 
-  useEffect(() => {
-    const flag = (import.meta.env.VITE_AGENT_AUTO_START as string | undefined)?.trim().toLowerCase();
-    if (flag === "0" || flag === "false" || flag === "off") return;
-    if (didAutoStartRef.current) return;
-    const autoStartWindow = window as unknown as { __xiongdaAgentAutoStartDone?: boolean };
-    if (autoStartWindow.__xiongdaAgentAutoStartDone) return;
-    autoStartWindow.__xiongdaAgentAutoStartDone = true;
-    didAutoStartRef.current = true;
-
-    let cancelled = false;
-    void (async () => {
+  const triggerPersonWelcome = useCallback(
+    async (perception: PerceptionPayload) => {
+      if (personWelcomeInFlightRef.current) return;
+      personWelcomeInFlightRef.current = true;
       try {
-        await postReset();
-        if (cancelled) return;
-        lastBoardDriveSeqRef.current = 0;
-        setGuestInput("");
-        setSubtitle("");
-        setBoardBridgePerception(null);
-        setBoardLiveAsr(null);
-        setLastSentPerception(null);
-
-        const bootPerception = mapPerception("");
-        const out = await postProcessFullWithOptions(bootPerception);
-        if (cancelled) return;
-        handleBearAgentPayload(out, ctx, bearPayloadNavOptions);
+        const out = await postProcessFullWithOptions({
+          ...perception,
+          person_detected: true,
+          speech_text: "",
+        });
+        handleBearAgentPayload(out, ctx, {
+          ...bearPayloadNavOptions,
+          onPlaybackChainFinished: () => {
+            if (shouldDeferMapNavigationPlaybackGateRelease()) return;
+            void postMultimodalPlaybackDone();
+          },
+        });
       } catch (e) {
-        if (!cancelled) {
-          const msg = e instanceof Error ? e.message : String(e);
-          setAgentErr(msg);
-        }
+        personWelcomeArmedRef.current = true;
+        const msg = e instanceof Error ? e.message : String(e);
+        setAgentErr(msg);
+      } finally {
+        personWelcomeInFlightRef.current = false;
       }
-    })();
+    },
+    [ctx, bearPayloadNavOptions]
+  );
 
-    return () => {
-      cancelled = true;
-    };
-  }, [ctx, bearPayloadNavOptions, mapPerception]);
+  useEffect(() => {
+    if (!agentAutoStartEnabled()) return;
+    void (async () => {
+      await postMultimodalForceIdle();
+      await postReset();
+      lastBoardDriveSeqRef.current = 0;
+      lastPersonDetectedRef.current = null;
+      personWelcomeArmedRef.current = true;
+    })();
+  }, []);
 
   useEffect(() => {
     if (!boardAutoFollow) {
@@ -476,6 +510,43 @@ export default function App() {
           setBoardBridgePerception(r.perception);
           applyLiveBoardPerception(r.perception);
         }
+
+        const personNow =
+          typeof r.live_person_detected === "boolean"
+            ? r.live_person_detected
+            : Boolean(r.perception?.person_detected);
+        const prevPerson = lastPersonDetectedRef.current;
+        lastPersonDetectedRef.current = personNow;
+        if (!personNow) {
+          personWelcomeArmedRef.current = true;
+          if (personWelcomeDelayTimerRef.current !== null) {
+            window.clearTimeout(personWelcomeDelayTimerRef.current);
+            personWelcomeDelayTimerRef.current = null;
+          }
+        }
+        if (
+          agentAutoStartEnabled() &&
+          boardAutoFollow &&
+          personWelcomeArmedRef.current &&
+          personNow &&
+          (prevPerson === false || prevPerson === null)
+        ) {
+          personWelcomeArmedRef.current = false;
+          const base = r.perception ?? mapPerception("");
+          const welcomeDelay = personWelcomeDelayMs();
+          if (personWelcomeDelayTimerRef.current !== null) {
+            window.clearTimeout(personWelcomeDelayTimerRef.current);
+          }
+          personWelcomeDelayTimerRef.current = window.setTimeout(() => {
+            personWelcomeDelayTimerRef.current = null;
+            if (cancelled || !lastPersonDetectedRef.current) {
+              personWelcomeArmedRef.current = true;
+              return;
+            }
+            void triggerPersonWelcome({ ...base, person_detected: true, speech_text: "" });
+          }, welcomeDelay);
+        }
+
         if (r.seq < lastBoardDriveSeqRef.current) {
           lastBoardDriveSeqRef.current = 0;
         }
@@ -488,6 +559,7 @@ export default function App() {
             handleBearAgentPayload(r.output, ctx, {
               ...bearPayloadNavOptions,
               onPlaybackChainFinished: () => {
+                if (shouldDeferMapNavigationPlaybackGateRelease()) return;
                 void postMultimodalPlaybackDone();
               },
             });
@@ -505,8 +577,12 @@ export default function App() {
     return () => {
       cancelled = true;
       window.clearInterval(id);
+      if (personWelcomeDelayTimerRef.current !== null) {
+        window.clearTimeout(personWelcomeDelayTimerRef.current);
+        personWelcomeDelayTimerRef.current = null;
+      }
     };
-  }, [boardAutoFollow, ctx, bearPayloadNavOptions, applyLiveBoardPerception, topNav]);
+  }, [boardAutoFollow, ctx, bearPayloadNavOptions, applyLiveBoardPerception, topNav, mapPerception, triggerPersonWelcome]);
 
   useEffect(() => {
     if (!import.meta.env.DEV) return;

@@ -14,9 +14,12 @@ if (-not $Python) {
     if ($env:COSYVOICE_PYTHON -and (Test-Path -LiteralPath $env:COSYVOICE_PYTHON)) {
         $Python = $env:COSYVOICE_PYTHON
     } else {
-        $defaultPy = Join-Path $ProjectRoot "third_party\CosyVoice\.venv-clean\Scripts\python.exe"
-        if (Test-Path -LiteralPath $defaultPy) { $Python = $defaultPy }
-        else { $Python = "python" }
+        $candidates = @(
+            (Join-Path $ProjectRoot "bear_agent\.venv\Scripts\python.exe"),
+            (Join-Path $ProjectRoot "archive\tts-local\CosyVoice\.venv-clean\Scripts\python.exe")
+        )
+        $Python = ($candidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1)
+        if (-not $Python) { $Python = "python" }
     }
 }
 

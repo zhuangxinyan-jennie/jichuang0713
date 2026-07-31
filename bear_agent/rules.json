@@ -24,7 +24,7 @@
       "response": {
         "speech": "你好呀！俺也向你挥挥手！",
         "motion_type": "sequential",
-        "actions": ["挥手致意"],
+        "actions": ["挥手致意", "双手欢呼"],
         "emotion": "smile"
       }
     },

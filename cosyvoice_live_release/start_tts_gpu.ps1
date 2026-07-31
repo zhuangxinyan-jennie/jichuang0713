@@ -15,7 +15,7 @@ if (-not $Python) {
     if ($env:COSYVOICE_PYTHON -and (Test-Path -LiteralPath $env:COSYVOICE_PYTHON)) {
         $Python = $env:COSYVOICE_PYTHON
     } else {
-        $defaultPy = Join-Path $ProjectRoot "third_party\CosyVoice\.venv-clean\Scripts\python.exe"
+        $defaultPy = Join-Path $ProjectRoot "archive\tts-local\CosyVoice\.venv-clean\Scripts\python.exe"
         if (Test-Path -LiteralPath $defaultPy) { $Python = $defaultPy }
         else { $Python = "C:\Users\tanza\anaconda3\envs\jichuang0505\python.exe" }
     }
@@ -81,8 +81,8 @@ $env:PATH = (($ExtraDllDirs + @($env:PATH)) -join [System.IO.Path]::PathSeparato
 $env:PYTHONPATH = "$Root;$Root\scripts"
 $env:XIONGDA_TTS_DEVICE = "cuda"
 $env:XIONGDA_TTS_PORT = [string]$Port
-$env:COSYVOICE_MODEL_DIR = (Join-Path (Split-Path -Parent $Root) "pretrained_models\CosyVoice2-0.5B")
-$env:COSYVOICE_REPO = (Join-Path (Split-Path -Parent $Root) "third_party\CosyVoice")
+$env:COSYVOICE_MODEL_DIR = (Join-Path $ProjectRoot "archive\tts-local\CosyVoice2-0.5B")
+$env:COSYVOICE_REPO = (Join-Path $ProjectRoot "archive\tts-local\CosyVoice")
 $env:COSYVOICE_STREAM_TOKEN_HOP_LEN = "20"
 # Cap this process to ~30% VRAM; set COSYVOICE_GPU_MEMORY_FRACTION=0 to disable
 if ([string]::IsNullOrWhiteSpace($env:COSYVOICE_GPU_MEMORY_FRACTION)) {

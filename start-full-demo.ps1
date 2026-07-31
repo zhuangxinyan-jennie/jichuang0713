@@ -14,7 +14,8 @@ param(
     [switch]$NoBoard,
     [switch]$NoOpenBrowser,
     [switch]$ReuseExisting,
-    [string]$AsrBackend = "ctc"
+    [string]$AsrBackend = "ctc",
+    [switch]$BoardSpeaker
 )
 
 $ErrorActionPreference = "Stop"
@@ -38,19 +39,32 @@ New-Item -ItemType Directory -Force -Path $LogDir, $BridgeOut, $BridgeLogDir | O
 
 $env:BEAR_AGENT_ROOT = $BearRoot
 $env:PRE_BOARD_ROOT = $BundleRoot
-if (-not $env:BOARD_SPEAKER_URL) { $env:BOARD_SPEAKER_URL = "http://${BoardHost}:9891/play" }
+if ($BoardSpeaker) {
+    if (-not $env:BOARD_SPEAKER_URL) { $env:BOARD_SPEAKER_URL = "http://${BoardHost}:9891/play" }
+    $env:VITE_XIONGDA_TTS_SERVER_PLAY = "1"
+    $ttsEnvComment = "# auto-written by start-full-demo.ps1: TTS plays on board CS202 speaker (-BoardSpeaker)"
+} else {
+    Remove-Item Env:BOARD_SPEAKER_URL -ErrorAction SilentlyContinue
+    $env:VITE_XIONGDA_TTS_SERVER_PLAY = "1"
+    $ttsEnvComment = "# auto-written by start-full-demo.ps1: TTS on PC speakers via tts_server /api/tts-play (sounddevice)"
+}
 if (-not $env:XIONGDA_TTS_BACKEND) { $env:XIONGDA_TTS_BACKEND = "dashscope" }
 if (-not $env:XIONGDA_TTS_DEVICE) { $env:XIONGDA_TTS_DEVICE = "cloud" }
-$env:VITE_XIONGDA_TTS_SERVER_PLAY = "1"
 $env:VITE_XIONGDA_TTS_URL = "http://127.0.0.1:9890"
 $env:VITE_BEAR_AGENT_URL = "http://127.0.0.1:8765"
+$env:VITE_BOARD_PLAYBACK_GATE_URL = "http://${BoardHost}:8788"
+if (-not $env:BEAR_AGENT_PLAYBACK_DRAIN_SEC) { $env:BEAR_AGENT_PLAYBACK_DRAIN_SEC = "1" }
+if (-not $env:BOARD_PLAYBACK_DRAIN_SEC) { $env:BOARD_PLAYBACK_DRAIN_SEC = "1" }
+if (-not $env:VITE_PERSON_WELCOME_DELAY_MS) { $env:VITE_PERSON_WELCOME_DELAY_MS = "1000" }
 
 $WebEnv = Join-Path $WebRoot ".env.local"
 @(
-    "# auto-written by start-full-demo.ps1: TTS plays on board CS202 speaker"
-    "VITE_XIONGDA_TTS_SERVER_PLAY=1"
+    $ttsEnvComment
+    "VITE_XIONGDA_TTS_SERVER_PLAY=$($env:VITE_XIONGDA_TTS_SERVER_PLAY)"
     "VITE_XIONGDA_TTS_URL=http://127.0.0.1:9890"
     "VITE_BEAR_AGENT_URL=http://127.0.0.1:8765"
+    "VITE_BOARD_PLAYBACK_GATE_URL=http://${BoardHost}:8788"
+    "VITE_PERSON_WELCOME_DELAY_MS=$($env:VITE_PERSON_WELCOME_DELAY_MS)"
 ) | Set-Content -LiteralPath $WebEnv -Encoding UTF8
 
 function Get-Py {
@@ -115,6 +129,31 @@ function Ensure-Paramiko {
     }
 }
 
+function Ensure-Sounddevice {
+    param([string]$PythonExe)
+    & $PythonExe -c "import sounddevice" 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "      sounddevice OK (PC speaker)" -ForegroundColor DarkGray
+        return
+    }
+    Write-Host "      try pip install sounddevice ..." -ForegroundColor DarkYellow
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        & $PythonExe -m pip install sounddevice -q *> $null
+    } catch {
+        # ignore pip/network errors
+    }
+    $ErrorActionPreference = $prevEap
+    & $PythonExe -c "import sounddevice" 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "      WARN: sounddevice missing (pip/SSL failed). PC welcome TTS may be silent." -ForegroundColor DarkYellow
+        Write-Host ("      Manual: {0} -m pip install sounddevice" -f $PythonExe) -ForegroundColor DarkGray
+    } else {
+        Write-Host "      sounddevice installed" -ForegroundColor Green
+    }
+}
+
 $py = Get-Py ""
 $pyTts = Get-Py $env:COSYVOICE_PYTHON
 $agentPort = if ($env:BEAR_AGENT_PORT) { [int]$env:BEAR_AGENT_PORT } else { 8765 }
@@ -127,7 +166,11 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ("Board: {0}" -f $BoardHost)
 Write-Host "Web:   http://127.0.0.1:5173"
 Write-Host ("Agent: http://127.0.0.1:{0}   TTS: http://127.0.0.1:{1}" -f $agentPort, $ttsPort)
-Write-Host ("Speaker URL: {0}" -f $env:BOARD_SPEAKER_URL)
+if ($BoardSpeaker) {
+    Write-Host ("Speaker: board CS202  {0}" -f $env:BOARD_SPEAKER_URL)
+} else {
+    Write-Host "Speaker: PC browser (CosyVoice stream/WAV)"
+}
 Write-Host ""
 
 if (-not (Test-Path -LiteralPath (Join-Path $BearRoot "integration_test\server.py"))) {
@@ -170,11 +213,18 @@ try {
     Write-Host ("      OK  http://127.0.0.1:{0}/health" -f $agentPort) -ForegroundColor Green
 
     if (-not $SkipTts) {
-        Write-Host "[2/6] Cloud TTS -> board CS202 ..." -ForegroundColor Yellow
+        if ($BoardSpeaker) {
+            Write-Host "[2/6] Cloud TTS -> board CS202 ..." -ForegroundColor Yellow
+        } else {
+            Write-Host "[2/6] Cloud TTS -> PC speakers (browser) ..." -ForegroundColor Yellow
+        }
         if (-not $env:DASHSCOPE_API_KEY) {
             Write-Host "      WARN: DASHSCOPE_API_KEY missing (check cosyvoice_live_release\env.local.ps1)" -ForegroundColor DarkYellow
         }
         if ((-not $ReuseExisting) -or -not (Test-UrlOk "http://127.0.0.1:$ttsPort/health")) {
+            if (-not $BoardSpeaker) {
+                Ensure-Sounddevice $pyTts
+            }
             $procTts = Start-Process -FilePath $pyTts `
                 -ArgumentList "tts_server.py" `
                 -WorkingDirectory $TtsRoot `
@@ -195,22 +245,30 @@ try {
     }
 
     if (-not $NoBoard) {
-        Write-Host "[3/6] Board runtime + CS202 speaker ..." -ForegroundColor Yellow
+        if ($BoardSpeaker) {
+            Write-Host "[3/6] Board runtime + CS202 speaker ..." -ForegroundColor Yellow
+        } else {
+            Write-Host "[3/6] Board runtime (camera + mic; TTS on PC) ..." -ForegroundColor Yellow
+        }
         $boardScript = Join-Path $Root "scripts\_start_board_full_demo.py"
         if (-not (Test-Path -LiteralPath $boardScript)) { throw "missing $boardScript" }
         & $py $boardScript
         if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) {
             throw "board start failed exit=$LASTEXITCODE"
         }
-        $spkOk = $false
-        for ($i = 0; $i -lt 20; $i++) {
-            if (Test-UrlOk "http://${BoardHost}:9891/health") { $spkOk = $true; break }
-            Start-Sleep -Milliseconds 500
-        }
-        if ($spkOk) {
-            Write-Host ("      OK  http://{0}:9891/health" -f $BoardHost) -ForegroundColor Green
+        if ($BoardSpeaker) {
+            $spkOk = $false
+            for ($i = 0; $i -lt 20; $i++) {
+                if (Test-UrlOk "http://${BoardHost}:9891/health") { $spkOk = $true; break }
+                Start-Sleep -Milliseconds 500
+            }
+            if ($spkOk) {
+                Write-Host ("      OK  http://{0}:9891/health" -f $BoardHost) -ForegroundColor Green
+            } else {
+                Write-Host "      WARN: board speaker :9891 not responding" -ForegroundColor DarkYellow
+            }
         } else {
-            Write-Host "      WARN: board speaker :9891 not responding" -ForegroundColor DarkYellow
+            Write-Host "      skip CS202 check (using PC speakers)" -ForegroundColor DarkGray
         }
     } else {
         Write-Host "[3/6] Skip board (-NoBoard)" -ForegroundColor DarkGray
@@ -255,7 +313,7 @@ try {
     )
     foreach ($c in $checks) {
         if ($SkipTts -and $c.Name -eq "TTS") { continue }
-        if ($NoBoard -and $c.Name -eq "BoardSpeaker") { continue }
+        if (($NoBoard -or -not $BoardSpeaker) -and $c.Name -eq "BoardSpeaker") { continue }
         if (Test-UrlOk $c.Url) {
             Write-Host ("      OK {0}" -f $c.Name) -ForegroundColor Green
         } else {
@@ -268,7 +326,11 @@ try {
     Write-Host "----------------------------------------" -ForegroundColor Magenta
     Write-Host " Open: http://127.0.0.1:5173" -ForegroundColor Magenta
     Write-Host " Top-left shows person detected / not detected" -ForegroundColor Magenta
-    Write-Host " Speak to BOARD camera + mic; audio on CS202" -ForegroundColor Magenta
+    if ($BoardSpeaker) {
+        Write-Host " Speak to BOARD camera + mic; audio on CS202" -ForegroundColor Magenta
+    } else {
+        Write-Host " Speak to BOARD camera + mic; welcome when person detected; audio on PC speakers" -ForegroundColor Magenta
+    }
     Write-Host " Ctrl+C in this window stops PC services" -ForegroundColor DarkGray
     Write-Host " Full stop (incl. board): .\stop-full-demo.ps1" -ForegroundColor DarkGray
     Write-Host "----------------------------------------" -ForegroundColor Magenta

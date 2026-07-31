@@ -46,10 +46,16 @@ namespace SmartParkTerminal
         [SerializeField] private float chatLookHeight = 1.05f;
         [SerializeField] private float chatFieldOfView = 35f;
 
+        [Header("导览熊（地图模式）")]
+        [SerializeField] private float mapGroundY = 0.22f;
+        [Tooltip("聊天站位在水域时，导览熊吸附失败则落在此（方特城堡门口道路）")]
+        [SerializeField] private Vector3 mapFallbackSpawn = new Vector3(-1.612f, 0.22f, -5.549f);
+        [SerializeField] private float mapSnapSearchRadius = 12f;
+
         [Header("启动")]
         [SerializeField] private PlayMode startMode = PlayMode.Chat;
         [Tooltip("导览到达目的地后自动切回聊天，并把互动熊对齐到导览熊位置")]
-        [SerializeField] private bool autoChatAfterNavigation = true;
+        [SerializeField] private bool autoChatAfterNavigation = false;
         [Tooltip("为 true：首次进场景用固定聊天站位；之后切回聊天时跟随导览熊最后位置")]
         [SerializeField] private bool followGuidePositionWhenEnteringChat = true;
 
@@ -58,6 +64,8 @@ namespace SmartParkTerminal
         private bool subscribedNav;
         /** 导览熊已参与地图/导航后，聊天模式应站在导览熊处而非固定点 */
         private bool guidePositionIsAuthoritative;
+        /** 最近一次导航终点（问路到达海螺湾等），切回互动熊时优先用此坐标 */
+        private Vector3? lastNavigationArrivalWorld;
 
         public PlayMode CurrentMode
         {
@@ -123,23 +131,80 @@ namespace SmartParkTerminal
             }
         }
 
+        /// <summary>
+        /// 导览熊默认隐藏时 GameObject.Find / FindObjectOfType 找不到，需扫 inactive。
+        /// </summary>
+        public static Transform FindSceneTransformByName(string objectName)
+        {
+            if (string.IsNullOrEmpty(objectName))
+            {
+                return null;
+            }
+
+            var all = Resources.FindObjectsOfTypeAll<Transform>();
+            for (int i = 0; i < all.Length; i++)
+            {
+                Transform t = all[i];
+                if (t == null || t.name != objectName)
+                {
+                    continue;
+                }
+
+                if (!t.gameObject.scene.IsValid())
+                {
+                    continue;
+                }
+
+                return t;
+            }
+
+            return null;
+        }
+
+        public static ParkMapBearController FindSceneGuideBearController()
+        {
+            var all = Resources.FindObjectsOfTypeAll<ParkMapBearController>();
+            for (int i = 0; i < all.Length; i++)
+            {
+                ParkMapBearController ctrl = all[i];
+                if (ctrl == null)
+                {
+                    continue;
+                }
+
+                if (!ctrl.gameObject.scene.IsValid())
+                {
+                    continue;
+                }
+
+                if (ctrl.gameObject.name == InteractiveBearObjectName)
+                {
+                    continue;
+                }
+
+                return ctrl;
+            }
+
+            return null;
+        }
+
         private void EnsureRefs()
         {
             if (interactiveBearRoot == null)
             {
-                var go = GameObject.Find(InteractiveBearObjectName);
-                if (go != null)
+                Transform t = FindSceneTransformByName(InteractiveBearObjectName);
+                if (t != null)
                 {
-                    interactiveBearRoot = go.transform;
+                    interactiveBearRoot = t;
                 }
             }
 
             if (guideBearRoot == null)
             {
-                var go = GameObject.Find(GuideBearObjectName);
-                if (go != null)
+                Transform t = FindSceneTransformByName(GuideBearObjectName);
+                if (t != null)
                 {
-                    guideBearRoot = go.transform;
+                    guideBearRoot = t;
                 }
             }
 
@@ -150,7 +215,7 @@ namespace SmartParkTerminal
 
             if (guideBearController == null)
             {
-                guideBearController = FindObjectOfType<ParkMapBearController>();
+                guideBearController = FindSceneGuideBearController();
                 if (guideBearController != null)
                 {
                     guideBearRoot = guideBearController.transform;
@@ -215,14 +280,83 @@ namespace SmartParkTerminal
             subscribedNav = false;
         }
 
-        private void OnGuideNavigationFinished()
+        private void OnGuideNavigationFinished(Vector3 arrivalWorld)
         {
+            lastNavigationArrivalWorld = arrivalWorld;
             guidePositionIsAuthoritative = true;
-            SyncInteractiveToGuide();
+            ApplyGuideBearPosition(arrivalWorld);
+            WarpInteractiveBearToWorld(arrivalWorld, GetGuideFacingOrDefault());
             if (autoChatAfterNavigation)
             {
                 ApplyMode(PlayMode.Chat, true);
             }
+        }
+
+        /// <summary>WebGL：前端收到到达上报后再次锁定互动熊到终点（防重复 SetPlayMode 把熊拉回城堡）。</summary>
+        public void ConfirmNavigationArrival(string payloadJson)
+        {
+            EnsureRefs();
+            if (!TryParseArrivalJson(payloadJson, out Vector3 pos))
+            {
+                return;
+            }
+
+            lastNavigationArrivalWorld = pos;
+            guidePositionIsAuthoritative = true;
+            ApplyGuideBearPosition(pos);
+            WarpInteractiveBearToWorld(pos, GetGuideFacingOrDefault());
+
+            if (current != PlayMode.Chat)
+            {
+                ApplyMode(PlayMode.Chat, false);
+            }
+            else
+            {
+                PlaceInteractiveBearForChatMode();
+            }
+
+            Debug.Log("[MergedPlayModeBridge] ConfirmNavigationArrival → " + pos);
+        }
+
+        private static bool TryParseArrivalJson(string json, out Vector3 pos)
+        {
+            pos = Vector3.zero;
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return false;
+            }
+
+            var match = System.Text.RegularExpressions.Regex.Match(
+                json,
+                "\"x\"\\s*:\\s*([-+0-9.eE]+)\\s*,\\s*\"y\"\\s*:\\s*([-+0-9.eE]+)\\s*,\\s*\"z\"\\s*:\\s*([-+0-9.eE]+)",
+                System.Text.RegularExpressions.RegexOptions.Singleline);
+            if (!match.Success)
+            {
+                return false;
+            }
+
+            try
+            {
+                float x = float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+                float y = float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture);
+                float z = float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture);
+                pos = new Vector3(x, y > 0.001f ? y : 0.22f, z);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private Quaternion GetGuideFacingOrDefault()
+        {
+            if (guideBearRoot != null)
+            {
+                return guideBearRoot.rotation;
+            }
+
+            return Quaternion.Euler(0f, chatStandYaw, 0f);
         }
 
         private void EnsureChatCamera()
@@ -306,7 +440,7 @@ namespace SmartParkTerminal
         {
             if (guideBearController != null)
             {
-                if (guideNavigator != null)
+                if (guideNavigator != null && guideNavigator.IsNavigating)
                 {
                     guideNavigator.CancelNavigation();
                 }
@@ -337,8 +471,23 @@ namespace SmartParkTerminal
 
         private void EnterMapMode()
         {
-            guidePositionIsAuthoritative = true;
-            SyncGuideToInteractive();
+            EnsureRefs();
+            bool navigating = guideNavigator != null && guideNavigator.IsNavigating;
+            if (!navigating)
+            {
+                guidePositionIsAuthoritative = true;
+                lastNavigationArrivalWorld = null;
+                SyncGuideToInteractive();
+                SnapGuideBearToWalkableGround();
+                if (guideBearController != null)
+                {
+                    guideBearController.Configure(5.8f, 420f, mapGroundY, 1.15f, 0.23f, 0.18f, 0.04f);
+                }
+            }
+            else
+            {
+                Debug.Log("[MergedPlayModeBridge] 导航进行中，不重置导览熊位置");
+            }
 
             SetBearVisible(interactiveBearRoot, false);
             SetBearVisible(guideBearRoot, true);
@@ -366,6 +515,91 @@ namespace SmartParkTerminal
             {
                 mapFollowCamera.enabled = true;
                 mapFollowCamera.depth = 0f;
+            }
+        }
+
+        /** 聊天站位常落在喷泉水域；切地图时把导览熊吸到最近灰色道路。 */
+        private void SnapGuideBearToWalkableGround()
+        {
+            if (guideBearRoot == null)
+            {
+                return;
+            }
+
+            Vector3 pos = guideBearRoot.position;
+            Vector3 before = pos;
+            if (!TrySnapGuidePosition(ref pos, mapFallbackSpawn, mapSnapSearchRadius, mapGroundY))
+            {
+                pos = mapFallbackSpawn;
+                pos.y = mapGroundY;
+            }
+
+            ApplyGuideBearPosition(pos);
+
+            if ((pos - before).sqrMagnitude > 0.04f)
+            {
+                Debug.Log("[MergedPlayModeBridge] 导览熊已从不可走区域移到: " + pos);
+            }
+        }
+
+        public static bool TrySnapGuidePosition(
+            ref Vector3 worldPosition,
+            Vector3 fallback,
+            float searchRadius,
+            float groundY)
+        {
+            worldPosition.y = groundY;
+            ParkMapWalkability walkability = ParkMapWalkability.Instance;
+            if (walkability == null)
+            {
+                worldPosition = fallback;
+                worldPosition.y = groundY;
+                return false;
+            }
+
+            if (walkability.IsWalkable(worldPosition))
+            {
+                return true;
+            }
+
+            if (walkability.TrySnapToRoadCorridor(ref worldPosition, searchRadius))
+            {
+                worldPosition.y = groundY;
+                return true;
+            }
+
+            if (walkability.TrySnapToWalkable(ref worldPosition, searchRadius))
+            {
+                worldPosition.y = groundY;
+                return true;
+            }
+
+            worldPosition = fallback;
+            worldPosition.y = groundY;
+            return false;
+        }
+
+        private void ApplyGuideBearPosition(Vector3 pos)
+        {
+            if (guideBearRoot == null)
+            {
+                return;
+            }
+
+            if (guideCc == null)
+            {
+                guideCc = guideBearRoot.GetComponent<CharacterController>();
+            }
+
+            if (guideCc != null)
+            {
+                guideCc.enabled = false;
+                guideBearRoot.position = pos;
+                guideCc.enabled = true;
+            }
+            else
+            {
+                guideBearRoot.position = pos;
             }
         }
 
@@ -417,11 +651,17 @@ namespace SmartParkTerminal
             CopyTransform(guideBearRoot, interactiveBearRoot, null);
         }
 
-        /** 聊天模式：首次用固定站位；问路/导览后站在导览熊最后位置 */
+        /** 聊天模式：首次用固定站位；问路/导览后站在导航终点（海螺湾等） */
         private void PlaceInteractiveBearForChatMode()
         {
             if (interactiveBearRoot == null)
             {
+                return;
+            }
+
+            if (lastNavigationArrivalWorld.HasValue)
+            {
+                WarpInteractiveBearToWorld(lastNavigationArrivalWorld.Value, GetGuideFacingOrDefault());
                 return;
             }
 
@@ -431,10 +671,39 @@ namespace SmartParkTerminal
             {
                 SyncInteractiveToGuide();
                 interactiveBearRoot.localScale = Vector3.one * chatStandScale;
+                RecaptureInteractiveSmplRootBase();
                 return;
             }
 
             WarpInteractiveToChatStand();
+        }
+
+        private void WarpInteractiveBearToWorld(Vector3 worldPos, Quaternion rotation)
+        {
+            if (interactiveBearRoot == null)
+            {
+                return;
+            }
+
+            worldPos.y = mapGroundY;
+            interactiveBearRoot.SetPositionAndRotation(worldPos, rotation);
+            interactiveBearRoot.localScale = Vector3.one * chatStandScale;
+            RecaptureInteractiveSmplRootBase();
+        }
+
+        /** SMPL 根位移基准在 Awake 时锁定；挪到海螺湾等终点后必须刷新，否则下一帧动作会把熊拉回城堡。 */
+        private void RecaptureInteractiveSmplRootBase()
+        {
+            if (interactiveBearRoot == null)
+            {
+                return;
+            }
+
+            SmplhMotionRetarget retarget = interactiveBearRoot.GetComponent<SmplhMotionRetarget>();
+            if (retarget != null)
+            {
+                retarget.RecaptureRootTransformBase();
+            }
         }
 
         private void WarpInteractiveToChatStand()

@@ -79,7 +79,6 @@ export function setMergedPlayMode(mode: "chat" | "map"): void {
   }
   try {
     inst.SendMessage(MERGED_MODE_BRIDGE, "SetPlayMode", mode);
-    inst.SendMessage(MERGED_MODE_BRIDGE, "SetInteractionMode", mode);
   } catch (e) {
     console.error("[merged] SetPlayMode failed", e);
   }

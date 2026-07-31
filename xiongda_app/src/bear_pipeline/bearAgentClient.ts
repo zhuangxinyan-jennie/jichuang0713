@@ -158,7 +158,7 @@ async function postBoardPlaybackGate(path: string): Promise<void> {
 
 /** 通知 Agent：本轮熊大语音（SoVITS / 浏览器 / 预烘焙 WAV 队列）已全部播完，允许 board_bridge 下一次 POST。 */
 export async function postMultimodalPlaybackDone(): Promise<void> {
-  void postBoardPlaybackGate("/api/multimodal/playback-done");
+  await postBoardPlaybackGate("/api/multimodal/playback-done");
   try {
     const res = await fetch(`${baseUrl().replace(/\/$/, "")}/api/multimodal/playback-done`, {
       method: "POST",
@@ -174,7 +174,8 @@ export async function postMultimodalPlaybackDone(): Promise<void> {
 }
 
 export async function postMultimodalPlaybackStart(): Promise<void> {
-  void postBoardPlaybackGate("/api/multimodal/playback-start");
+  // 必须先 await 板端闸门，否则 start 可能在 done 之后才到达，板载 ASR 仍会录入 PC 音响。
+  await postBoardPlaybackGate("/api/multimodal/playback-start");
   try {
     const res = await fetch(`${baseUrl().replace(/\/$/, "")}/api/multimodal/playback-start`, {
       method: "POST",
@@ -191,6 +192,8 @@ export async function postMultimodalPlaybackStart(): Promise<void> {
 
 /** 刷新/恢复：强制放开播音闸门，避免 ASR 字幕被一直清空。 */
 export async function postMultimodalForceIdle(): Promise<void> {
+  // PC 浏览器播音时也要释放板端 :8788，否则板载 ASR 可能一直被 suppress。
+  await postBoardPlaybackGate("/api/multimodal/playback-done");
   try {
     const res = await fetch(`${baseUrl().replace(/\/$/, "")}/api/multimodal/force-idle`, {
       method: "POST",
@@ -235,6 +238,34 @@ export async function postMapQueryWithOptions(
     throw new Error(text || `HTTP ${res.status}`);
   }
   return JSON.parse(text) as BearAgentProcessTestResponse;
+}
+
+/** Unity 导航到达后更新熊大在 map_guide 中的当前 POI，并获取到站讲解 */
+export async function postMapLocationUpdate(body: {
+  x: number;
+  z: number;
+  y?: number;
+  destination?: string;
+  place?: string;
+}): Promise<{
+  ok: boolean;
+  current_location: string;
+  arrival?: Record<string, unknown>;
+}> {
+  const res = await fetch(`${baseUrl().replace(/\/$/, "")}/api/map-location`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(t || `HTTP ${res.status}`);
+  }
+  return (await res.json()) as {
+    ok: boolean;
+    current_location: string;
+    arrival?: Record<string, unknown>;
+  };
 }
 
 export type WeatherSnapshot = {

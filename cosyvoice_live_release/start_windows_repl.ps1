@@ -34,8 +34,8 @@ $env:PATH = (($ExtraDllDirs + @($env:PATH)) -join [System.IO.Path]::PathSeparato
 $ArgsList = @(
     (Join-Path $Root "scripts\cosyvoice_repl.py"),
     "--preset", (Join-Path $Root "scripts\presets\xiongda_live.json"),
-    "--cosyvoice-repo", (Join-Path $ProjectRoot "third_party\CosyVoice"),
-    "--model-dir", (Join-Path $ProjectRoot "pretrained_models\CosyVoice2-0.5B"),
+    "--cosyvoice-repo", (Join-Path $ProjectRoot "archive\tts-local\CosyVoice"),
+    "--model-dir", (Join-Path $ProjectRoot "archive\tts-local\CosyVoice2-0.5B"),
     "--output-dir", (Join-Path $Root "outputs\cosyvoice_repl"),
     "--prefix", "windows_repl"
 )

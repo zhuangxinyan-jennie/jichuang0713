@@ -55,6 +55,7 @@ def main() -> None:
     starter = (
         "#!/bin/bash\n"
         "export BOARD_RESULT_HOST=192.168.137.1\n"
+        "export BOARD_PLAYBACK_GATE_HOST=0.0.0.0\n"
         "export BOARD_LOCAL_MIC=1\n"
         "export BOARD_LOCAL_CAMERA=1\n"
         "export VIDEO_SOURCE=fpga\n"

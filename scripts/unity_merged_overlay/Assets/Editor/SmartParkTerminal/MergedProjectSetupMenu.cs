@@ -19,10 +19,23 @@ namespace SmartParkTerminal.EditorTools
         /** 导览熊 Prefab（地图 Legacy Run），保留勿删 */
         private const string GuideBearPrefabPath =
             "Assets/XiongdaImported/xiongda_base_default/Prefabs/熊大.prefab";
+        private static readonly string[] GuideBearPrefabCandidates =
+        {
+            GuideBearPrefabPath,
+            "Assets/XiongdaImported/xiongda_base_default/xiongda_maybe_final_new/Prefabs/熊大.prefab"
+        };
         /** 与合并场景聊天站位一致 */
         private const float InteractiveBearScale = 0.03f;
         private static readonly Vector3 ChatStandPosition = new Vector3(2.2f, 0.22f, -6.7f);
         private const float ChatStandYaw = 180f;
+        /** 与 poi_registry 方特城堡门口一致，导览熊默认出生点 */
+        private static readonly Vector3 MapGuideSpawnPosition = new Vector3(-1.612f, 0.22f, -5.549f);
+        private const float GuideGroundY = 0.22f;
+        private const float GuideMoveSpeed = 5.8f;
+        private const float GuideCollisionHeight = 1.15f;
+        private const float GuideCollisionRadius = 0.23f;
+        private const float GuideStepOffset = 0.18f;
+        private const float GuideSkinWidth = 0.04f;
 
         [MenuItem("Tools/狗熊岭智慧终端/合并工程：挂上 UnityBridge + 模式相机")]
         public static void WireMergedBridges()
@@ -53,18 +66,29 @@ namespace SmartParkTerminal.EditorTools
             DisableImportedLightsOnInteractiveModelAsset();
 
             // --- 导览熊（地图跑步 · 保留原 Prefab 熊大）---
-            var guideBear = FindGuideBear();
+            var guideBear = EnsureGuideBear();
             if (guideBear == null)
             {
-                Debug.LogError("[MergedSetup] 找不到导览熊 PlayableXiongda / ParkMapBearController。" +
-                               "请确认场景里仍有 " + GuideBearPrefabPath + " 实例。");
+                Debug.LogError("[MergedSetup] 无法创建导览熊 PlayableXiongda。" +
+                               "请确认存在 Prefabs/熊大.prefab，或先运行 setup_merged_unity_project.ps1。");
             }
             else
             {
                 guideBear.name = MergedPlayModeBridge.GuideBearObjectName;
                 StripSmplPipelineFromGuide(guideBear);
                 EnsureGuideComponents(guideBear);
-                Debug.Log("[MergedSetup] 已保留导览熊（Legacy Run）: " + guideBear.name);
+                Vector3 pos = guideBear.transform.position;
+                if (!MergedPlayModeBridge.TrySnapGuidePosition(
+                        ref pos,
+                        MapGuideSpawnPosition,
+                        12f,
+                        GuideGroundY))
+                {
+                    pos = MapGuideSpawnPosition;
+                }
+
+                guideBear.transform.position = pos;
+                Debug.Log("[MergedSetup] 已配置导览熊（Legacy Run）: " + guideBear.name);
             }
 
             // --- 互动熊（SMPL JSON + 表情 · xiongda.fbx）---
@@ -129,33 +153,69 @@ namespace SmartParkTerminal.EditorTools
             return chatCamGo;
         }
 
-        private static ParkMapBearController FindGuideBear()
+        private static ParkMapBearController EnsureGuideBear()
         {
-            var named = GameObject.Find(MergedPlayModeBridge.GuideBearObjectName);
-            if (named != null)
+            ParkMapBearController existing = MergedPlayModeBridge.FindSceneGuideBearController();
+            if (existing != null)
             {
-                var ctrl = named.GetComponent<ParkMapBearController>();
-                if (ctrl != null)
+                return existing;
+            }
+
+            GameObject prefab = LoadGuideBearPrefab();
+            if (prefab == null)
+            {
+                return null;
+            }
+
+            var inst = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+            if (inst == null)
+            {
+                inst = Object.Instantiate(prefab);
+            }
+
+            if (inst == null)
+            {
+                return null;
+            }
+
+            inst.name = MergedPlayModeBridge.GuideBearObjectName;
+            Vector3 spawn = ChatStandPosition;
+            if (!MergedPlayModeBridge.TrySnapGuidePosition(
+                    ref spawn,
+                    MapGuideSpawnPosition,
+                    12f,
+                    GuideGroundY))
+            {
+                spawn = MapGuideSpawnPosition;
+            }
+
+            inst.transform.position = spawn;
+            inst.transform.rotation = Quaternion.Euler(0f, ChatStandYaw, 0f);
+            Debug.Log("[MergedSetup] 已从 Prefab 实例化导览熊: " + GuideBearPrefabPath);
+
+            var ctrl = inst.GetComponent<ParkMapBearController>();
+            if (ctrl == null)
+            {
+                ctrl = inst.AddComponent<ParkMapBearController>();
+            }
+
+            return ctrl;
+        }
+
+        private static GameObject LoadGuideBearPrefab()
+        {
+            for (int i = 0; i < GuideBearPrefabCandidates.Length; i++)
+            {
+                string path = GuideBearPrefabCandidates[i];
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (prefab != null)
                 {
-                    return ctrl;
+                    return prefab;
                 }
             }
 
-            foreach (var ctrl in Object.FindObjectsOfType<ParkMapBearController>())
-            {
-                if (ctrl == null)
-                {
-                    continue;
-                }
-
-                if (ctrl.gameObject.name == MergedPlayModeBridge.InteractiveBearObjectName)
-                {
-                    continue;
-                }
-
-                return ctrl;
-            }
-
+            Debug.LogError("[MergedSetup] 找不到导览熊 Prefab，已尝试: " +
+                           string.Join(", ", GuideBearPrefabCandidates));
             return null;
         }
 
@@ -178,6 +238,15 @@ namespace SmartParkTerminal.EditorTools
         private static void EnsureGuideComponents(ParkMapBearController guideBear)
         {
             var go = guideBear.gameObject;
+            guideBear.Configure(
+                GuideMoveSpeed,
+                420f,
+                GuideGroundY,
+                GuideCollisionHeight,
+                GuideCollisionRadius,
+                GuideStepOffset,
+                GuideSkinWidth);
+
             if (go.GetComponent<ParkMapAutoNavigator>() == null)
             {
                 go.AddComponent<ParkMapAutoNavigator>();
@@ -412,6 +481,8 @@ namespace SmartParkTerminal.EditorTools
             retargetSo.FindProperty("disableAnimatorsInCharacterRootSubtree").boolValue = true;
             retargetSo.FindProperty("autoEnsureFaceDriver").boolValue = true;
             retargetSo.FindProperty("playOnAwake").boolValue = true;
+            retargetSo.FindProperty("loopMotion").boolValue = false;
+            retargetSo.FindProperty("returnToIdleWhenMotionEnds").boolValue = true;
             retargetSo.FindProperty("loopIdleMotion").boolValue = true;
             retargetSo.FindProperty("idleMotionRelativePath").stringValue = "SmplhRetarget/stand.json";
             retargetSo.FindProperty("smplJointSpacePreEulerDegrees").vector3Value = new Vector3(180f, 0f, 0f);

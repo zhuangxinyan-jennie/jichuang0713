@@ -32,9 +32,12 @@ WEATHER_KEYWORDS = (
     "要不要带伞",
 )
 
-# 雨天/高温时推荐的室内或遮阳项目（与 map_guide 地名一致）
-INDOOR_PICKS = ["海螺湾", "电影科技大揭秘", "宇宙博览会", "生命之光"]
-SHADE_PICKS = ["逃出恐龙岛", "唐古拉雪山", "飞越极限"]
+# 雨天/恶劣天 → 优先室内（与 map_guide 地名一致）
+INDOOR_PICKS = ["海螺湾", "电影科技大揭秘", "宇宙博览会", "生命之光", "聊斋", "童梦天地"]
+# 晴好天 → 优先室外
+OUTDOOR_PICKS = ["飞越极限", "火流星", "熊出没历险记", "逃出恐龙岛", "大摆锤", "飓风飞椅"]
+# 高温 → 可遮阳的户外或室内交替
+SHADE_PICKS = ["唐古拉雪山", "生命之光", "海螺湾"]
 
 _CACHE: dict[str, Any] = {"mono": 0.0, "payload": None}
 
@@ -102,7 +105,7 @@ class WeatherGuide:
             "interaction_type": "weather_query",
             "speech": speech,
             "motion_type": "sequential",
-            "actions": ["左右张望"],
+            "actions": ["捂耳倾听", "叉腰昂首"],
             "motion_description": None,
             "emotion": "smile",
             "weather": snap,
@@ -126,6 +129,8 @@ class WeatherGuide:
                 "wind_scale": "2",
                 "tip": "示例数据：请在 bear_agent/config.py 配置 WEATHER_CONFIG 或设置环境变量 QWEATHER_API_KEY。",
                 "indoor_picks": INDOOR_PICKS,
+                "outdoor_picks": OUTDOOR_PICKS,
+                "play_recommendation": WeatherGuide._build_play_recommendation("多云", 26, None),
                 "updated_at": time.strftime("%Y-%m-%d %H:%M"),
             }
 
@@ -179,6 +184,10 @@ class WeatherGuide:
 
         payload["tip"] = self._build_tip(text, temp, payload.get("tomorrow_text"))
         payload["indoor_picks"] = self._indoor_picks_for(text)
+        payload["outdoor_picks"] = self._outdoor_picks_for(text, temp)
+        payload["play_recommendation"] = self._build_play_recommendation(
+            text, temp, payload.get("tomorrow_text")
+        )
         return payload
 
     def _http_json(self, url: str, params: dict[str, str], api_key: str) -> dict[str, Any]:
@@ -213,38 +222,97 @@ class WeatherGuide:
         return data
 
     def _build_tip(self, text: str, temp: int | None, tomorrow_text: str | None) -> str:
+        rec = self._build_play_recommendation(text, temp, tomorrow_text)
+        return str(rec.get("summary") or "")
+
+    @staticmethod
+    def _build_play_recommendation(
+        text: str,
+        temp: int | None,
+        tomorrow_text: str | None,
+    ) -> dict[str, Any]:
+        """根据天气生成「优先室内 / 室外」游玩建议。"""
         t = text or ""
+        mode = "outdoor"
+        priority = "室外"
+        picks: list[str] = []
+
         if any(k in t for k in ("雨", "雷", "雪", "雾", "霾")):
-            indoor = "、".join(INDOOR_PICKS[:3])
-            return f"雨雾天建议先玩室内：{indoor}"
-        if temp is not None and temp >= 32:
-            shade = "、".join(SHADE_PICKS[:2])
-            return f"有点热，注意防晒补水，也可看看{shade}"
-        if temp is not None and temp <= 5:
-            return "有点冷，记得添件衣服"
-        if tomorrow_text and any(k in tomorrow_text for k in ("雨", "雪")):
-            return f"明天可能{tomorrow_text}，今天可先多玩户外"
-        return ""
+            mode = "indoor"
+            priority = "室内"
+            picks = list(INDOOR_PICKS[:4])
+        elif temp is not None and temp >= 32:
+            mode = "mixed"
+            priority = "室内或遮阳"
+            picks = list(SHADE_PICKS[:3]) + list(INDOOR_PICKS[:2])
+        elif temp is not None and temp <= 5:
+            mode = "indoor"
+            priority = "室内"
+            picks = list(INDOOR_PICKS[:3])
+        elif tomorrow_text and any(k in tomorrow_text for k in ("雨", "雪", "雷")):
+            mode = "outdoor"
+            priority = "室外"
+            picks = list(OUTDOOR_PICKS[:3])
+            summary = (
+                f"游玩建议：今天天气还行，优先玩室外项目，像{'、'.join(picks)}；"
+                f"明天可能{tomorrow_text}，记得安排室内备选。"
+            )
+            return {
+                "mode": mode,
+                "priority": priority,
+                "picks": picks,
+                "summary": summary,
+            }
+        else:
+            mode = "outdoor"
+            priority = "室外"
+            picks = list(OUTDOOR_PICKS[:4])
+
+        joined = "、".join(picks[:4])
+        if mode == "indoor":
+            summary = f"游玩建议：这种天气优先玩室内项目，推荐{joined}"
+        elif mode == "mixed":
+            summary = f"游玩建议：有点热，优先室内或遮阳项目，像{joined}，记得补水防晒"
+        else:
+            summary = f"游玩建议：天气不错，优先玩室外项目，像{joined}"
+
+        return {
+            "mode": mode,
+            "priority": priority,
+            "picks": picks,
+            "summary": summary,
+        }
 
     @staticmethod
     def _indoor_picks_for(text: str) -> list[str]:
-        if any(k in text for k in ("雨", "雷", "雪", "雾")):
+        if any(k in text for k in ("雨", "雷", "雪", "雾", "霾")):
             return list(INDOOR_PICKS)
         return []
+
+    @staticmethod
+    def _outdoor_picks_for(text: str, temp: int | None) -> list[str]:
+        if any(k in text for k in ("雨", "雷", "雪", "雾", "霾")):
+            return []
+        if temp is not None and temp <= 5:
+            return []
+        if temp is not None and temp >= 32:
+            return list(SHADE_PICKS)
+        return list(OUTDOOR_PICKS)
 
     def _speech_from_snapshot(self, snap: dict[str, Any], question: str) -> str:
         loc = snap.get("location_name") or "这边"
         text = snap.get("text") or "未知"
         temp = snap.get("temp_c")
-        tip = str(snap.get("tip") or "").strip().rstrip("。.!！")
+        play_rec = snap.get("play_recommendation") or {}
+        play_line = str(play_rec.get("summary") or snap.get("tip") or "").strip().rstrip("。.!！")
         source = snap.get("source")
 
         if source == "demo":
             base = f"（演示）{loc}现在{text}"
             if temp is not None:
                 base += f"，大约{temp}度"
-            if tip:
-                base += f"。{tip}"
+            if play_line:
+                base += f"。{play_line}"
             return base + "。"
 
         if source == "error":
@@ -258,16 +326,15 @@ class WeatherGuide:
             base = f"明天{loc}大概{snap.get('tomorrow_text')}"
             if tmin is not None and tmax is not None:
                 base += f"，大约{tmin}到{tmax}度"
-            if tip:
-                base += f"。{tip}"
+            if play_line:
+                base += f"。{play_line}"
             return base + "。"
 
-        # 简洁播报：只要天气现象 + 气温，不要风向/体感/能见度
         base = f"{loc}现在{text}"
         if temp is not None:
             base += f"，大约{temp}度"
-        if tip:
-            base += f"。{tip}"
+        if play_line:
+            base += f"。{play_line}"
         return base + "。"
 
 

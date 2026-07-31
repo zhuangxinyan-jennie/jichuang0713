@@ -21,7 +21,7 @@ export function WorldUnityEmbed({
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 bg-gradient-to-b from-sky-100/40 to-cream/80 p-6 text-center">
         <p className="text-lg font-extrabold text-forest-deep">全图互动 WebGL 尚未构建</p>
         <p className="max-w-md text-sm leading-relaxed text-slate-600">
-          请在 Unity 打开 <code className="rounded bg-white/80 px-1">XiongdaParkMapMergedProject</code>
+          请在 Unity 打开 <code className="rounded bg-white/80 px-1">unity/XiongdaParkMapMergedProject</code>
           ，运行菜单「合并工程：挂上 UnityBridge + 模式相机」，再「构建合并 WebGL 到 webgl-merged」。
         </p>
         <p className="text-xs text-slate-500">

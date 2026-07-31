@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Film } from "lucide-react";
 import { isUnityInstanceReady, setGlobalUnityInstance } from "../services/unitySendClip";
+import { installNavArrivalHandler } from "../services/unityMapBridge";
 import { lastUnityLoadError, tryLoadUnityWebGL } from "../unity/loadUnityWebGL";
 import { registerMergedUnityInstance } from "../services/unityMergedMode";
 import { useEffect, useState } from "react";
@@ -27,6 +28,7 @@ export function UnityEmbed({
   const merged = basePath.replace(/\/+$/, "") === "/webgl-merged";
 
   useEffect(() => {
+    installNavArrivalHandler();
     const canvas = document.getElementById("unity-canvas") as HTMLCanvasElement | null;
     let cancelled = false;
 

@@ -52,8 +52,10 @@ function Pick-Python {
     if ($ForTts) {
         if ($env:COSYVOICE_PYTHON -and (Test-Path -LiteralPath $env:COSYVOICE_PYTHON)) { return $env:COSYVOICE_PYTHON }
         $parent = Split-Path -Parent $RepoRoot
-        $cosyPy = Join-Path $parent "third_party\CosyVoice\.venv-clean\Scripts\python.exe"
+        $cosyPy = Join-Path $parent "archive\tts-local\CosyVoice\.venv-clean\Scripts\python.exe"
         if (Test-Path -LiteralPath $cosyPy) { return $cosyPy }
+        $bearPy = Join-Path $parent "bear_agent\.venv\Scripts\python.exe"
+        if (Test-Path -LiteralPath $bearPy) { return $bearPy }
     }
     if ($env:JICHUANG_PYTHON -and (Test-Path -LiteralPath $env:JICHUANG_PYTHON)) { return $env:JICHUANG_PYTHON }
     $projectPy = "C:\Users\tanza\anaconda3\envs\jichuang0505\python.exe"
@@ -72,8 +74,8 @@ function Set-GpuTtsEnv {
     if ($isCosyVoice) {
         $projectRoot = Split-Path -Parent $TtsRoot
         $env:PYTHONPATH = "$TtsRoot;$TtsRoot\scripts"
-        if (-not $env:COSYVOICE_MODEL_DIR) { $env:COSYVOICE_MODEL_DIR = Join-Path $projectRoot "pretrained_models\CosyVoice2-0.5B" }
-        if (-not $env:COSYVOICE_REPO) { $env:COSYVOICE_REPO = Join-Path $projectRoot "third_party\CosyVoice" }
+        if (-not $env:COSYVOICE_MODEL_DIR) { $env:COSYVOICE_MODEL_DIR = Join-Path $projectRoot "archive\tts-local\CosyVoice2-0.5B" }
+        if (-not $env:COSYVOICE_REPO) { $env:COSYVOICE_REPO = Join-Path $projectRoot "archive\tts-local\CosyVoice" }
         if (-not $env:COSYVOICE_STREAM_TOKEN_HOP_LEN) { $env:COSYVOICE_STREAM_TOKEN_HOP_LEN = "20" }
     }
     else {

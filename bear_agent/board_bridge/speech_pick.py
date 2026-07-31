@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from text_postprocess import apply_poi_homophone_fixes
+
 
 # Keep aligned with bear_agent/game_state.py mode parsing: compact substring match.
 PLAY_VOICE_TRIGGERS = (
@@ -79,9 +81,9 @@ def pick_speech_text(asr_doc: dict[str, Any], *, use_partial_fallback: bool = Fa
     final_hit = bool(final_compact) and any(t in final_compact for t in PLAY_VOICE_TRIGGERS)
 
     if partial_hit and final_norm and not final_hit:
-        return partial
+        return apply_poi_homophone_fixes(partial)
     if final_norm:
-        return final_norm
+        return apply_poi_homophone_fixes(final_norm)
     if use_partial_fallback and partial:
-        return partial
+        return apply_poi_homophone_fixes(partial)
     return ""
