@@ -18,6 +18,7 @@ import numpy as np
 from stream_protocol import recv_json, recv_packet, send_json, send_packet
 
 from video_capture import open_capture
+from crowd_flow.runtime import CrowdRuntime
 from fpga_udp_capture import fpga_udp_capture_loop, is_fpga_camera_source
 
 try:
@@ -56,6 +57,7 @@ def _read_float_env(name: str, default: float) -> float:
 
 
 RUNTIME_SUMMARY_PATH = ROOT / "logs" / "latest_runtime_summary.json"
+APP_PREVIEW_PATH = ROOT / "logs" / "latest_app_preview.jpg"
 MODELS_DIR = ROOT / "models_om"
 DEFAULT_YOLO_OM = MODELS_DIR / "yolo_face_hand_person.om"
 DEFAULT_GESTURE_OM = MODELS_DIR / "gesture_mlp.om"
@@ -84,7 +86,15 @@ if DETECTOR_BACKEND not in {"pose_om", "yolo", "hybrid"}:
 ACTION_POSE_CONF_THRES = _read_float_env("ACTION_POSE_CONF_THRES", 0.25)
 ACTION_POSE_IOU_THRES = _read_float_env("ACTION_POSE_IOU_THRES", 0.45)
 RESULT_JPEG_QUALITY = _read_int_env("RESULT_JPEG_QUALITY", 45)
+APP_PREVIEW_INTERVAL_S = max(0.1, _read_float_env("APP_PREVIEW_INTERVAL_S", 0.2))
+APP_PREVIEW_MAX_WIDTH = max(320, _read_int_env("APP_PREVIEW_MAX_WIDTH", 640))
+APP_PREVIEW_JPEG_QUALITY = min(80, max(30, _read_int_env("APP_PREVIEW_JPEG_QUALITY", 55)))
 POSE_INPUT_SIZE = _read_int_env("POSE_INPUT_SIZE", 0)
+CROWD_FLOW_ENABLE = os.environ.get("CROWD_FLOW_ENABLE", "1").strip() != "0"
+CROWD_MAX_PERSONS = _read_int_env("CROWD_MAX_PERSONS", 32)
+CROWD_PERSON_MIN_AREA_RATIO = _read_float_env("CROWD_PERSON_MIN_AREA_RATIO", 0.001)
+CROWD_PERSON_MIN_HEIGHT_RATIO = _read_float_env("CROWD_PERSON_MIN_HEIGHT_RATIO", 0.04)
+DEFAULT_CROWD_CONFIG = Path(__file__).resolve().parent / "crowd_flow" / "safety_config.json"
 POSE_INPUT_MODE = os.environ.get("POSE_INPUT_MODE", "auto").strip().lower() or "auto"
 if POSE_INPUT_MODE not in {"auto", "float32", "aipp"}:
     POSE_INPUT_MODE = "auto"
@@ -108,6 +118,7 @@ CLASS_CONF_THRESHOLDS = {
 MERGE_IOU_BY_LABEL = {
     "hand": 0.45,
     "face": 0.50,
+    "person": 0.65,
 }
 GESTURE_INFER_INTERVAL_SECONDS = _read_float_env("GESTURE_INFER_INTERVAL_SECONDS", 0.12)
 GESTURE_MIN_CONFIDENCE = 0.45
@@ -790,9 +801,9 @@ def keep_detection(label: str, bbox: tuple[int, int, int, int], confidence: floa
     area = bw * bh
     frame_area = frame_shape[0] * frame_shape[1]
     if label == "person":
-        if area / frame_area < 0.03:
+        if area / frame_area < CROWD_PERSON_MIN_AREA_RATIO:
             return False
-        if bh / frame_shape[0] < 0.18:
+        if bh / frame_shape[0] < CROWD_PERSON_MIN_HEIGHT_RATIO:
             return False
     return True
 
@@ -1548,17 +1559,17 @@ class BoardPoseRuntime:
         pred = np.asarray(self.session.infer([img])[0], dtype=np.float32)
         profile_accum("pose.npu", time.perf_counter() - t0)
         t0 = time.perf_counter()
-        dets = yolo_pose_nms(pred, conf_thres=conf_thres, iou_thres=ACTION_POSE_IOU_THRES, max_det=1)
+        dets = yolo_pose_nms(
+            pred,
+            conf_thres=conf_thres,
+            iou_thres=ACTION_POSE_IOU_THRES,
+            max_det=max(1, CROWD_MAX_PERSONS),
+        )
         if dets.size == 0:
             profile_accum("pose.post", time.perf_counter() - t0)
             return PoseOmResult(np.zeros((33, 4), dtype=np.float32), [], [], None)
         best = dets[0]
-        box = best[:4].copy()
-        box[[0, 2]] = (box[[0, 2]] - pad[0]) / ratio[0]
-        box[[1, 3]] = (box[[1, 3]] - pad[1]) / ratio[1]
         h, w = frame.shape[:2]
-        box[[0, 2]] = np.clip(box[[0, 2]], 0, w - 1)
-        box[[1, 3]] = np.clip(box[[1, 3]], 0, h - 1)
         kpts = best[6:].reshape(17, 3).astype(np.float32)
         kpts[:, 0] = (kpts[:, 0] - pad[0]) / ratio[0]
         kpts[:, 1] = (kpts[:, 1] - pad[1]) / ratio[1]
@@ -1566,10 +1577,21 @@ class BoardPoseRuntime:
         kpts[:, 1] = np.clip(kpts[:, 1], 0, h - 1)
         pose = self._coco17_to_pose33(kpts, frame.shape)
         points = [(int(x), int(y)) for x, y, conf in kpts if conf > conf_thres]
-        bbox = clip_box((int(box[0]), int(box[1]), int(box[2]), int(box[3])), frame.shape)
         detections: list[dict] = []
-        if keep_detection("person", bbox, float(best[4]), frame.shape):
-            detections.append({"label": "person", "bbox": bbox, "confidence": float(best[4])})
+        for detection in dets:
+            person_box = detection[:4].copy()
+            person_box[[0, 2]] = (person_box[[0, 2]] - pad[0]) / ratio[0]
+            person_box[[1, 3]] = (person_box[[1, 3]] - pad[1]) / ratio[1]
+            person_box[[0, 2]] = np.clip(person_box[[0, 2]], 0, w - 1)
+            person_box[[1, 3]] = np.clip(person_box[[1, 3]], 0, h - 1)
+            bbox = clip_box(
+                (int(person_box[0]), int(person_box[1]), int(person_box[2]), int(person_box[3])),
+                frame.shape,
+            )
+            if keep_detection("person", bbox, float(detection[4]), frame.shape):
+                detections.append(
+                    {"label": "person", "bbox": bbox, "confidence": float(detection[4])}
+                )
         profile_accum("pose.post", time.perf_counter() - t0)
         if BOARD_DEBUG_POSE and self._debug_calls < 3:
             self._debug_calls += 1
@@ -2468,6 +2490,31 @@ def send_result_frame(
     send_packet(sock, buf.tobytes())
 
 
+def write_app_preview(frame: np.ndarray, path: Path = APP_PREVIEW_PATH) -> bool:
+    """Write a throttled phone preview without exposing an incomplete JPEG."""
+    output = frame
+    height, width = frame.shape[:2]
+    if width > APP_PREVIEW_MAX_WIDTH:
+        scale = APP_PREVIEW_MAX_WIDTH / float(width)
+        output = cv2.resize(
+            frame,
+            (APP_PREVIEW_MAX_WIDTH, max(1, int(round(height * scale)))),
+            interpolation=cv2.INTER_AREA,
+        )
+    ok, encoded = cv2.imencode(
+        ".jpg",
+        output,
+        [int(cv2.IMWRITE_JPEG_QUALITY), APP_PREVIEW_JPEG_QUALITY],
+    )
+    if not ok:
+        return False
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_bytes(encoded.tobytes())
+    os.replace(temporary, path)
+    return True
+
+
 def build_runtime_summary(
     tracks: list[Track],
     action_label: str,
@@ -2557,6 +2604,16 @@ def build_runtime_summary(
                 "confidence": float(t.gesture_confidence),
             }
             for t in hand_tracks
+        ],
+        "persons": [
+            {
+                "id": int(t.track_id),
+                "track_id": int(t.track_id),
+                "confidence": float(t.confidence),
+                "detection_confidence": float(t.confidence),
+                "bbox": [int(t.bbox[0]), int(t.bbox[1]), int(t.bbox[2]), int(t.bbox[3])],
+            }
+            for t in person_tracks
         ],
         "action": {
             "label": str(action_label or ""),
@@ -2714,6 +2771,17 @@ def main() -> None:
     parser.add_argument("--detector-backend", choices=["pose_om", "yolo", "hybrid"], default=DETECTOR_BACKEND)
     parser.add_argument("--conf-thres", type=float, default=0.35)
     parser.add_argument("--iou-thres", type=float, default=0.30)
+    parser.add_argument(
+        "--crowd-config",
+        type=Path,
+        default=Path(os.environ.get("CROWD_FLOW_CONFIG", str(DEFAULT_CROWD_CONFIG))),
+    )
+    parser.add_argument(
+        "--no-crowd-flow",
+        action="store_true",
+        default=not CROWD_FLOW_ENABLE,
+        help="Disable crowd safety analysis and crowd_flow transport fields.",
+    )
     parser.add_argument("--no-display", action="store_true")
     args = parser.parse_args()
     if args.capture_local and not str(args.result_host).strip():
@@ -2834,6 +2902,9 @@ def main() -> None:
             action_runtime = None
             print(f"[BOARD] action runtime disabled: {exc}", flush=True)
     tracker = IoUTracker(match_thres=0.35, max_missed=6, center_thres=0.12)
+    crowd_runtime: CrowdRuntime | None = None
+    crowd_runtime_error = False
+    last_crowd_flow: dict[str, object] | None = None
     cursor_udp_sock: socket.socket | None = None
     result_state_lock = threading.Lock()
     result_state: dict[str, object] = {
@@ -2892,6 +2963,7 @@ def main() -> None:
         last_hybrid_yolo_at = 0.0
         last_full_detector_at = 0.0
         last_summary_write_at = 0.0
+        last_app_preview_write_at = 0.0
         last_no_display_log_at = 0.0
         shared_preprocess_buffer: np.ndarray | None = None
         while True:
@@ -2909,6 +2981,8 @@ def main() -> None:
             pose_hands: list[dict] = []
             yolo_faces: list[dict] = []
             yolo_hands: list[dict] = []
+            yolo_persons: list[dict] = []
+            fresh_detection_sample = False
             current_now = time.monotonic()
             shared_preprocess: YoloPosePreprocess | None = None
             use_light_detect = (
@@ -2959,6 +3033,7 @@ def main() -> None:
                             conf_thres=args.conf_thres,
                             preprocessed=shared_preprocess,
                         )
+                        fresh_detection_sample = True
                         detections.extend(pose_result.detections)
                         pose_hands = pose_hand_detections(pose_result.pose, show.shape)
                         if args.detector_backend == "pose_om":
@@ -2976,6 +3051,7 @@ def main() -> None:
                                 iou_thres=args.iou_thres,
                                 preprocessed=shared_preprocess,
                             )
+                            fresh_detection_sample = True
                             profile_add("yolo", time.perf_counter() - yolo_t0)
                             if args.detector_backend == "hybrid":
                                 last_hybrid_yolo_at = current_now
@@ -2986,8 +3062,10 @@ def main() -> None:
                         if args.detector_backend == "hybrid":
                             yolo_faces = [d for d in yolo_detections if d["label"] == "face"]
                             yolo_hands = [d for d in yolo_detections if d["label"] == "hand"]
+                            yolo_persons = [d for d in yolo_detections if d["label"] == "person"]
                             detections.extend(yolo_faces)
                             detections.extend(yolo_hands)
+                            detections.extend(yolo_persons)
                             detections.extend(pose_hand_fallbacks(pose_hands, yolo_hands))
                         else:
                             detections = yolo_detections
@@ -2999,6 +3077,35 @@ def main() -> None:
             tracks = tracker.update(detections, current_now)
             smooth_hand_tracks(tracks, show.shape)
             profile_add("track", time.perf_counter() - t0)
+            if not args.no_crowd_flow and crowd_runtime is None and not crowd_runtime_error:
+                try:
+                    crowd_runtime = CrowdRuntime.from_path(
+                        args.crowd_config,
+                        frame_width=int(show.shape[1]),
+                        frame_height=int(show.shape[0]),
+                    )
+                    print(
+                        f"[BOARD] crowd flow enabled config={args.crowd_config} "
+                        f"version={crowd_runtime.config_version} rois={len(crowd_runtime.rois)}",
+                        flush=True,
+                    )
+                except Exception as exc:
+                    crowd_runtime_error = True
+                    print(f"[BOARD] crowd flow disabled: {exc}", flush=True)
+            if crowd_runtime is not None and fresh_detection_sample:
+                crowd_inputs = [
+                    {
+                        "label": track.label,
+                        "bbox": track.bbox,
+                        "confidence": float(track.confidence),
+                        "track_id": int(track.track_id),
+                    }
+                    for track in tracks
+                    if track.label in {"person", "face"} and track.missed == 0
+                ]
+                crowd_t0 = time.perf_counter()
+                last_crowd_flow = crowd_runtime.update(crowd_inputs, timestamp=current_now)
+                profile_add("crowd", time.perf_counter() - crowd_t0)
             t0 = time.perf_counter()
             enrich_tracks_with_gesture(show, tracks, gesture_runtime)
             profile_add("gesture", time.perf_counter() - t0)
@@ -3049,6 +3156,8 @@ def main() -> None:
                 coco_kpts=(pose_result.coco_kpts if pose_result is not None else None),
             )
             summary = merge_summary_with_cache(summary, shared.summary_cache)
+            if last_crowd_flow is not None:
+                summary["crowd_flow"] = dict(last_crowd_flow)
             shared.summary_cache = dict(summary)
             try:
                 RUNTIME_SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -3085,6 +3194,13 @@ def main() -> None:
                 2,
                 cv2.LINE_AA,
             )
+            now_for_preview = time.monotonic()
+            if now_for_preview - last_app_preview_write_at >= APP_PREVIEW_INTERVAL_S:
+                try:
+                    if write_app_preview(show):
+                        last_app_preview_write_at = now_for_preview
+                except Exception:
+                    pass
             with result_state_lock:
                 result_sock = result_state.get("result_sock")
             if result_sock is not None:

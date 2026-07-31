@@ -22,9 +22,8 @@ def recv_exact(sock: socket.socket, size: int) -> bytes:
 
 
 def send_packet(sock: socket.socket, payload: bytes) -> None:
-    # 单次 sendall，避免对端在两次发送之间读到不完整帧并误判为断连（Windows 上较易出现）。
-    header = HEADER_STRUCT.pack(len(payload))
-    sock.sendall(header + payload)
+    sock.sendall(HEADER_STRUCT.pack(len(payload)))
+    sock.sendall(payload)
 
 
 def recv_packet(sock: socket.socket) -> bytes:

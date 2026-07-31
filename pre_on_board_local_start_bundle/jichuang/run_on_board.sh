@@ -14,6 +14,7 @@ if [[ ! -f "${BOARD_ROOT}/board_deploy/run_board_runtime.py" ]]; then
 fi
 
 cd "${BOARD_ROOT}"
+export PYTHONPATH="${BOARD_ROOT}/board_deploy:${BOARD_ROOT}/sound_to_text/voice_asr/src${PYTHONPATH:+:${PYTHONPATH}}"
 
 if [[ -f /usr/local/Ascend/ascend-toolkit/set_env.sh ]]; then
   # shellcheck disable=SC1091
@@ -37,6 +38,7 @@ VIDEO_DEVICE="${VIDEO_DEVICE:-0}"
 FPGA_BIND_IP="${FPGA_BIND_IP:-192.168.1.100}"
 FPGA_UDP_PORT="${FPGA_UDP_PORT:-1234}"
 FPGA_IFACE="${FPGA_IFACE:-eth0}"
+LAN1_MAC="${LAN1_MAC:-26:43:f9:9b:32:35}"
 FPGA_WIDTH="${FPGA_WIDTH:-1280}"
 FPGA_HEIGHT="${FPGA_HEIGHT:-720}"
 AUDIO_BACKEND="${AUDIO_BACKEND:-auto}"
@@ -45,6 +47,8 @@ ASR_BACKEND="${ASR_BACKEND:-ctc_om}"
 ACTION_BACKEND="${ACTION_BACKEND:-stgcn}"
 DETECTOR_BACKEND="${DETECTOR_BACKEND:-hybrid}"
 ACTION_INFER_STRIDE="${ACTION_INFER_STRIDE:-6}"
+CROWD_FLOW_ENABLE="${CROWD_FLOW_ENABLE:-1}"
+CROWD_FLOW_CONFIG="${CROWD_FLOW_CONFIG:-${BOARD_ROOT}/board_deploy/crowd_flow/safety_config.json}"
 # auto=按 OM 输入类型自动；aipp=使用静态 AIPP uint8 模型；float32=旧 float 输入
 POSE_INPUT_MODE="${POSE_INPUT_MODE:-auto}"
 # 可选：覆盖默认 pose OM。启用 AIPP 时可设为 models_om/yolo11n_pose_640_aipp.om
@@ -52,7 +56,7 @@ POSE_OM="${POSE_OM:-}"
 if [[ "${POSE_INPUT_MODE}" == "aipp" && -z "${POSE_OM}" ]]; then
   POSE_OM="${BOARD_ROOT}/models_om/yolo11n_pose_640_aipp.om"
 fi
-export ACTION_BACKEND DETECTOR_BACKEND ACTION_INFER_STRIDE POSE_INPUT_MODE POSE_OM
+export ACTION_BACKEND DETECTOR_BACKEND ACTION_INFER_STRIDE CROWD_FLOW_ENABLE CROWD_FLOW_CONFIG POSE_INPUT_MODE POSE_OM
 export VIDEO_SOURCE FPGA_BIND_IP FPGA_UDP_PORT FPGA_IFACE FPGA_WIDTH FPGA_HEIGHT
 
 OM_DIR="${BOARD_ROOT}/asr_om"
@@ -76,7 +80,7 @@ if [[ "${ASR_BACKEND}" == "om" ]]; then
   done
 fi
 
-echo "[INFO] BOARD_LOCAL_MIC=${BOARD_LOCAL_MIC} BOARD_LOCAL_CAMERA=${BOARD_LOCAL_CAMERA} BOARD_LOCAL_DISPLAY=${BOARD_LOCAL_DISPLAY} VIDEO_SOURCE=${VIDEO_SOURCE} ASR_BACKEND=${ASR_BACKEND} ACTION_BACKEND=${ACTION_BACKEND} POSE_INPUT_MODE=${POSE_INPUT_MODE} → ${BOARD_RESULT_HOST}:18082/18083"
+echo "[INFO] BOARD_LOCAL_MIC=${BOARD_LOCAL_MIC} BOARD_LOCAL_CAMERA=${BOARD_LOCAL_CAMERA} BOARD_LOCAL_DISPLAY=${BOARD_LOCAL_DISPLAY} VIDEO_SOURCE=${VIDEO_SOURCE} ASR_BACKEND=${ASR_BACKEND} ACTION_BACKEND=${ACTION_BACKEND} POSE_INPUT_MODE=${POSE_INPUT_MODE} CROWD_FLOW_ENABLE=${CROWD_FLOW_ENABLE} CROWD_FLOW_CONFIG=${CROWD_FLOW_CONFIG} → ${BOARD_RESULT_HOST}:18082/18083"
 
 # 视觉改吃 FPGA 时：停掉抢占 1234 的 PC 转发，并确保 LAN1 IP
 case "${VIDEO_SOURCE}" in
@@ -92,11 +96,25 @@ esac
 
 pkill -f "[r]un_board_runtime.py" >/dev/null 2>&1 || true
 pkill -f "[b]oard_audio_receiver.py" >/dev/null 2>&1 || true
+pkill -f "[a]pp_gateway.audio_router" >/dev/null 2>&1 || true
+pkill -f "[a]pp_gateway.result_relay" >/dev/null 2>&1 || true
 sleep 1
 
-VIDEO_ARGS=(--action-backend "${ACTION_BACKEND}" --detector-backend "${DETECTOR_BACKEND}" --pose-input-mode "${POSE_INPUT_MODE}")
+if [[ "${BOARD_LOCAL_CAMERA}" == "1" ]] && [[ -n "${LAN1_MAC:-}" ]]; then
+  ip link set "${FPGA_IFACE}" up 2>/dev/null || true
+  current_mac="$(cat "/sys/class/net/${FPGA_IFACE}/address" 2>/dev/null || true)"
+  if [[ "${current_mac,,}" != "${LAN1_MAC,,}" ]]; then
+    ip link set "${FPGA_IFACE}" address "${LAN1_MAC}" 2>/dev/null || true
+    echo "[INFO] LAN1 ${FPGA_IFACE} MAC -> ${LAN1_MAC}"
+  fi
+fi
+
+VIDEO_ARGS=(--action-backend "${ACTION_BACKEND}" --detector-backend "${DETECTOR_BACKEND}" --pose-input-mode "${POSE_INPUT_MODE}" --crowd-config "${CROWD_FLOW_CONFIG}")
 if [[ -n "${POSE_OM}" ]]; then
   VIDEO_ARGS+=(--pose-om "${POSE_OM}")
+fi
+if [[ "${CROWD_FLOW_ENABLE}" != "1" ]]; then
+  VIDEO_ARGS+=(--no-crowd-flow)
 fi
 if [[ "${BOARD_LOCAL_DISPLAY}" == "1" ]]; then
   if [[ -x "${SCRIPT_DIR}/ensure_hdmi_display.sh" ]]; then
@@ -133,13 +151,38 @@ else
 fi
 
 if [[ -x "${PY_ASR}" ]]; then
-  ASR_ARGS=(--backend "${ASR_BACKEND}" --summary-dir "${OUTPUT_DIR}")
-  if [[ "${BOARD_LOCAL_MIC}" == "1" ]]; then
-    ASR_ARGS+=(--capture-local --audio-device "${AUDIO_DEVICE}" --audio-backend "${AUDIO_BACKEND}" --result-host "${BOARD_RESULT_HOST}")
-  fi
+  nohup "${PY_ASR}" -m app_gateway.result_relay \
+    --listen-host 127.0.0.1 --listen-port 18088 \
+    --pc-host "${BOARD_RESULT_HOST}" --pc-port 18083 \
+    --gateway-host 127.0.0.1 --gateway-port 18084 \
+    > "${OUTPUT_DIR}/board_asr_relay.log" 2>&1 &
+  echo "${!}" > "${OUTPUT_DIR}/board_asr_relay.pid"
+
+  ASR_ARGS=(
+    --backend "${ASR_BACKEND}"
+    --summary-dir "${OUTPUT_DIR}"
+    --host 127.0.0.1
+    --port 18086
+    --result-host 127.0.0.1
+    --result-port 18088
+  )
   nohup "${PY_ASR}" board_deploy/board_audio_receiver.py "${ASR_ARGS[@]}" \
     > "${OUTPUT_DIR}/board_asr_runtime.log" 2>&1 &
   echo "${!}" > "${OUTPUT_DIR}/board_asr.pid"
+
+  sleep 1
+  INITIAL_AUDIO_SOURCE="board"
+  if [[ "${BOARD_LOCAL_MIC}" != "1" ]]; then
+    INITIAL_AUDIO_SOURCE="phone"
+  fi
+  nohup "${PY_ASR}" -m app_gateway.audio_router \
+    --phone-host 0.0.0.0 --phone-port 18081 \
+    --control-host 127.0.0.1 --control-port 18087 \
+    --asr-host 127.0.0.1 --asr-port 18086 \
+    --audio-device "${AUDIO_DEVICE}" --audio-backend "${AUDIO_BACKEND}" \
+    --initial-source "${INITIAL_AUDIO_SOURCE}" \
+    > "${OUTPUT_DIR}/board_audio_router.log" 2>&1 &
+  echo "${!}" > "${OUTPUT_DIR}/board_audio_router.pid"
 else
   echo "[WARN] 未找到 ASR Python: ${PY_ASR}"
 fi
