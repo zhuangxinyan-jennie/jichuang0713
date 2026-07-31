@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "export": {
+    "basis_ex": 0.0,
+    "basis_ey": 0.0,
+    "basis_ez": 0.0,
+    "root_scale": 0.3,
+    "fps": 30.0
+  },
+  "unity": {
+    "characterRootLocalEulerOffset": { "x": 0.0, "y": 0.0, "z": 0.0 },
+    "rootPositionExtraOffset": { "x": 0.0, "y": 0.0, "z": 0.0 },
+    "smplReferencePoseRelativePath": "SmplhRetarget/tpose.json"
+  }
+}

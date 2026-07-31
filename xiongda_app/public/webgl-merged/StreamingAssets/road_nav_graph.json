@@ -1,0 +1,1127 @@
+{
+  "version": 1,
+  "groundY": 0.22,
+  "projection": {
+    "imageWidth": 1024.0,
+    "imageHeight": 686.0,
+    "worldWidth": 100.0,
+    "worldDepth": 67.0
+  },
+  "exportedAtUtc": "2026-07-14T03:45:51.967102+00:00",
+  "nodeCount": 97,
+  "edgePathCount": 22,
+  "nodes": {
+    "WestTopEnd": {
+      "x": -11.914,
+      "y": 0.22,
+      "z": 25.198
+    },
+    "NorthWestTop": {
+      "x": -15.723,
+      "y": 0.22,
+      "z": 25.003
+    },
+    "WestOuterA": {
+      "x": -30.469,
+      "y": 0.22,
+      "z": 23.831
+    },
+    "WestOuterB": {
+      "x": -37.109,
+      "y": 0.22,
+      "z": 17.678
+    },
+    "WestOuterC": {
+      "x": -39.453,
+      "y": 0.22,
+      "z": 14.259
+    },
+    "WestOuterD": {
+      "x": -41.113,
+      "y": 0.22,
+      "z": 9.474
+    },
+    "WestMidJunction": {
+      "x": -35.938,
+      "y": 0.22,
+      "z": 2.344
+    },
+    "NorthWestDropA": {
+      "x": -15.137,
+      "y": 0.22,
+      "z": 22.561
+    },
+    "NorthWestJunction": {
+      "x": -15.43,
+      "y": 0.22,
+      "z": 19.143
+    },
+    "WestInnerA": {
+      "x": -17.969,
+      "y": 0.22,
+      "z": 17.19
+    },
+    "WestInnerB": {
+      "x": -22.852,
+      "y": 0.22,
+      "z": 9.864
+    },
+    "WestInnerC": {
+      "x": -27.246,
+      "y": 0.22,
+      "z": 8.692
+    },
+    "WestInnerD": {
+      "x": -28.418,
+      "y": 0.22,
+      "z": 7.423
+    },
+    "WestCentralJunction": {
+      "x": -28.809,
+      "y": 0.22,
+      "z": 5.567
+    },
+    "WestCentralLinkA": {
+      "x": -33.301,
+      "y": 0.22,
+      "z": 4.2
+    },
+    "WestLowerA": {
+      "x": -23.34,
+      "y": 0.22,
+      "z": 2.735
+    },
+    "WestLowerB": {
+      "x": -22.168,
+      "y": 0.22,
+      "z": 0.488
+    },
+    "WestLowerC": {
+      "x": -18.555,
+      "y": 0.22,
+      "z": -3.418
+    },
+    "WestLowerD": {
+      "x": -16.309,
+      "y": 0.22,
+      "z": -3.809
+    },
+    "SouthwestJunction": {
+      "x": -37.598,
+      "y": 0.22,
+      "z": -2.149
+    },
+    "SouthwestA": {
+      "x": -32.129,
+      "y": 0.22,
+      "z": -4.102
+    },
+    "SouthwestEnd": {
+      "x": -29.102,
+      "y": 0.22,
+      "z": -4.2
+    },
+    "TopBridgeA": {
+      "x": -8.008,
+      "y": 0.22,
+      "z": 24.905
+    },
+    "TopBridgeB": {
+      "x": -3.516,
+      "y": 0.22,
+      "z": 23.44
+    },
+    "NorthFeed": {
+      "x": -2.246,
+      "y": 0.22,
+      "z": 22.659
+    },
+    "NorthMainA": {
+      "x": -0.391,
+      "y": 0.22,
+      "z": 22.366
+    },
+    "NorthMainB": {
+      "x": 1.562,
+      "y": 0.22,
+      "z": 20.022
+    },
+    "NorthMainC": {
+      "x": 2.734,
+      "y": 0.22,
+      "z": 19.534
+    },
+    "NorthMainD": {
+      "x": 9.57,
+      "y": 0.22,
+      "z": 18.264
+    },
+    "NorthMainE": {
+      "x": 14.16,
+      "y": 0.22,
+      "z": 18.85
+    },
+    "RightNorthJunction": {
+      "x": 27.051,
+      "y": 0.22,
+      "z": 16.603
+    },
+    "NorthCentralA": {
+      "x": -3.027,
+      "y": 0.22,
+      "z": 21.975
+    },
+    "NorthCentralB": {
+      "x": -4.59,
+      "y": 0.22,
+      "z": 21.194
+    },
+    "NorthCentralC": {
+      "x": -5.762,
+      "y": 0.22,
+      "z": 20.803
+    },
+    "NorthCentralEnd": {
+      "x": -6.934,
+      "y": 0.22,
+      "z": 20.217
+    },
+    "UpperBridgeA": {
+      "x": -9.375,
+      "y": 0.22,
+      "z": 18.752
+    },
+    "UpperBridgeB": {
+      "x": -6.055,
+      "y": 0.22,
+      "z": 16.799
+    },
+    "CentralUpperB": {
+      "x": -5.273,
+      "y": 0.22,
+      "z": 13.087
+    },
+    "CentralUpper": {
+      "x": -0.586,
+      "y": 0.22,
+      "z": 11.232
+    },
+    "CentralDownA": {
+      "x": -3.027,
+      "y": 0.22,
+      "z": 5.86
+    },
+    "CentralDownB": {
+      "x": -4.59,
+      "y": 0.22,
+      "z": 5.372
+    },
+    "CentralDownC": {
+      "x": -9.961,
+      "y": 0.22,
+      "z": 5.665
+    },
+    "CentralDownD": {
+      "x": -12.207,
+      "y": 0.22,
+      "z": 2.149
+    },
+    "CentralDownE": {
+      "x": -14.648,
+      "y": 0.22,
+      "z": -0.586
+    },
+    "CentralLowerJunction": {
+      "x": -14.648,
+      "y": 0.22,
+      "z": -3.223
+    },
+    "FountainWestApproachA": {
+      "x": -11.816,
+      "y": 0.22,
+      "z": -3.028
+    },
+    "FountainWestApproachB": {
+      "x": -3.507,
+      "y": 0.22,
+      "z": -3.372
+    },
+    "FountainWest": {
+      "x": -0.321,
+      "y": 0.22,
+      "z": -4.858
+    },
+    "FountainEast": {
+      "x": 4.813,
+      "y": 0.22,
+      "z": -7.252
+    },
+    "FountainSouth": {
+      "x": 1.049,
+      "y": 0.22,
+      "z": -8.622
+    },
+    "EntranceA": {
+      "x": -2.5,
+      "y": 0.22,
+      "z": -16.235
+    },
+    "EntranceB": {
+      "x": -0.437,
+      "y": 0.22,
+      "z": -11.809
+    },
+    "EntranceGate": {
+      "x": -5.183,
+      "y": 0.22,
+      "z": -21.988
+    },
+    "EastFountainA": {
+      "x": 8.594,
+      "y": 0.22,
+      "z": -7.618
+    },
+    "EastFountainB": {
+      "x": 12.012,
+      "y": 0.22,
+      "z": -9.278
+    },
+    "EastFountainC": {
+      "x": 14.941,
+      "y": 0.22,
+      "z": -10.06
+    },
+    "EastFountainD": {
+      "x": 16.797,
+      "y": 0.22,
+      "z": -8.009
+    },
+    "RightMidF": {
+      "x": 17.188,
+      "y": 0.22,
+      "z": -2.735
+    },
+    "RightMidE": {
+      "x": 17.285,
+      "y": 0.22,
+      "z": 0.293
+    },
+    "RightMidD": {
+      "x": 17.578,
+      "y": 0.22,
+      "z": 3.516
+    },
+    "RightMidC": {
+      "x": 19.141,
+      "y": 0.22,
+      "z": 5.274
+    },
+    "RightMidB": {
+      "x": 21.191,
+      "y": 0.22,
+      "z": 6.348
+    },
+    "RightMidA": {
+      "x": 22.168,
+      "y": 0.22,
+      "z": 6.739
+    },
+    "RightCentralJunction": {
+      "x": 23.34,
+      "y": 0.22,
+      "z": 8.888
+    },
+    "RightUpperA": {
+      "x": 2.441,
+      "y": 0.22,
+      "z": 11.134
+    },
+    "RightUpperB": {
+      "x": 6.445,
+      "y": 0.22,
+      "z": 13.966
+    },
+    "RightUpperC": {
+      "x": 8.594,
+      "y": 0.22,
+      "z": 14.357
+    },
+    "RightUpperD": {
+      "x": 12.598,
+      "y": 0.22,
+      "z": 13.478
+    },
+    "RightUpperE": {
+      "x": 14.258,
+      "y": 0.22,
+      "z": 12.111
+    },
+    "RightUpperF": {
+      "x": 22.168,
+      "y": 0.22,
+      "z": 10.841
+    },
+    "RightLoopLinkA": {
+      "x": 25.977,
+      "y": 0.22,
+      "z": 10.45
+    },
+    "RightLoopHub": {
+      "x": 28.418,
+      "y": 0.22,
+      "z": 10.548
+    },
+    "RightOuterA": {
+      "x": 26.953,
+      "y": 0.22,
+      "z": 19.436
+    },
+    "RightOuterB": {
+      "x": 27.539,
+      "y": 0.22,
+      "z": 20.706
+    },
+    "RightOuterC": {
+      "x": 28.906,
+      "y": 0.22,
+      "z": 21.975
+    },
+    "RightOuterD": {
+      "x": 32.129,
+      "y": 0.22,
+      "z": 23.05
+    },
+    "RightOuterE": {
+      "x": 39.258,
+      "y": 0.22,
+      "z": 22.073
+    },
+    "RightOuterF": {
+      "x": 41.699,
+      "y": 0.22,
+      "z": 20.803
+    },
+    "RightOuterG": {
+      "x": 43.945,
+      "y": 0.22,
+      "z": 18.557
+    },
+    "RightOuterH": {
+      "x": 44.727,
+      "y": 0.22,
+      "z": 15.92
+    },
+    "RightOuterI": {
+      "x": 44.531,
+      "y": 0.22,
+      "z": 13.771
+    },
+    "RightOuterJ": {
+      "x": 43.945,
+      "y": 0.22,
+      "z": 12.501
+    },
+    "RightOuterK": {
+      "x": 43.262,
+      "y": 0.22,
+      "z": 11.427
+    },
+    "RightOuterL": {
+      "x": 42.09,
+      "y": 0.22,
+      "z": 9.962
+    },
+    "RightOuterM": {
+      "x": 40.625,
+      "y": 0.22,
+      "z": 8.888
+    },
+    "RightOuterN": {
+      "x": 38.672,
+      "y": 0.22,
+      "z": 8.204
+    },
+    "RightOuterO": {
+      "x": 36.719,
+      "y": 0.22,
+      "z": 8.009
+    },
+    "RightOuterP": {
+      "x": 34.766,
+      "y": 0.22,
+      "z": 7.911
+    },
+    "RightLoopEast": {
+      "x": 32.715,
+      "y": 0.22,
+      "z": 7.911
+    },
+    "RightLoopWestA": {
+      "x": 28.906,
+      "y": 0.22,
+      "z": 13.38
+    },
+    "RightLoopLowerA": {
+      "x": 31.738,
+      "y": 0.22,
+      "z": 9.278
+    },
+    "RightSouthConnectorA": {
+      "x": 29.883,
+      "y": 0.22,
+      "z": 4.883
+    },
+    "RightSouthJunction": {
+      "x": 28.223,
+      "y": 0.22,
+      "z": 0.586
+    },
+    "RightSouthA": {
+      "x": 27.441,
+      "y": 0.22,
+      "z": -1.465
+    },
+    "RightSouthB": {
+      "x": 24.707,
+      "y": 0.22,
+      "z": -3.516
+    },
+    "RightSouthC": {
+      "x": 24.609,
+      "y": 0.22,
+      "z": -8.985
+    },
+    "RightSouthEnd": {
+      "x": 21.387,
+      "y": 0.22,
+      "z": -16.603
+    }
+  },
+  "adjacency": {
+    "CentralDownA": [
+      "CentralDownB",
+      "CentralUpper"
+    ],
+    "CentralDownB": [
+      "CentralDownA",
+      "CentralDownC"
+    ],
+    "CentralDownC": [
+      "CentralDownB",
+      "CentralDownD"
+    ],
+    "CentralDownD": [
+      "CentralDownC",
+      "CentralDownE"
+    ],
+    "CentralDownE": [
+      "CentralDownD",
+      "CentralLowerJunction"
+    ],
+    "CentralLowerJunction": [
+      "CentralDownE",
+      "FountainWestApproachA",
+      "WestLowerD"
+    ],
+    "CentralUpper": [
+      "CentralDownA",
+      "CentralUpperB",
+      "RightUpperA"
+    ],
+    "CentralUpperB": [
+      "CentralUpper",
+      "UpperBridgeB"
+    ],
+    "EastFountainA": [
+      "EastFountainB",
+      "FountainEast"
+    ],
+    "EastFountainB": [
+      "EastFountainA",
+      "EastFountainC"
+    ],
+    "EastFountainC": [
+      "EastFountainB",
+      "EastFountainD"
+    ],
+    "EastFountainD": [
+      "EastFountainC",
+      "RightMidF"
+    ],
+    "EntranceA": [
+      "EntranceB",
+      "EntranceGate"
+    ],
+    "EntranceB": [
+      "EntranceA",
+      "FountainSouth"
+    ],
+    "EntranceGate": [
+      "EntranceA"
+    ],
+    "FountainEast": [
+      "EastFountainA"
+    ],
+    "FountainSouth": [
+      "EntranceB"
+    ],
+    "FountainWest": [
+      "FountainWestApproachB"
+    ],
+    "FountainWestApproachA": [
+      "CentralLowerJunction",
+      "FountainWestApproachB"
+    ],
+    "FountainWestApproachB": [
+      "FountainWest",
+      "FountainWestApproachA"
+    ],
+    "NorthCentralA": [
+      "NorthCentralB",
+      "NorthFeed"
+    ],
+    "NorthCentralB": [
+      "NorthCentralA",
+      "NorthCentralC"
+    ],
+    "NorthCentralC": [
+      "NorthCentralB",
+      "NorthCentralEnd"
+    ],
+    "NorthCentralEnd": [
+      "NorthCentralC"
+    ],
+    "NorthFeed": [
+      "NorthCentralA",
+      "NorthMainA",
+      "TopBridgeB"
+    ],
+    "NorthMainA": [
+      "NorthFeed",
+      "NorthMainB"
+    ],
+    "NorthMainB": [
+      "NorthMainA",
+      "NorthMainC"
+    ],
+    "NorthMainC": [
+      "NorthMainB",
+      "NorthMainD"
+    ],
+    "NorthMainD": [
+      "NorthMainC",
+      "NorthMainE"
+    ],
+    "NorthMainE": [
+      "NorthMainD",
+      "RightNorthJunction"
+    ],
+    "NorthWestDropA": [
+      "NorthWestJunction",
+      "NorthWestTop"
+    ],
+    "NorthWestJunction": [
+      "NorthWestDropA",
+      "UpperBridgeA",
+      "WestInnerA"
+    ],
+    "NorthWestTop": [
+      "NorthWestDropA",
+      "TopBridgeA",
+      "WestOuterA",
+      "WestTopEnd"
+    ],
+    "RightCentralJunction": [
+      "RightLoopLinkA",
+      "RightMidA",
+      "RightUpperF"
+    ],
+    "RightLoopEast": [
+      "RightLoopLowerA",
+      "RightOuterP",
+      "RightSouthConnectorA"
+    ],
+    "RightLoopHub": [
+      "RightLoopLinkA",
+      "RightLoopLowerA",
+      "RightLoopWestA"
+    ],
+    "RightLoopLinkA": [
+      "RightCentralJunction",
+      "RightLoopHub"
+    ],
+    "RightLoopLowerA": [
+      "RightLoopEast",
+      "RightLoopHub"
+    ],
+    "RightLoopWestA": [
+      "RightLoopHub",
+      "RightNorthJunction"
+    ],
+    "RightMidA": [
+      "RightCentralJunction",
+      "RightMidB"
+    ],
+    "RightMidB": [
+      "RightMidA",
+      "RightMidC"
+    ],
+    "RightMidC": [
+      "RightMidB",
+      "RightMidD"
+    ],
+    "RightMidD": [
+      "RightMidC",
+      "RightMidE"
+    ],
+    "RightMidE": [
+      "RightMidD",
+      "RightMidF"
+    ],
+    "RightMidF": [
+      "EastFountainD",
+      "RightMidE"
+    ],
+    "RightNorthJunction": [
+      "NorthMainE",
+      "RightLoopWestA",
+      "RightOuterA"
+    ],
+    "RightOuterA": [
+      "RightNorthJunction",
+      "RightOuterB"
+    ],
+    "RightOuterB": [
+      "RightOuterA",
+      "RightOuterC"
+    ],
+    "RightOuterC": [
+      "RightOuterB",
+      "RightOuterD"
+    ],
+    "RightOuterD": [
+      "RightOuterC",
+      "RightOuterE"
+    ],
+    "RightOuterE": [
+      "RightOuterD",
+      "RightOuterF"
+    ],
+    "RightOuterF": [
+      "RightOuterE",
+      "RightOuterG"
+    ],
+    "RightOuterG": [
+      "RightOuterF",
+      "RightOuterH"
+    ],
+    "RightOuterH": [
+      "RightOuterG",
+      "RightOuterI"
+    ],
+    "RightOuterI": [
+      "RightOuterH",
+      "RightOuterJ"
+    ],
+    "RightOuterJ": [
+      "RightOuterI",
+      "RightOuterK"
+    ],
+    "RightOuterK": [
+      "RightOuterJ",
+      "RightOuterL"
+    ],
+    "RightOuterL": [
+      "RightOuterK",
+      "RightOuterM"
+    ],
+    "RightOuterM": [
+      "RightOuterL",
+      "RightOuterN"
+    ],
+    "RightOuterN": [
+      "RightOuterM",
+      "RightOuterO"
+    ],
+    "RightOuterO": [
+      "RightOuterN",
+      "RightOuterP"
+    ],
+    "RightOuterP": [
+      "RightLoopEast",
+      "RightOuterO"
+    ],
+    "RightSouthA": [
+      "RightSouthB",
+      "RightSouthJunction"
+    ],
+    "RightSouthB": [
+      "RightSouthA",
+      "RightSouthC"
+    ],
+    "RightSouthC": [
+      "RightSouthB",
+      "RightSouthEnd"
+    ],
+    "RightSouthConnectorA": [
+      "RightLoopEast",
+      "RightSouthJunction"
+    ],
+    "RightSouthEnd": [
+      "RightSouthC"
+    ],
+    "RightSouthJunction": [
+      "RightSouthA",
+      "RightSouthConnectorA"
+    ],
+    "RightUpperA": [
+      "CentralUpper",
+      "RightUpperB"
+    ],
+    "RightUpperB": [
+      "RightUpperA",
+      "RightUpperC"
+    ],
+    "RightUpperC": [
+      "RightUpperB",
+      "RightUpperD"
+    ],
+    "RightUpperD": [
+      "RightUpperC",
+      "RightUpperE"
+    ],
+    "RightUpperE": [
+      "RightUpperD",
+      "RightUpperF"
+    ],
+    "RightUpperF": [
+      "RightCentralJunction",
+      "RightUpperE"
+    ],
+    "SouthwestA": [
+      "SouthwestEnd",
+      "SouthwestJunction"
+    ],
+    "SouthwestEnd": [
+      "SouthwestA"
+    ],
+    "SouthwestJunction": [
+      "SouthwestA",
+      "WestMidJunction"
+    ],
+    "TopBridgeA": [
+      "NorthWestTop",
+      "TopBridgeB"
+    ],
+    "TopBridgeB": [
+      "NorthFeed",
+      "TopBridgeA"
+    ],
+    "UpperBridgeA": [
+      "NorthWestJunction",
+      "UpperBridgeB"
+    ],
+    "UpperBridgeB": [
+      "CentralUpperB",
+      "UpperBridgeA"
+    ],
+    "WestCentralJunction": [
+      "WestCentralLinkA",
+      "WestInnerD",
+      "WestLowerA"
+    ],
+    "WestCentralLinkA": [
+      "WestCentralJunction",
+      "WestMidJunction"
+    ],
+    "WestInnerA": [
+      "NorthWestJunction",
+      "WestInnerB"
+    ],
+    "WestInnerB": [
+      "WestInnerA",
+      "WestInnerC"
+    ],
+    "WestInnerC": [
+      "WestInnerB",
+      "WestInnerD"
+    ],
+    "WestInnerD": [
+      "WestCentralJunction",
+      "WestInnerC"
+    ],
+    "WestLowerA": [
+      "WestCentralJunction",
+      "WestLowerB"
+    ],
+    "WestLowerB": [
+      "WestLowerA",
+      "WestLowerC"
+    ],
+    "WestLowerC": [
+      "WestLowerB",
+      "WestLowerD"
+    ],
+    "WestLowerD": [
+      "CentralLowerJunction",
+      "WestLowerC"
+    ],
+    "WestMidJunction": [
+      "SouthwestJunction",
+      "WestCentralLinkA",
+      "WestOuterD"
+    ],
+    "WestOuterA": [
+      "NorthWestTop",
+      "WestOuterB"
+    ],
+    "WestOuterB": [
+      "WestOuterA",
+      "WestOuterC"
+    ],
+    "WestOuterC": [
+      "WestOuterB",
+      "WestOuterD"
+    ],
+    "WestOuterD": [
+      "WestMidJunction",
+      "WestOuterC"
+    ],
+    "WestTopEnd": [
+      "NorthWestTop"
+    ]
+  },
+  "paths": [
+    {
+      "name": "path_0",
+      "nodes": [
+        "WestTopEnd",
+        "NorthWestTop",
+        "WestOuterA",
+        "WestOuterB",
+        "WestOuterC",
+        "WestOuterD",
+        "WestMidJunction"
+      ]
+    },
+    {
+      "name": "path_1",
+      "nodes": [
+        "NorthWestJunction",
+        "WestInnerA",
+        "WestInnerB",
+        "WestInnerC",
+        "WestInnerD",
+        "WestCentralJunction"
+      ]
+    },
+    {
+      "name": "path_2",
+      "nodes": [
+        "NorthWestTop",
+        "NorthWestDropA",
+        "NorthWestJunction"
+      ]
+    },
+    {
+      "name": "path_3",
+      "nodes": [
+        "WestMidJunction",
+        "WestCentralLinkA",
+        "WestCentralJunction"
+      ]
+    },
+    {
+      "name": "path_4",
+      "nodes": [
+        "WestCentralJunction",
+        "WestLowerA",
+        "WestLowerB",
+        "WestLowerC",
+        "WestLowerD",
+        "CentralLowerJunction"
+      ]
+    },
+    {
+      "name": "path_5",
+      "nodes": [
+        "WestMidJunction",
+        "SouthwestJunction"
+      ]
+    },
+    {
+      "name": "path_6",
+      "nodes": [
+        "SouthwestJunction",
+        "SouthwestA",
+        "SouthwestEnd"
+      ]
+    },
+    {
+      "name": "path_7",
+      "nodes": [
+        "NorthWestTop",
+        "TopBridgeA",
+        "TopBridgeB",
+        "NorthFeed"
+      ]
+    },
+    {
+      "name": "path_8",
+      "nodes": [
+        "NorthFeed",
+        "NorthMainA",
+        "NorthMainB",
+        "NorthMainC",
+        "NorthMainD",
+        "NorthMainE",
+        "RightNorthJunction"
+      ]
+    },
+    {
+      "name": "path_9",
+      "nodes": [
+        "NorthFeed",
+        "NorthCentralA",
+        "NorthCentralB",
+        "NorthCentralC",
+        "NorthCentralEnd"
+      ]
+    },
+    {
+      "name": "path_10",
+      "nodes": [
+        "NorthWestJunction",
+        "UpperBridgeA",
+        "UpperBridgeB",
+        "CentralUpperB",
+        "CentralUpper"
+      ]
+    },
+    {
+      "name": "path_11",
+      "nodes": [
+        "CentralUpper",
+        "CentralDownA",
+        "CentralDownB",
+        "CentralDownC",
+        "CentralDownD",
+        "CentralDownE",
+        "CentralLowerJunction"
+      ]
+    },
+    {
+      "name": "path_12",
+      "nodes": [
+        "CentralLowerJunction",
+        "FountainWestApproachA",
+        "FountainWestApproachB",
+        "FountainWest"
+      ]
+    },
+    {
+      "name": "path_13",
+      "nodes": [
+        "EntranceGate",
+        "EntranceA",
+        "EntranceB",
+        "FountainSouth"
+      ]
+    },
+    {
+      "name": "path_14",
+      "nodes": [
+        "FountainEast",
+        "EastFountainA",
+        "EastFountainB",
+        "EastFountainC",
+        "EastFountainD",
+        "RightMidF",
+        "RightMidE",
+        "RightMidD",
+        "RightMidC",
+        "RightMidB",
+        "RightMidA",
+        "RightCentralJunction"
+      ]
+    },
+    {
+      "name": "path_15",
+      "nodes": [
+        "CentralUpper",
+        "RightUpperA",
+        "RightUpperB",
+        "RightUpperC",
+        "RightUpperD",
+        "RightUpperE",
+        "RightUpperF",
+        "RightCentralJunction"
+      ]
+    },
+    {
+      "name": "path_16",
+      "nodes": [
+        "RightCentralJunction",
+        "RightLoopLinkA",
+        "RightLoopHub"
+      ]
+    },
+    {
+      "name": "path_17",
+      "nodes": [
+        "RightNorthJunction",
+        "RightOuterA",
+        "RightOuterB",
+        "RightOuterC",
+        "RightOuterD",
+        "RightOuterE",
+        "RightOuterF",
+        "RightOuterG",
+        "RightOuterH",
+        "RightOuterI",
+        "RightOuterJ",
+        "RightOuterK",
+        "RightOuterL",
+        "RightOuterM",
+        "RightOuterN",
+        "RightOuterO",
+        "RightOuterP",
+        "RightLoopEast"
+      ]
+    },
+    {
+      "name": "path_18",
+      "nodes": [
+        "RightLoopHub",
+        "RightLoopWestA",
+        "RightNorthJunction"
+      ]
+    },
+    {
+      "name": "path_19",
+      "nodes": [
+        "RightLoopEast",
+        "RightLoopLowerA",
+        "RightLoopHub"
+      ]
+    },
+    {
+      "name": "path_20",
+      "nodes": [
+        "RightLoopEast",
+        "RightSouthConnectorA",
+        "RightSouthJunction"
+      ]
+    },
+    {
+      "name": "path_21",
+      "nodes": [
+        "RightSouthJunction",
+        "RightSouthA",
+        "RightSouthB",
+        "RightSouthC",
+        "RightSouthEnd"
+      ]
+    }
+  ]
+}

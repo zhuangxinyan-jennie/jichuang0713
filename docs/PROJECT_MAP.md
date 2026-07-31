@@ -48,7 +48,7 @@ FPGA 视频 → 310B run_board_runtime.py → PC board_bridge → bear_agent →
 | 路径 | 用途 | 演示时 |
 |------|------|--------|
 | `xiongda_app/src/` | 网页 React 源码 | 跑 Vite  dev |
-| `xiongda_app/public/webgl-merged/` | **浏览器里实际加载的 Unity WebGL** | 直接参与演示 |
+| `xiongda_app/public/webgl-merged/` | **浏览器全图互动**（合并 WebGL，Git LFS） | 直接参与演示 |
 | `unity/XiongdaUnityProject/` | 互动熊 Unity **源码** | 不跑，改完需重新导出 WebGL |
 | `unity/XiongdaParkMapProject/` | 地图 Unity **源码** | 不跑 |
 | `unity/XiongdaParkMapMergedProject/` | 合并版 Unity **源码** | 不跑；导出目标见 [UNITY_MERGED.md](UNITY_MERGED.md) |

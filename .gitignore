@@ -31,10 +31,10 @@ experiments/gesture_cursor_project/python/__pycache__/
 .mypy_cache/
 .ruff_cache/
 
-# Node dependencies and build caches
+# Node dependencies and build caches（/build/ 仅忽略仓库根目录，勿误伤 webgl-merged/Build/）
 node_modules/
 dist/
-build/
+/build/
 .vite/
 .cache/
 
@@ -120,11 +120,8 @@ unity/XiongdaParkMapProject/*.sln
 # 合并 Unity 工程（体积大，本地 setup_merged_unity_project.ps1 生成；脚本在 scripts/unity_merged_overlay/）
 unity/XiongdaParkMapMergedProject/
 
-# 合并 WebGL 产物（本地 Unity 构建；仓库只保留 build-info.json / 说明）
-xiongda_app/public/webgl-merged/Build/
-xiongda_app/public/webgl-merged/StreamingAssets/
-xiongda_app/public/webgl-merged/TemplateData/
-xiongda_app/public/webgl-merged/index.html
+# 合并 WebGL 产物（已纳入 Git LFS，队友 clone + git lfs pull 即可）
+# 若本地 Unity 重新构建后需覆盖提交，见 scripts/build_merged_webgl.ps1
 
 # 演示 PPT 素材（体积大，本地保留即可）
 docs/ppt_figures/

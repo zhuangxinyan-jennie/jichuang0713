@@ -1,0 +1,271 @@
+{
+  "version": 1,
+  "clips": [
+    {
+      "sourceStem": "00000001_000",
+      "jsonFile": "挥手致意.json",
+      "descriptionEn": "A person raises one arm high and waves broadly, as if greeting someone from a distance.",
+      "displayNameZh": "挥手致意",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000002_000",
+      "jsonFile": "张臂欢迎.json",
+      "descriptionEn": "A person raises both arms high and opens them outward in a big welcoming gesture.",
+      "displayNameZh": "张臂欢迎",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000003_000",
+      "jsonFile": "摇头.json",
+      "descriptionEn": "A person gently shakes the head from side to side while standing naturally.",
+      "displayNameZh": "摇头",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000004_004",
+      "jsonFile": "双手欢呼.json",
+      "descriptionEn": "A person stands in place and raises both arms diagonally upward and outward into a broad steady victory pose with elbows slightly bent, like celebrating success or showing strong approval, without delicate finger poses.",
+      "displayNameZh": "双手欢呼",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000005_000",
+      "jsonFile": "原地小跳.json",
+      "descriptionEn": "A person makes two small jumps in place with natural arm movements.",
+      "displayNameZh": "原地小跳",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000006_000",
+      "jsonFile": "挠头歪身.json",
+      "descriptionEn": "A person scratches the head with one hand and tilts the body slightly to one side.",
+      "displayNameZh": "挠头歪身",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000007_000",
+      "jsonFile": "伸懒腰.json",
+      "descriptionEn": "A person stretches both arms upward, leans back slightly, then returns to a relaxed standing pose.",
+      "displayNameZh": "伸懒腰",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000008_000",
+      "jsonFile": "左右张望.json",
+      "descriptionEn": "A person slowly looks left and right while standing in place.",
+      "displayNameZh": "左右张望",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000009_000",
+      "jsonFile": "摊手疑问.json",
+      "descriptionEn": "A person spreads both hands outward with palms up, as if asking a question.",
+      "displayNameZh": "摊手疑问",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000010_000",
+      "jsonFile": "左转指左.json",
+      "descriptionEn": "A person turns slightly left and points to the left side with one hand.",
+      "displayNameZh": "左转指左",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000011_000",
+      "jsonFile": "右转指右.json",
+      "descriptionEn": "A person turns slightly right and points to the right side with one hand.",
+      "displayNameZh": "右转指右",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000012_000",
+      "jsonFile": "推手后退.json",
+      "descriptionEn": "A person gently pushes both hands forward and steps back slightly, signaling someone to step back.",
+      "displayNameZh": "推手后退",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000013_000",
+      "jsonFile": "受惊后退.json",
+      "descriptionEn": "A person looks frightened and steps backward several times while extending both arms forward in front of the body.",
+      "displayNameZh": "受惊后退",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000014_000",
+      "jsonFile": "原地踏步.json",
+      "descriptionEn": "A person marches in place with relaxed arm swings.",
+      "displayNameZh": "原地踏步",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000015_000",
+      "jsonFile": "快走向前.json",
+      "descriptionEn": "A person walks forward at a brisk pace with relaxed arm movements.",
+      "displayNameZh": "快走向前",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000016_000",
+      "jsonFile": "下蹲坐下.json",
+      "descriptionEn": "A person slowly lowers from a standing pose to sitting on the ground with stable, natural body movement.",
+      "displayNameZh": "下蹲坐下",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000017_000",
+      "jsonFile": "躺地起身.json",
+      "descriptionEn": "A person lying flat on the ground slowly rises to a standing position, then stretches both arms upward and leans back slightly.",
+      "displayNameZh": "躺地起身",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000018_000",
+      "jsonFile": "抱胸轻摆.json",
+      "descriptionEn": "A person hugs an imaginary object close to the chest and sways gently.",
+      "displayNameZh": "抱胸轻摆",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000019_000",
+      "jsonFile": "躺地睡觉.json",
+      "descriptionEn": "A person lies down on the ground and sleeps peacefully with relaxed limbs and steady breathing.",
+      "displayNameZh": "躺地睡觉",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000020_000",
+      "jsonFile": "转身一圈.json",
+      "descriptionEn": "A person slowly spins around once in a full circle while standing in place.",
+      "displayNameZh": "转身一圈",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000021_000",
+      "jsonFile": "捂耳倾听.json",
+      "descriptionEn": "A person cups one hand behind the ear and leans slightly sideways, listening carefully.",
+      "displayNameZh": "捂耳倾听",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000022_000",
+      "jsonFile": "自信造型.json",
+      "descriptionEn": "A person strikes a confident pose with stylish arm and leg positioning while standing in place.",
+      "displayNameZh": "自信造型",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000023_000",
+      "jsonFile": "点头.json",
+      "descriptionEn": "A person stands naturally in place and nods the head exactly twice: each nod is one clear downward dip of the chin toward the chest followed by lifting back to neutral, using a large pronounced vertical range so the motion is easy to read; only two complete up-down cycles, no side-to-side movement and no extra nods.",
+      "displayNameZh": "点头",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000024_000",
+      "jsonFile": "摇头拒绝.json",
+      "descriptionEn": "A person shakes the head firmly from side to side with both palms facing outward in front of the body, refusing politely.",
+      "displayNameZh": "摇头拒绝",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000025_000",
+      "jsonFile": "振臂欢呼.json",
+      "descriptionEn": "A person pumps both fists downward in an energetic cheering motion with upbeat body language.",
+      "displayNameZh": "振臂欢呼",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000026_000",
+      "jsonFile": "挥手再见.json",
+      "descriptionEn": "A person waves one hand side to side at shoulder height in a friendly goodbye gesture.",
+      "displayNameZh": "挥手再见",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000027_000",
+      "jsonFile": "鼓掌.json",
+      "descriptionEn": "A person claps several times in front of the chest while standing in place.",
+      "displayNameZh": "鼓掌",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000028_000",
+      "jsonFile": "捂脸害羞.json",
+      "descriptionEn": "A person covers the face with both hands and shrinks the shoulders slightly in a shy reaction.",
+      "displayNameZh": "捂脸害羞",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000029_000",
+      "jsonFile": "擦眼低头.json",
+      "descriptionEn": "A person wipes one eye with the back of the hand and lowers the head slightly as if crying softly.",
+      "displayNameZh": "擦眼低头",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000030_000",
+      "jsonFile": "叉腰昂首.json",
+      "descriptionEn": "A person places both hands on the hips, lifts the chin, and stands proudly in place.",
+      "displayNameZh": "叉腰昂首",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000031_000",
+      "jsonFile": "跺脚生气.json",
+      "descriptionEn": "A person stamps one foot on the ground once with an annoyed upper-body gesture while standing.",
+      "displayNameZh": "跺脚生气",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000032_000",
+      "jsonFile": "后退惊讶.json",
+      "descriptionEn": "A person takes a small step backward and raises both hands near the cheeks in surprise.",
+      "displayNameZh": "后退惊讶",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000033_000",
+      "jsonFile": "鞠躬行礼.json",
+      "descriptionEn": "A person bows deeply from the waist with both hands held naturally in front of the body as a polite gesture.",
+      "displayNameZh": "鞠躬行礼",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000034_000",
+      "jsonFile": "飞吻.json",
+      "descriptionEn": "A person touches one palm to the lips and flicks the hand outward to blow a kiss.",
+      "displayNameZh": "飞吻",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000035_000",
+      "jsonFile": "抱臂拒绝.json",
+      "descriptionEn": "A person crosses both forearms in front of the chest forming an X shape to signal refusal.",
+      "displayNameZh": "抱臂拒绝",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000036_000",
+      "jsonFile": "托腮沉思.json",
+      "descriptionEn": "A person rests one hand on the chin, gazes slightly downward, and holds still as if thinking deeply while standing in place.",
+      "displayNameZh": "托腮沉思",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000037_000",
+      "jsonFile": "奋力纵跳.json",
+      "descriptionEn": "A person bends the knees slightly, then jumps high into the air with both feet leaving the ground together, and lands with knees bent and arms swinging naturally for balance.",
+      "displayNameZh": "奋力纵跳",
+      "labelSource": "clip_labels.json"
+    },
+    {
+      "sourceStem": "00000038_000",
+      "jsonFile": "擦额拭汗.json",
+      "descriptionEn": "A person lifts one hand to the forehead and wipes across it once with the palm or back of the hand, then lowers the arm while standing in place as if wiping away sweat.",
+      "displayNameZh": "擦额拭汗",
+      "labelSource": "clip_labels.json"
+    }
+  ]
+}
