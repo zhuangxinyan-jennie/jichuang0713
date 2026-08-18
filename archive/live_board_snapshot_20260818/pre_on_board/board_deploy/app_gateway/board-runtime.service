@@ -1,0 +1,17 @@
+﻿[Unit]
+Description=Xiongda Board Interaction Runtime
+After=network.target xiongda-app-gateway.service
+Requires=xiongda-app-gateway.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=-/home/HwHiAiUser/jichuang/app_gateway.env
+# run_on_board.sh sources Ascend set_env.sh under `set -u`; systemd otherwise
+# omits LD_LIBRARY_PATH and the shell aborts before launching runtime workers.
+Environment=LD_LIBRARY_PATH=
+ExecStart=/bin/bash /home/HwHiAiUser/jichuang/run_on_board.sh
+ExecStop=/bin/bash /home/HwHiAiUser/jichuang/stop_board.sh
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,51 @@
+﻿{
+  "models": [
+    {
+      "name": "yolo_face_hand_person",
+      "source": "facial_test/train_yolov5_threeclass/runs/yolov5n_face_hand_person_gpu5/weights/best.onnx",
+      "input_name": "images",
+      "input_shape": [1, 3, 640, 640],
+      "input_format": "NCHW",
+      "output_prefix": "models_om/yolo_face_hand_person"
+    },
+    {
+      "name": "gesture_mlp",
+      "source": "gesture_recognition/artifacts/mlp/gesture_mlp.onnx",
+      "input_name": "features",
+      "input_shape": [1, 42],
+      "input_format": "ND",
+      "output_prefix": "models_om/gesture_mlp"
+    },
+    {
+      "name": "action_mlp",
+      "source": "motion/action_mlp.onnx",
+      "input_name": "features",
+      "input_shape": [1, 32, 288],
+      "input_format": "ND",
+      "output_prefix": "models_om/action_mlp"
+    },
+    {
+      "name": "face_det",
+      "source": "smart-home/weights/onnx_model/det.onnx",
+      "input_name": "input.1",
+      "input_shape": [1, 3, 640, 640],
+      "input_format": "NCHW",
+      "output_prefix": "models_om/face_det"
+    },
+    {
+      "name": "emotion",
+      "source": "smart-home/weights/onnx_model/emotion.onnx",
+      "input_name": "input_1",
+      "input_shape": [1, 64, 64, 1],
+      "input_format": "ND",
+      "output_prefix": "models_om/emotion"
+    }
+  ],
+  "pending": [
+    {
+      "name": "asr_funasr_streaming",
+      "status": "pending_board_runtime_design",
+      "reason": "current PC path depends on FunASR runtime and microphone loop; it is not yet converted into a board-side OM/ACL pipeline"
+    }
+  ]
+}

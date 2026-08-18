@@ -1,0 +1,820 @@
+﻿{
+  "board_host": "192.168.137.100",
+  "board_user": "root",
+  "snapshot_root": "archive/live_board_snapshot_20260818",
+  "copied_count": 107,
+  "skipped_count": 15,
+  "copied": [
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/pose_visibility_distance.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/pose_visibility_distance.py",
+      "size": 8890,
+      "mtime": 1649396482,
+      "sha256": "9e6cf9f7047b112f7d33f3d366788d34ca52380f8f8d02d7a9bcc31163bddf7a"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/dual_camera_hdmi_preview.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/dual_camera_hdmi_preview.py",
+      "size": 7943,
+      "mtime": 1649390882,
+      "sha256": "aceff2979dd0410a0f69f34cc4ceb6f78ca318713b705d5128d81dd5daa50d17"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/convert_models_on_board.sh",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/convert_models_on_board.sh",
+      "size": 1845,
+      "mtime": 1779427406,
+      "sha256": "91454363385b9cb3216301af19d610e233214ae983b238b121f6cc72dffa5d2e"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/crowd_flow/run_video.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/crowd_flow/run_video.py",
+      "size": 13050,
+      "mtime": 1784769003,
+      "sha256": "e49182206f3c7b9be6744865c7dd24489fe58982bf7555c499f2fdcd65829b90"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/crowd_flow/safety_config.json",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/crowd_flow/safety_config.json",
+      "size": 1388,
+      "mtime": 1784769003,
+      "sha256": "4cbd82d1d19d72b080317562a93ffa8696e64af505fa154e778f4cbea8c12451"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/crowd_flow/runtime.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/crowd_flow/runtime.py",
+      "size": 3633,
+      "mtime": 1784769003,
+      "sha256": "b6a2a39692edfe7b401a00bec5ae6ad83334d041f947a7671576bd2a339f5fe7"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/crowd_flow/tracker.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/crowd_flow/tracker.py",
+      "size": 6830,
+      "mtime": 1784769003,
+      "sha256": "dbef6164024b5a0f5400cdd89b6ef12f180d658b53cdcc53b80a6f44beadfbe3"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/crowd_flow/README.md",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/crowd_flow/README.md",
+      "size": 5563,
+      "mtime": 1784769003,
+      "sha256": "4a11cdb07b8e4f49c0cba4d2318f05952afa6fee11e383fee33e74feb6825b6e"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/crowd_flow/tests/test_runtime.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/crowd_flow/tests/test_runtime.py",
+      "size": 1923,
+      "mtime": 1784769003,
+      "sha256": "d17a11855f0eb3317e5577cf528918109e9c9fadecd069336eb2abf6df826d77"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/crowd_flow/tests/test_analyzer.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/crowd_flow/tests/test_analyzer.py",
+      "size": 11149,
+      "mtime": 1784769003,
+      "sha256": "e715920198b4dc2a1b49450b586c72f917af029a3cc05a065893aa38d7f5eb90"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/crowd_flow/tests/__init__.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/crowd_flow/tests/__init__.py",
+      "size": 48,
+      "mtime": 1784769003,
+      "sha256": "743acd7f4164cddf660d3ad5b696d97d3332aa47eaeb8ad380a1111022d12c76"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/crowd_flow/example_config.json",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/crowd_flow/example_config.json",
+      "size": 1133,
+      "mtime": 1784769003,
+      "sha256": "6e959b336fff414508252dc857578ace0a9b394aaa059ada461306ce16437df4"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/crowd_flow/__init__.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/crowd_flow/__init__.py",
+      "size": 596,
+      "mtime": 1784769003,
+      "sha256": "57d7392388de0d98965259b73976f691a47585c6b735734c7bb812af22beefda"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/crowd_flow/pipeline.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/crowd_flow/pipeline.py",
+      "size": 1810,
+      "mtime": 1784769003,
+      "sha256": "88609209378244734579ed1c00e55902ab823fc0e05a300bb9dfa66b2d1086da"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/crowd_flow/sidecar.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/crowd_flow/sidecar.py",
+      "size": 4500,
+      "mtime": 1784769003,
+      "sha256": "6cb695adeb6f2f7e20ba81a6860d8bdb05baf4f130ed7df287ee4453a2259f81"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/crowd_flow/analyzer.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/crowd_flow/analyzer.py",
+      "size": 33292,
+      "mtime": 1784769003,
+      "sha256": "7cce1677635e2cad52be29bf7f3d04895bc58a57e1e1d3ab610a20e73275d067"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/convert_pose_on_board.sh",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/convert_pose_on_board.sh",
+      "size": 961,
+      "mtime": 1779695172,
+      "sha256": "e3accbb7c8e19d8475cb2bcb19e55ef00bf1c2d2755996f0f40a6cdba5fd5a12"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/deploy_asr_npu_board.sh",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/deploy_asr_npu_board.sh",
+      "size": 3458,
+      "mtime": 1649618776,
+      "sha256": "e7e02c2ed0799e507d9ede4d4fefdca82a677fb248135b7a182cb850d0279f50"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/video_capture.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/video_capture.py",
+      "size": 909,
+      "mtime": 1649539333,
+      "sha256": "8ce4b59e2628ce419b8a90e7c310cf6f815704bc8af269cc6a43289c41c85520"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/board_playback_gate.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/board_playback_gate.py",
+      "size": 4809,
+      "mtime": 1649367019,
+      "sha256": "98055afacfac677a4e26a48dcb2bbd7dd39dfd89a3c106c4116e5e1a71a29021"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/aipp_pose_640_bgr.cfg",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/aipp_pose_640_bgr.cfg",
+      "size": 414,
+      "mtime": 1649364805,
+      "sha256": "9e6e0c2053b1d913e31523b24d9c56dff631ac802c887fb8820c524030b3d28d"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/distance_estimate.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/distance_estimate.py",
+      "size": 5587,
+      "mtime": 1649396483,
+      "sha256": "cb8b6453498d9b4621a06e42667772aed91cfea568375a02d095f8f5f6a4af9e"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/board_audio_receiver.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/board_audio_receiver.py",
+      "size": 57118,
+      "mtime": 1649367019,
+      "sha256": "1dce407146ae823e213b8dcad7a1cbf8ec4a9880dac43f8a272cc4c020249829"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/validate_pose_aipp_on_board.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/validate_pose_aipp_on_board.py",
+      "size": 5596,
+      "mtime": 1649364805,
+      "sha256": "9e24c9089f2b4df6a24a52f581c2f012ae4ab265760a6b443a93956fc1b939e6"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/stream_protocol.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/stream_protocol.py",
+      "size": 1163,
+      "mtime": 1777893102,
+      "sha256": "565e3ee23e628869303af27f709fd24dfbbf2e373f9fa49e7dc25c2209e33149"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/prepare_pose_aipp_golden.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/prepare_pose_aipp_golden.py",
+      "size": 4528,
+      "mtime": 1649364805,
+      "sha256": "007c037fa1132cf1a9e082437b32b51113218c43e6ac028b462d6b659d5aad86"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/run_board_runtime.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/run_board_runtime.py",
+      "size": 132190,
+      "mtime": 1784769003,
+      "sha256": "66bc329d199d04108a361781fc1a049a5053ff2cefde3ea4e34e84b8d2f34b41"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/model_manifest.json",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/model_manifest.json",
+      "size": 1547,
+      "mtime": 1779427406,
+      "sha256": "eb2ef322d664e492f54753c6d5b58463473c91d84dca9332146bb0c454143a54"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/convert_action_mlp_on_board.sh",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/convert_action_mlp_on_board.sh",
+      "size": 747,
+      "mtime": 1779427406,
+      "sha256": "f39488dda1c39931dc80ed4c5846b6ac53648c680c6c4c3ea4fffe0d05600d9b"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/audio_bridge.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/audio_bridge.py",
+      "size": 6440,
+      "mtime": 1784769003,
+      "sha256": "8089b293ca9ff5a6fd8dc3ca89a3cc356230fe0b3d8e32b52f3f8e9febd522d1"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/install_service.sh",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/install_service.sh",
+      "size": 1254,
+      "mtime": 1784769003,
+      "sha256": "b5f60934e7c7f94746dbf5c97ff459cd190758060159bffda3e36531372a692f"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/agent_proxy.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/agent_proxy.py",
+      "size": 3466,
+      "mtime": 1784769003,
+      "sha256": "bdcfe6a29e068eeeeca9d1de78f92ccca8d9d4b0821c6557d02375772ada5bb7"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/server.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/server.py",
+      "size": 14209,
+      "mtime": 1784769003,
+      "sha256": "b2d5b2fda77ec25a59afc8c42cb0fe9f87cc3948f742f444ecbb681dee360a2a"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/tests/test_agent_proxy.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/tests/test_agent_proxy.py",
+      "size": 2688,
+      "mtime": 1784769003,
+      "sha256": "566a39021c08fd9b9de0d47e731f0419d13e18348095a5234cc1aa72de0c2531"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/tests/test_core.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/tests/test_core.py",
+      "size": 7400,
+      "mtime": 1784769003,
+      "sha256": "b553e0b864fd2e2c0319b6d8f79aefa9ae1d0f0d5b123f912cca1a43a2dcc454"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/tests/test_map_store.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/tests/test_map_store.py",
+      "size": 1182,
+      "mtime": 1784769003,
+      "sha256": "f5505bcf9906c1d1d41efd431e4a9feab98761dd43476654a8805fc48d55ab8c"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/tests/__init__.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/tests/__init__.py",
+      "size": 0,
+      "mtime": 1784769003,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/tests/test_video_preview.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/tests/test_video_preview.py",
+      "size": 772,
+      "mtime": 1784769003,
+      "sha256": "0d9ad4945bf646ae80c7ad8073fe26754b15e92f0197e32ad7713713569ab3c7"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/tests/test_vision_state.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/tests/test_vision_state.py",
+      "size": 1300,
+      "mtime": 1784769003,
+      "sha256": "0858bf11ccf9b3107731feecb82f487bbb87e03619a03978670ac2ea5df79550"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/tests/test_audio_router.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/tests/test_audio_router.py",
+      "size": 890,
+      "mtime": 1784769003,
+      "sha256": "22990cb089e7b01ff645becc4ff0a274a6544b557ee81223db9e9c352c725b64"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/vision_state.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/vision_state.py",
+      "size": 3686,
+      "mtime": 1784769003,
+      "sha256": "411348814f69ad8b1cafd3e08d934ae82d5b75a1a3a6c0297c8acea1b6548d58"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/__init__.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/__init__.py",
+      "size": 168,
+      "mtime": 1784769003,
+      "sha256": "249236a755dcb31cfebbbddd9505792d199abb61eeb904f2c30960636abf0262"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/result_relay.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/result_relay.py",
+      "size": 2839,
+      "mtime": 1784769003,
+      "sha256": "b28ee21f25beffe00235d447c418413944f16aec343d04c9f1986e375eec2431"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/map_data/places_2d.json",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/map_data/places_2d.json",
+      "size": 7841,
+      "mtime": 1784769003,
+      "sha256": "cddc42fab64f1554e9f9b56f822d6ef7797188cbd1bf5d8e33f1092af015ad35"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/map_data/road_nav_graph.json",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/map_data/road_nav_graph.json",
+      "size": 19812,
+      "mtime": 1784769003,
+      "sha256": "989eb7ccc3b3499e50e928b070a8d562bc12a84a6252a9053acd8530bd3fa8df"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/map_data/poi_registry.json",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/map_data/poi_registry.json",
+      "size": 9149,
+      "mtime": 1784769003,
+      "sha256": "aeff73a8bbda5cff5a075052e48d9d7147969e9674eeeb8f4242c3b9e4091811"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/video_preview.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/video_preview.py",
+      "size": 1475,
+      "mtime": 1784769003,
+      "sha256": "ef2d65fc8e18928f43ec2ddae2159b66456ddd40e1a9a3214176ebbceb91c5d5"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/app-gateway.service",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/app-gateway.service",
+      "size": 756,
+      "mtime": 1784769003,
+      "sha256": "8ef8b00f0291336b0c6f35ad0010878e8e504344fbcb1201d425332620389f7a"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/audio_router.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/audio_router.py",
+      "size": 8679,
+      "mtime": 1784769003,
+      "sha256": "4b4432f08ec31f318afc6300fe6c64bc104e8b0f035a5cfbf425ef5d7037bbaa"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/board-runtime.service",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/board-runtime.service",
+      "size": 587,
+      "mtime": 1784769003,
+      "sha256": "f435839a0a9d8d408df3d8c8759d451e295aa18c34a415302f2bfae426d93874"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/map_store.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/map_store.py",
+      "size": 2275,
+      "mtime": 1784769003,
+      "sha256": "5cff1a19d6e3c91fbb3014d93536d4fa2548080f3aae63ed52f8ad475749e04d"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/audio_router_control.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/audio_router_control.py",
+      "size": 814,
+      "mtime": 1784769003,
+      "sha256": "614c0d9bd54fa14955451f9578fe79ebc57c879b7d137a2dad5054c583ba3480"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/core.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/app_gateway/core.py",
+      "size": 29698,
+      "mtime": 1784769003,
+      "sha256": "8ce9396a9fdbdfa0eeda5e661ccd217b47a325a7d3ab7ba23f5085a3e5e56493"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/probe_asr_npu_ready.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/probe_asr_npu_ready.py",
+      "size": 3253,
+      "mtime": 1649618776,
+      "sha256": "d629b594a4bfaacb2c3e66e207d655fe1ddab285a993cf18ac602a2616a99a34"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/lateral_position.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/lateral_position.py",
+      "size": 7248,
+      "mtime": 1649396483,
+      "sha256": "c2bb1d9fcc8ef289acfc10bb6cff95df6c6588db58632993382374b5964fd4c3"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/om_streaming_ctc.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/om_streaming_ctc.py",
+      "size": 19371,
+      "mtime": 1649377885,
+      "sha256": "69dc328623578cb7ecbd2346a8de9baf4aee6ede1121675f496579ec8f8088d3"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/pc_asr_terminal.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/pc_asr_terminal.py",
+      "size": 5340,
+      "mtime": 1649969810,
+      "sha256": "baa2a8c3c225737cb3501ed514928567af719ac2a37ffaa4b69c5c9dd7d82d79"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/phone_ws_bridge.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/phone_ws_bridge.py",
+      "size": 13997,
+      "mtime": 1649363509,
+      "sha256": "fcd277b7bbf5b060be6e324d2c9df97bf78a8840705f913d1b6d721937ef2ed5"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/convert_pose_aipp_on_board.sh",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/convert_pose_aipp_on_board.sh",
+      "size": 2285,
+      "mtime": 1649364805,
+      "sha256": "3c868b4cb626e8e81fab1a5e4de5d1eec0c0085c3cc1ce562a2ef37964bc7283"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/fpga_udp_capture.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/fpga_udp_capture.py",
+      "size": 7631,
+      "mtime": 1784721362,
+      "sha256": "9de240b374ebcc7ee93836b8348f9a380ddace91891763d23de769b577bc4910"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/AIPP_HANDOFF.md",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/AIPP_HANDOFF.md",
+      "size": 2857,
+      "mtime": 1649364805,
+      "sha256": "166e6095cb9535387a6a384ae9121af6784220f1c69a012aa4e574c5c7028b78"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/probe_ctc_om_ready.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/probe_ctc_om_ready.py",
+      "size": 3028,
+      "mtime": 1649969360,
+      "sha256": "e086cccea9bf6d876ca66819f6ec7b8f4dab8ff78b0d308bc133f763703dbad3"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/board_speaker_player.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/board_speaker_player.py",
+      "size": 10536,
+      "mtime": 1784792825,
+      "sha256": "8fbda0eea86af6a67d2f3fcd30b17024bc60d7b3cd8fcf6d924b0aa6186f8e49"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/board_playback_gate_http.py",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/board_playback_gate_http.py",
+      "size": 3223,
+      "mtime": 1649367019,
+      "sha256": "c5e7f38bd6cf132786f4ff8917271f071fc6415d7868f74af89291e40fcd690f"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/ctc_onnx_report.json",
+      "local": "archive/live_board_snapshot_20260818/pre_on_board/board_deploy/ctc_onnx_report.json",
+      "size": 38418,
+      "mtime": 1649969360,
+      "sha256": "034b261b93d2e143c326d3d9b6798a53130b90234d011a12923baee4d9492eb9"
+    },
+    {
+      "remote": "/home/HwHiAiUser/jichuang/dual_camera_hdmi_preview.py",
+      "local": "archive/live_board_snapshot_20260818/jichuang/dual_camera_hdmi_preview.py",
+      "size": 7943,
+      "mtime": 1649390881,
+      "sha256": "aceff2979dd0410a0f69f34cc4ceb6f78ca318713b705d5128d81dd5daa50d17"
+    },
+    {
+      "remote": "/home/HwHiAiUser/jichuang/ensure_hdmi_display.sh",
+      "local": "archive/live_board_snapshot_20260818/jichuang/ensure_hdmi_display.sh",
+      "size": 1457,
+      "mtime": 1649396483,
+      "sha256": "ce0578c9fa664f9040d4147c36868efde6d8807ff31ad31ad360cdc97f279065"
+    },
+    {
+      "remote": "/home/HwHiAiUser/jichuang/start_hdmi_camera_preview.sh",
+      "local": "archive/live_board_snapshot_20260818/jichuang/start_hdmi_camera_preview.sh",
+      "size": 1376,
+      "mtime": 1649396483,
+      "sha256": "9ab13c64dbf34e69a77adb54aea6c680922f05a474ced39878f2629b579bb55c"
+    },
+    {
+      "remote": "/home/HwHiAiUser/jichuang/stop_board.sh",
+      "local": "archive/live_board_snapshot_20260818/jichuang/stop_board.sh",
+      "size": 295,
+      "mtime": 1784769003,
+      "sha256": "80632f402fddc4679783497c757c5650c33b01b2e5cc51123a2912c02c1998a6"
+    },
+    {
+      "remote": "/home/HwHiAiUser/jichuang/start_dual_camera_hdmi.sh",
+      "local": "archive/live_board_snapshot_20260818/jichuang/start_dual_camera_hdmi.sh",
+      "size": 3518,
+      "mtime": 1649390882,
+      "sha256": "247d698d92bbd5e966c891fd4e95d856d1963ba0ef0512d72dc52d297bb9d2ba"
+    },
+    {
+      "remote": "/home/HwHiAiUser/jichuang/run_on_board.sh",
+      "local": "archive/live_board_snapshot_20260818/jichuang/run_on_board.sh",
+      "size": 8264,
+      "mtime": 1784786159,
+      "sha256": "e3b973899c9cfaea029560a1f9f3641fc9daaabc9e98f4e0d2b44d8da9925c23"
+    },
+    {
+      "remote": "/home/HwHiAiUser/jichuang/start_hdmi_kiosk.sh",
+      "local": "archive/live_board_snapshot_20260818/jichuang/start_hdmi_kiosk.sh",
+      "size": 3910,
+      "mtime": 1649365824,
+      "sha256": "280f447e0f3b2961c9a68058f06267f1ed1d606a30352f945de76c6012a84b27"
+    },
+    {
+      "remote": "/home/HwHiAiUser/jichuang/stop_hdmi_kiosk.sh",
+      "local": "archive/live_board_snapshot_20260818/jichuang/stop_hdmi_kiosk.sh",
+      "size": 555,
+      "mtime": 1649391857,
+      "sha256": "edee42113dd59cd7f123d265fab587f526d8cb7af8063d46121ae6cb181194ca"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/rules.json",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/rules.json",
+      "size": 1867,
+      "mtime": 1778733268,
+      "sha256": "9f822a55d609e671ec8cb7e267011636e38f0528dac6db24f57aa506516dfa8d"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/agent.py",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/agent.py",
+      "size": 4952,
+      "mtime": 1784636637,
+      "sha256": "57cd8b7cdbbb587eaed237fa3601577ce599db7b2f5e93484e6b2c429359c5db"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/road_nav.py",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/road_nav.py",
+      "size": 10685,
+      "mtime": 1784636637,
+      "sha256": "6380241a3de785157d375d5dde5f79d20be771b5b1f1e6d0dd159089e4bf778e"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/map_guide.py",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/map_guide.py",
+      "size": 18813,
+      "mtime": 1784392586,
+      "sha256": "ca3d551dfb4452b2f1fa953e9ee25b53d822571b73678b35d21495432131a6e4"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/weather_guide.py",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/weather_guide.py",
+      "size": 10871,
+      "mtime": 1784652459,
+      "sha256": "4cf795c3b2058800613c83648c5f5c99529b55ef18af5f67035ad5eaeb0380ef"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/poi_registry.py",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/poi_registry.py",
+      "size": 1608,
+      "mtime": 1784636637,
+      "sha256": "adce929ef8c4e7b4ad168c6976187ed40b56fc6981ee7ce06b0ac3ebc468ff6c"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/speech_utils.py",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/speech_utils.py",
+      "size": 1768,
+      "mtime": 1778733268,
+      "sha256": "643d893c5f17136b4da61e7048b5aad4fdf0a4825528a6e3c46cd0f347805359"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/start_on_board.sh",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/start_on_board.sh",
+      "size": 752,
+      "mtime": 1784649289,
+      "sha256": "f64a8a3c9574011b19352d6937ce8636dac08309d04e50f0618b5b94e488ed92"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/tts/dashscope_cosyvoice_client.py",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/tts/dashscope_cosyvoice_client.py",
+      "size": 10146,
+      "mtime": 1784652459,
+      "sha256": "f093828d1d122f34fef57709043e9e32864114ced5257fd46d625317239dc16c"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/integration_test/requirements.txt",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/integration_test/requirements.txt",
+      "size": 77,
+      "mtime": 1778733268,
+      "sha256": "9823d903032d4ce9bdf4b6b9b63ad68200883a0c2d89d170c1e314789af7135b"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/integration_test/server.py",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/integration_test/server.py",
+      "size": 10603,
+      "mtime": 1784636637,
+      "sha256": "c9a20196d816907db61ce18d7c0a295d44e5b145c9845e12bf06812ac9c8d5e9"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/integration_test/board_state.py",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/integration_test/board_state.py",
+      "size": 2617,
+      "mtime": 1784636637,
+      "sha256": "48db45cfa4bc7a7a22655a2583503f727cf358031c41b7319f45645d75db8996"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/integration_test/multimodal_gate.py",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/integration_test/multimodal_gate.py",
+      "size": 5497,
+      "mtime": 1784392586,
+      "sha256": "a1855a065486bb391cb924a7de14471506fac9a0d57b730acf5cdb3d25f621a8"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/integration_test/settings.py",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/integration_test/settings.py",
+      "size": 2467,
+      "mtime": 1784392586,
+      "sha256": "3dc8d4fbbe8058b0ad09203eee9ee083c10c6493cd270b2c742d94a5fad47b12"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/integration_test/schemas.py",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/integration_test/schemas.py",
+      "size": 1464,
+      "mtime": 1784636637,
+      "sha256": "527eaa06cda637531c6a9b1ffb97bf7cbd36bfecbdd060c405eed1cbdec37295"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/output_parser.py",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/output_parser.py",
+      "size": 8003,
+      "mtime": 1778733268,
+      "sha256": "a2018408440369c5cb5fdba110f4dc5eca4f58ddcb443a177b08e391657d823b"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/planner.py",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/planner.py",
+      "size": 7991,
+      "mtime": 1784649254,
+      "sha256": "c8ce07fd66aa78c8e4a0a85f0c7c2b1b1c2de1d3e012026054dfa8385e64baa8"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/perception.py",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/perception.py",
+      "size": 5210,
+      "mtime": 1784392586,
+      "sha256": "4cbd76e3454d3ce19f835ac2372365210e7531c33c842cfd06683bcf80b1d59b"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/story_engine.py",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/story_engine.py",
+      "size": 10616,
+      "mtime": 1779107578,
+      "sha256": "1b212985a2759d4cf27d9a8cd11c14eb6067381d5deb840e3388842e1895f216"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/memory.py",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/memory.py",
+      "size": 2957,
+      "mtime": 1778733268,
+      "sha256": "1f214f6e3f1b374b560b9532ff8dc14e84785e3667219887a6137ec9c0e58591"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/README_BOARD_LLM.md",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/README_BOARD_LLM.md",
+      "size": 4366,
+      "mtime": 1784649273,
+      "sha256": "531da40abbca68f95a6179f8851007b737dfff47215c74e51c392459e7089fe5"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/llm_backend.py",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/llm_backend.py",
+      "size": 5143,
+      "mtime": 1784649240,
+      "sha256": "562bd1ab2903416f9dba5cbf8d56657d476ea1befd93426b278388d7c9605731"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/game_state.py",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/game_state.py",
+      "size": 15240,
+      "mtime": 1784392586,
+      "sha256": "a04a801bd56ca88b556f52118dd318c96d9e544bc516c6862cc5b960d954cc53"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/board_cloud_smoke.py",
+      "local": "archive/live_board_snapshot_20260818/bear_agent_cloud/board_cloud_smoke.py",
+      "size": 3663,
+      "mtime": 1784652459,
+      "sha256": "544f2cc73ca95f149b1bb5457cf079c35253b306d8ad6de708e5bfc9b87277e7"
+    },
+    {
+      "remote": "/home/HwHiAiUser/HGBO/scripts/query_hw_on_board.py",
+      "local": "archive/live_board_snapshot_20260818/HGBO/scripts/query_hw_on_board.py",
+      "size": 2615,
+      "mtime": 1783260050,
+      "sha256": "40c083f070ee44e4320295d702bb5c97cbbf1a9ae85d810f38473fb1f539c995"
+    },
+    {
+      "remote": "/home/HwHiAiUser/HGBO/scripts/run_compare.py",
+      "local": "archive/live_board_snapshot_20260818/HGBO/scripts/run_compare.py",
+      "size": 1841,
+      "mtime": 1783249322,
+      "sha256": "2d56448558f5ef8474f5ec25b8e25b3ba96857a04815f28313ad81fc9c74f0f5"
+    },
+    {
+      "remote": "/home/HwHiAiUser/HGBO/scripts/patch_aclnn_autogen.py",
+      "local": "archive/live_board_snapshot_20260818/HGBO/scripts/patch_aclnn_autogen.py",
+      "size": 1548,
+      "mtime": 1649371878,
+      "sha256": "2398275ac283c655a096fad45fce65bc6efa601b69c2ca4f61179003bfdcb7fc"
+    },
+    {
+      "remote": "/home/HwHiAiUser/HGBO/scripts/run_dse.py",
+      "local": "archive/live_board_snapshot_20260818/HGBO/scripts/run_dse.py",
+      "size": 298,
+      "mtime": 1649436292,
+      "sha256": "54cf54922629169c7283f1eff61a585523f9fe4bbcea5f775a59d2d889966a45"
+    },
+    {
+      "remote": "/home/HwHiAiUser/HGBO/README.md",
+      "local": "archive/live_board_snapshot_20260818/HGBO/README.md",
+      "size": 3948,
+      "mtime": 1783249120,
+      "sha256": "083ad4da972fb96158eadcd323ec2ad064bf3560112c2154ff5d130809ab8186"
+    },
+    {
+      "remote": "/home/HwHiAiUser/HGBO/config/hardware/ascend310b.yaml",
+      "local": "archive/live_board_snapshot_20260818/HGBO/config/hardware/ascend310b.yaml",
+      "size": 1891,
+      "mtime": 1649436291,
+      "sha256": "0c3e22797955fd80a9c48016fbf45031240c624eef3d2409e99dcf3a3894815d"
+    },
+    {
+      "remote": "/home/HwHiAiUser/HGBO/config/operators/keypoint_post_process_params.yaml",
+      "local": "archive/live_board_snapshot_20260818/HGBO/config/operators/keypoint_post_process_params.yaml",
+      "size": 237,
+      "mtime": 1649436291,
+      "sha256": "a2c0205400c6b539980cfa0597bdf0a24e40b61a389948ea14fe15e96cc51a58"
+    },
+    {
+      "remote": "/home/HwHiAiUser/HGBO/config/operators/keypoint_post_process_config.yaml",
+      "local": "archive/live_board_snapshot_20260818/HGBO/config/operators/keypoint_post_process_config.yaml",
+      "size": 483,
+      "mtime": 1649436291,
+      "sha256": "213a97f9dc58381795359c29dd85ecb9349a34d7c1b4c4fd41649b2f7fd75cee"
+    },
+    {
+      "remote": "/home/HwHiAiUser/HGBO/config/operators/video_pre_fuse_config.yaml",
+      "local": "archive/live_board_snapshot_20260818/HGBO/config/operators/video_pre_fuse_config.yaml",
+      "size": 754,
+      "mtime": 1649436292,
+      "sha256": "85a0b053bf8d96c8bdb0d1751071a7417b9b3af5bcfb81bede71ff1d220ac631"
+    },
+    {
+      "remote": "/home/HwHiAiUser/HGBO/config/operators/video_pre_fuse_params.yaml",
+      "local": "archive/live_board_snapshot_20260818/HGBO/config/operators/video_pre_fuse_params.yaml",
+      "size": 363,
+      "mtime": 1649436292,
+      "sha256": "12944adab3215b2956970a301330e832cb5ee2501630570fede6d9d017101c81"
+    }
+  ],
+  "skipped": [
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/crowd_flow/__pycache__",
+      "reason": "excluded directory"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/__pycache__",
+      "reason": "excluded directory"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/__pycache__",
+      "reason": "excluded directory"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/app_gateway/map_data/park-map.png",
+      "reason": "unsupported file type"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/phone_ws_certs/dev-cert.pem",
+      "reason": "excluded suffix"
+    },
+    {
+      "remote": "/home/HwHiAiUser/pre_on_board/board_deploy/phone_ws_certs/dev-key.pem",
+      "reason": "excluded suffix"
+    },
+    {
+      "remote": "/home/HwHiAiUser/jichuang/app_gateway.env",
+      "reason": "excluded sensitive filename"
+    },
+    {
+      "remote": "/home/HwHiAiUser/jichuang/app_gateway_certs",
+      "reason": "excluded directory"
+    },
+    {
+      "remote": "/home/HwHiAiUser/jichuang/output",
+      "reason": "excluded directory"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/config.py",
+      "reason": "excluded sensitive filename"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/__pycache__",
+      "reason": "excluded directory"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/board_env.sh",
+      "reason": "excluded sensitive filename"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/data",
+      "reason": "excluded directory"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/outputs",
+      "reason": "excluded directory"
+    },
+    {
+      "remote": "/home/HwHiAiUser/bear_agent_cloud/tts/__pycache__",
+      "reason": "excluded directory"
+    }
+  ]
+}
